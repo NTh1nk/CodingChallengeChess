@@ -18,4 +18,10 @@ public class MyBot : IChessBot
     {
         return 0.0f;
     }
+
+    int evaluate(Board board)
+    {
+
+        return 0;
+    }
 }
