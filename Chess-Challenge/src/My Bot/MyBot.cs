@@ -12,6 +12,7 @@ public class MyBot : IChessBot
     public Move Think(Board board, Timer timer)
     {
         Move[] moves = board.GetLegalMoves();
+        Console.WriteLine(isPieceProtectedAfterMove(board, moves[0]));
         return moves[0];
     }
     private float getPieceValue(Board board, int legalMoveCounter)
@@ -21,7 +22,10 @@ public class MyBot : IChessBot
 
     int evaluate(Board board)
     {
-
         return 0;
+    }
+
+    public bool isPieceProtectedAfterMove(Board board, Move move) {
+        return board.SquareIsAttackedByOpponent(move.TargetSquare);
     }
 }
