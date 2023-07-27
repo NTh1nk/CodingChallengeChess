@@ -31,6 +31,6 @@ public class MyBot : IChessBot
     }
 
     public bool isPieceProtectedAfterMove(Board board, Move move) {
-        return board.SquareIsAttackedByOpponent(move.TargetSquare);
+        return !board.SquareIsAttackedByOpponent(move.TargetSquare);
     }
 }
