@@ -2,12 +2,16 @@
 
 public class MyBot : IChessBot
 {
+    // right now funktions are seperated. before submision, everything will be compacted into the think function.
+
     //example code
     //public Move Think(Board board, Timer timer)
     //{
     //    Move[] moves = board.GetLegalMoves();
     //    return moves[0];
     //}
+
+    int[] pieceValue = new int[5] {100,300,300,500,900};
 
     public Move Think(Board board, Timer timer)
     {
