@@ -16,6 +16,6 @@ public class MyBot : IChessBot
     }
     private float getPieceValue(Board board, int legalMoveCounter)
     {
-
+        return 0.0f;
     }
 }
