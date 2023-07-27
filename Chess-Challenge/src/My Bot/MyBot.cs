@@ -40,6 +40,7 @@ public class MyBot : IChessBot
         {
             return bMove;
         }
+        Console.WriteLine(isPieceProtectedAfterMove(board, moves[0]));
         return moves[0];
     }
 
@@ -84,7 +85,10 @@ public class MyBot : IChessBot
 
     int evaluate(Board board)
     {
-
         return 0;
+    }
+
+    public bool isPieceProtectedAfterMove(Board board, Move move) {
+        return !board.SquareIsAttackedByOpponent(move.TargetSquare);
     }
 }
