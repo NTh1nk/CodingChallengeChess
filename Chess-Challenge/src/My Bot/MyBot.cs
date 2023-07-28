@@ -53,14 +53,8 @@ public class MyBot : IChessBot
             for (int y = 0; y <= 7; y++)
             {
                 var p = board.GetPiece(new Square(x, y));
-                if (p.IsWhite == weAreWhite) // checks if we own the piece
-                {
-                    totalPieceValue += getPieceValue(p.PieceType, 7 - x, 7 - y);
-                }
-                else
-                {
-                    totalPieceValue -= getPieceValue(p.PieceType, x, y) * 0.9F;
-                }
+
+                totalPieceValue += getPieceValue(p.PieceType, p.IsWhite ? x : 7 - x, p.IsWhite ? y : 7 - y) * (p.IsWhite == weAreWhite ? 1 : -0.9F);
             }
         }
         Console.WriteLine("total piecevalue is:" + totalPieceValue);
