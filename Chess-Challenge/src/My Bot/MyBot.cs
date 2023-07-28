@@ -30,18 +30,22 @@ public class MyBot : IChessBot
         {
             // code block to be executed
             board.MakeMove(move);
-            var skipped = board.TrySkipTurn();  // LOOK HERE: this needs to be here so we can if pieces will be atacked in the next round
 
-            float idk = getPieceValues(board);
-            if (idk > bMoveMat)
-            {
-                bMove = move; 
-                bMoveMat = idk;
-                Console.WriteLine("this move was better so is changing to " + move);
-            }
+            var skipped = board.TrySkipTurn();  // LOOK HERE: this needs to be here so we can if pieces will be atacked in the next round
+            float v = getPieceValues(board);
             if (skipped)
             {
                 board.UndoSkipTurn();
+            }
+            if (board.IsDraw())
+            {
+                v -= 100; // try to avoid a draw
+            }
+            if (v > bMoveMat)
+            {
+                bMove = move; 
+                bMoveMat = v;
+                Console.WriteLine("this move was better so is changing to " + move);
             }
             board.UndoMove(move);
 
@@ -84,6 +88,7 @@ public class MyBot : IChessBot
 
         //    }
         //}
+
         Console.WriteLine("total piecevalue is:" + totalPieceValue);
         
         return totalPieceValue;
