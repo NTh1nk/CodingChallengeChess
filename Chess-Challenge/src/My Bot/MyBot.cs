@@ -1,6 +1,8 @@
 ﻿using ChessChallenge.API;
 using System;
 using System.ComponentModel;
+using System.Linq;
+using System.Net.NetworkInformation;
 using System.Security.Cryptography.X509Certificates;
 
 public class MyBot : IChessBot
@@ -28,7 +30,7 @@ public class MyBot : IChessBot
         {
             // code block to be executed
             board.MakeMove(move);
-            board.TrySkipTurn();  // LOOK HERE: this needs to be here so we can if pieces will be atacked in the next round
+            var skipped = board.TrySkipTurn();  // LOOK HERE: this needs to be here so we can if pieces will be atacked in the next round
 
             float idk = getPieceValues(board);
             if (idk > bMoveMat)
@@ -37,7 +39,10 @@ public class MyBot : IChessBot
                 bMoveMat = idk;
                 Console.WriteLine("this move was better so is changing to " + move);
             }
-            board.UndoSkipTurn();
+            if (skipped)
+            {
+                board.UndoSkipTurn();
+            }
             board.UndoMove(move);
 
         }
@@ -52,24 +57,34 @@ public class MyBot : IChessBot
     private float getPieceValues(Board board)
     {
         totalPieceValue = 0;
-        for (int x = 0; x <= 7; x++)
-        {
-            for (int y = 0; y <= 7; y++)
-            {
-                var s = new Square(x, y);
-                var p = board.GetPiece(s);
-                totalPieceValue += getPieceValue(p.PieceType, p.IsWhite ? x : 7 - x, p.IsWhite ? y : 7 - y)
-                    * (p.IsWhite == weAreWhite ? (board.SquareIsAttackedByOpponent(s) ? 0.1f : 1) : -0.9F);
-                Console.WriteLine(getPieceValue(p.PieceType, p.IsWhite ? x : 7 - x, p.IsWhite ? y : 7 - y)
-                    * (p.IsWhite == weAreWhite ? (board.SquareIsAttackedByOpponent(s) ? 0.1f : 1) : -0.9F));
-                    
-            }
-        }
-        Console.WriteLine("total piecevalue is:" + totalPieceValue);
+        //Console.WriteLine(board.GetAllPieceLists().SelectMany(x => x).ToList().Count);
 
+        foreach (Piece p in board.GetAllPieceLists().SelectMany(x => x).ToList())
+        {
+            var s = p.Square;
+            totalPieceValue += getPieceValue(p.PieceType, s.File, p.IsWhite ? s.Rank : 7 - s.Rank)
+                * (p.IsWhite == weAreWhite ? (board.SquareIsAttackedByOpponent(s) ? 0.1f : 1) : -0.9F);
+            //Console.WriteLine(getPieceValue(p.PieceType, s.Rank, p.IsWhite ? s.File : 7 - s.File)
+            //    * (p.IsWhite == weAreWhite ? (board.SquareIsAttackedByOpponent(s) ? 0.1f : 1) : -0.9F));
+        }
+        //for (int x = 0; x <= 7; x++)
+        //{
+        //    for (int y = 0; y <= 7; y++)
+        //    {
+        //        var s = new Square(x, y);
+        //        var p = board.GetPiece(s);
+        //        totalPieceValue += getPieceValue(p.PieceType, x, p.IsWhite ? y : 7 - y)
+        //            * (p.IsWhite == weAreWhite ? (board.SquareIsAttackedByOpponent(s) ? 0.1f : 1) : -0.9F);
+        //        //Console.WriteLine(getPieceValue(p.PieceType, p.IsWhite ? x : 7 - x, p.IsWhite ? y : 7 - y)
+        //        //* (p.IsWhite == weAreWhite ? (board.SquareIsAttackedByOpponent(s) ? 0.1f : 1) : -0.9F));
+
+        //    }
+        //}
+        Console.WriteLine("total piecevalue is:" + totalPieceValue);
+        
         return totalPieceValue;
     }
-    private float getPieceValue(PieceType pieceType,int x, int y)
+    private float getPieceValue(PieceType pieceType, int x, int y)
     {
         switch((int)pieceType)
         {
