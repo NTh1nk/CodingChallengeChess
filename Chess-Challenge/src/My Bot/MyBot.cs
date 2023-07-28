@@ -28,6 +28,8 @@ public class MyBot : IChessBot
         {
             // code block to be executed
             board.MakeMove(move);
+            board.TrySkipTurn();  // LOOK HERE: this needs to be here so we can if pieces will be atacked in the next round
+
             float idk = getPieceValues(board);
             if (idk > bMoveMat)
             {
@@ -35,6 +37,7 @@ public class MyBot : IChessBot
                 bMoveMat = idk;
                 Console.WriteLine("this move was better so is changing to " + move);
             }
+            board.UndoSkipTurn();
             board.UndoMove(move);
 
         }
@@ -53,9 +56,13 @@ public class MyBot : IChessBot
         {
             for (int y = 0; y <= 7; y++)
             {
-                var p = board.GetPiece(new Square(x, y));
-
-                totalPieceValue += getPieceValue(p.PieceType, p.IsWhite ? x : 7 - x, p.IsWhite ? y : 7 - y) * (p.IsWhite == weAreWhite ? 1 : -0.9F);
+                var s = new Square(x, y);
+                var p = board.GetPiece(s);
+                totalPieceValue += getPieceValue(p.PieceType, p.IsWhite ? x : 7 - x, p.IsWhite ? y : 7 - y)
+                    * (p.IsWhite == weAreWhite ? (board.SquareIsAttackedByOpponent(s) ? 0.1f : 1) : -0.9F);
+                Console.WriteLine(getPieceValue(p.PieceType, p.IsWhite ? x : 7 - x, p.IsWhite ? y : 7 - y)
+                    * (p.IsWhite == weAreWhite ? (board.SquareIsAttackedByOpponent(s) ? 0.1f : 1) : -0.9F));
+                    
             }
         }
         Console.WriteLine("total piecevalue is:" + totalPieceValue);
@@ -77,6 +84,7 @@ public class MyBot : IChessBot
             case 5:  //PieceType.Queen:
                 return 900;
         }
+        
         return 0; 
         
     }
