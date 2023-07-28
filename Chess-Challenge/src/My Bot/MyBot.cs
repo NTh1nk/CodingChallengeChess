@@ -17,12 +17,13 @@ public class MyBot : IChessBot
     // how much each piece is worth
     float totalPieceValue;
     bool weAreWhite;
-        Move bMove;
+    Move bMove;
     public Move Think(Board board, Timer timer)
     {
         weAreWhite = board.IsWhiteToMove;
+        Console.WriteLine(" ------ calculate new move -----", timer);
         Move[] moves = board.GetLegalMoves();
-        float bMoveMat = 0f;
+        float bMoveMat = float.MinValue;
         foreach (var move in moves)
         {
             // code block to be executed
@@ -32,7 +33,7 @@ public class MyBot : IChessBot
             {
                 bMove = move; 
                 bMoveMat = idk;
-                Console.WriteLine("this move was better so is chaning");
+                Console.WriteLine("this move was better so is changing to " + move);
             }
             board.UndoMove(move);
 
