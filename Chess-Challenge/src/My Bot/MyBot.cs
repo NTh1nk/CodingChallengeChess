@@ -60,9 +60,8 @@ public class MyBot : IChessBot
 
         if(board.IsInCheckmate())
         {
-            return 1000000000000000000;
+            return 1000000000000000000; // very height number (chose not to use float.MaxValue beacuse it uses more tokens (3 instead of 1)) 
         }
-        //Console.WriteLine(board.GetAllPieceLists().SelectMany(x => x).ToList().Count);
 
         foreach (Piece p in board.GetAllPieceLists().SelectMany(x => x))
         {
