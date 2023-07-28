@@ -57,9 +57,14 @@ public class MyBot : IChessBot
     private float getPieceValues(Board board)
     {
         totalPieceValue = 0;
+
+        if(board.IsInCheckmate())
+        {
+            return 1000000000000000000;
+        }
         //Console.WriteLine(board.GetAllPieceLists().SelectMany(x => x).ToList().Count);
 
-        foreach (Piece p in board.GetAllPieceLists().SelectMany(x => x).ToList())
+        foreach (Piece p in board.GetAllPieceLists().SelectMany(x => x))
         {
             var s = p.Square;
             totalPieceValue += getPieceValue(p.PieceType, s.File, p.IsWhite ? s.Rank : 7 - s.Rank)
