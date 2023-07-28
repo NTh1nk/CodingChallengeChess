@@ -25,17 +25,18 @@ public class MyBot : IChessBot
         float bMoveMat = 0f;
         foreach (var move in moves)
         {
-             // code block to be executed
-             board.MakeMove(move);
+            // code block to be executed
+            board.MakeMove(move);
             float idk = getPieceValues(board);
             if (idk > bMoveMat)
             {
                 bMove = move; 
+                bMoveMat = idk;
+                Console.WriteLine("this move was better so is chaning");
             }
             board.UndoMove(move);
 
         }
-        Console.WriteLine("total piecevalue is:"+getPieceValues(board));
         if (bMove != null)
         {
             return bMove;
@@ -54,14 +55,16 @@ public class MyBot : IChessBot
                 var p = board.GetPiece(new Square(x, y));
                 if (p.IsWhite == weAreWhite) // checks if we own the piece
                 {
-                    totalPieceValue += getPieceValue(p.PieceType, x, y);
+                    totalPieceValue += getPieceValue(p.PieceType, 7 - x, 7 - y);
                 }
                 else
                 {
-                    totalPieceValue -= getPieceValue(p.PieceType, 7 - x, 7 - y) * 0.9F;
+                    totalPieceValue -= getPieceValue(p.PieceType, x, y) * 0.9F;
                 }
             }
         }
+        Console.WriteLine("total piecevalue is:" + totalPieceValue);
+
         return totalPieceValue;
     }
     private float getPieceValue(PieceType pieceType,int x, int y)
