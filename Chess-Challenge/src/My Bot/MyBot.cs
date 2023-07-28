@@ -64,17 +64,17 @@ public class MyBot : IChessBot
     }
     private float getPieceValue(PieceType pieceType,int x, int y)
     {
-        switch(pieceType)
+        switch((int)pieceType)
         {
-            case PieceType.Pawn:
+            case 1:  //PieceType.Pawn:
                 return 100 + y * 10;
-            case PieceType.Knight:
+            case 2:  //PieceType.Knight:
                 return 300;
-            case PieceType.Bishop:
+            case 3:  //PieceType.Bishop:
                 return 300;
-            case PieceType.Rook:
+            case 4:  //PieceType.Rook:
                 return 500;
-            case PieceType.Queen:
+            case 5:  //PieceType.Queen:
                 return 900;
         }
         return 0; 
