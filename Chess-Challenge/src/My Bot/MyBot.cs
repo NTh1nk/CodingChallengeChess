@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Net.NetworkInformation;
 using System.Security.Cryptography.X509Certificates;
+using System.Transactions;
 
 public class MyBot : IChessBot
 {
@@ -22,13 +23,18 @@ public class MyBot : IChessBot
     bool weAreWhite;
     Move bMove;
     //double arrCenterDistance = 33333333322222233211112332100123321001233211112332222223333333330.0; DOES NOT WORK because its floating point number
-    double[] arrCenterDistance = { 333333333222222, 332111123321001, 233210012332111, 123322222233333, 33330 }; // kinda does work but hacky solution
+    string pieceSqareValues;  // kinda does work but hacky solution
+    int[] pieceValues = {100, 300, 300, 500, 900, 2000 };
     int[] arrCenterDistanceInt;
     public Move Think(Board board, Timer timer)
     {
-        arrCenterDistanceInt = toPieceArray(arrCenterDistance);
+        
+        pieceSqareValues = toPieceArray(new[] { 1010101018181818, 1212141611111215, 1010101411090810, 1112120610101010, 0002040402061010, 0410121304111314, 0410131404111213, 0206101100020404, 0608080808101010, 0810111208111112, 0810121208121212, 0811101006080808, 1010101011121212, 0910101009101010, 0910101009101010, 0910101010101011, 0608080908101010, 0810111109101111, 1010111108111111, 0810111006080809, 0402020004020200, 0402020004020200, 0604040208060606, 1414101014161210 }); // use https://onlinestringtools.com/split-string to split into 16 long parts
+        //arrCenterDistanceInt = toPieceArray(arrCenterDistance);
+        Console.WriteLine(pieceSqareValues.Length);
+        Console.WriteLine(getPieceValue(PieceType.King, 7, 7));
 
-        Console.WriteLine(arrCenterDistanceInt[40]);
+
         weAreWhite = board.IsWhiteToMove;
         Console.WriteLine(" ------ calculate new move -----", timer);
         Move[] moves = board.GetLegalMoves();
@@ -104,27 +110,16 @@ public class MyBot : IChessBot
     }
     private float getPieceValue(PieceType pieceType, int x, int y)
     {
-        switch((int)pieceType)
-        {
-            case 1:  //PieceType.Pawn:
-                return 100 + y * 10;
-            case 2:  //PieceType.Knight:
-                return 300 + (y == 6 ? 1 : 0);
-            case 3:  //PieceType.Bishop:
-                return 300;
-            case 4:  //PieceType.Rook:
-                return 500;
-            case 5:  //PieceType.Queen:
-                return 900;
-        }
-        
-        return 0; 
-        
+        int pieceTypeIndex = (int)pieceType - 1;
+
+        Console.WriteLine(((x > 3 ? 7 - x : x /* this mirrors the table*/) + y * 4 + pieceTypeIndex * 32) * 2);
+        return pieceValues[pieceTypeIndex] + (pieceTypeIndex == 0 ? y * 10 : int.Parse(pieceSqareValues.Substring(((x > 3 ? 7 - x : x /* this mirrors the table*/) + y * 4 + pieceTypeIndex * 32) * 2, 1)) * 5 - 50);
+
     }
 
-    int[] toPieceArray(double[] arr)
+    string toPieceArray(long[] arr)
     {
-        return string.Join("", Array.ConvertAll(arr, element => element.ToString())).Select(c => c - '0').ToArray();
+        return string.Join("", Array.ConvertAll(arr, element => element.ToString("D16")));
     }
 
     int evaluate(Board board)
