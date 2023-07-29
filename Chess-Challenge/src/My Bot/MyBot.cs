@@ -1,5 +1,6 @@
 ﻿using ChessChallenge.API;
 using System;
+using System.Collections;
 using System.ComponentModel;
 using System.Linq;
 using System.Net.NetworkInformation;
@@ -20,8 +21,14 @@ public class MyBot : IChessBot
     float totalPieceValue;
     bool weAreWhite;
     Move bMove;
+    //double arrCenterDistance = 33333333322222233211112332100123321001233211112332222223333333330.0; DOES NOT WORK because its floating point number
+    double[] arrCenterDistance = { 333333333222222, 332111123321001, 233210012332111, 123322222233333, 33330 }; // kinda does work but hacky solution
+    int[] arrCenterDistanceInt;
     public Move Think(Board board, Timer timer)
     {
+        arrCenterDistanceInt = toPieceArray(arrCenterDistance);
+
+        Console.WriteLine(arrCenterDistanceInt[40]);
         weAreWhite = board.IsWhiteToMove;
         Console.WriteLine(" ------ calculate new move -----", timer);
         Move[] moves = board.GetLegalMoves();
@@ -69,6 +76,8 @@ public class MyBot : IChessBot
 
         foreach (Piece p in board.GetAllPieceLists().SelectMany(x => x))
         {
+            
+
             var s = p.Square;
             totalPieceValue += getPieceValue(p.PieceType, s.File, p.IsWhite ? s.Rank : 7 - s.Rank)
                 * (p.IsWhite == weAreWhite ? (board.SquareIsAttackedByOpponent(s) ? 0.1f : 1) : -0.9F);
@@ -100,7 +109,7 @@ public class MyBot : IChessBot
             case 1:  //PieceType.Pawn:
                 return 100 + y * 10;
             case 2:  //PieceType.Knight:
-                return 300;
+                return 300 + (y == 6 ? 1 : 0);
             case 3:  //PieceType.Bishop:
                 return 300;
             case 4:  //PieceType.Rook:
@@ -111,6 +120,11 @@ public class MyBot : IChessBot
         
         return 0; 
         
+    }
+
+    int[] toPieceArray(double[] arr)
+    {
+        return string.Join("", Array.ConvertAll(arr, element => element.ToString())).Select(c => c - '0').ToArray();
     }
 
     int evaluate(Board board)
