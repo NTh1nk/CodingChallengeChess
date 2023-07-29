@@ -1,11 +1,6 @@
 ﻿using ChessChallenge.API;
 using System;
-using System.Collections;
-using System.ComponentModel;
 using System.Linq;
-using System.Net.NetworkInformation;
-using System.Security.Cryptography.X509Certificates;
-using System.Transactions;
 
 public class MyBot : IChessBot
 {
