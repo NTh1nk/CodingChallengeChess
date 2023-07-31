@@ -32,7 +32,7 @@ public class MyBot : IChessBot
 
         weAreWhite = board.IsWhiteToMove;
         Console.WriteLine(" ------ calculate new move -----" + board.IsWhiteToMove);
-        return miniMax(board, 3, weAreWhite ? 1 : -1).Item1;
+        return miniMax(board, timer.MillisecondsRemaining < 10000 ? 2 : 3, weAreWhite ? 1 : -1).Item1;
         //Console.WriteLine(isPieceProtectedAfterMove(board, moves[0]));
 
     }
@@ -50,7 +50,7 @@ public class MyBot : IChessBot
         {
             // code block to be executed
             board.MakeMove(move);
-            float v = (depth > 0 ? miniMax(board, depth - 1, currentPlayer * -1).Item2 : getPieceValues(board)) * currentPlayer;
+            float v = (depth > 0 ? miniMax(board, depth - 1, currentPlayer * -1).Item2 : getPieceValues(board, currentPlayer)) * currentPlayer;
             //Console.WriteLine(v);
             
 
@@ -70,40 +70,66 @@ public class MyBot : IChessBot
         return new(bMove, bMoveMat * currentPlayer);
     }
 
-    private float getPieceValues(Board board)
+    private float getPieceValues(Board board, int currentPlayer)
     {
 
-        if(board.IsInCheckmate())
+        if (board.IsInCheckmate())
         {
-            return 1000000000000000000; // very height number (chose not to use float.MaxValue beacuse it uses more tokens (3 instead of 1)) 
+            return 1000000000000000000 * currentPlayer; // very height number (chose not to use float.MaxValue beacuse it uses more tokens (3 instead of 1)) 
         }
         totalPieceValue = 0;
 
         //var skipped = board.TrySkipTurn();  // LOOK HERE: this needs to be here so we can if pieces will be atacked in the next round
        
 
-        if (board.IsDraw())
+        if (board.IsDraw()) // seems to be slow
         {
-            totalPieceValue -= 100; // try to avoid a draw
+            totalPieceValue -= 100 * currentPlayer; // try to avoid a draw
         }
 
-        foreach (Piece p in board.GetAllPieceLists().SelectMany(x => x))
-        {
-            
+        //foreach (Piece p in board.GetAllPieceLists().SelectMany(x => x))
+        //{
 
-            var s = p.Square;
-            totalPieceValue += getPieceValue(p.PieceType, s.File, p.IsWhite ? s.Rank : 7 - s.Rank)
+
+        //    var s = p.Square;
+        //    totalPieceValue += getPieceValue(p.PieceType, s.File, p.IsWhite ? s.Rank : 7 - s.Rank)
+        //        * (p.IsWhite ? 1 : -1);
+
+        //    //Console.WriteLine(getPieceValue(p.PieceType, s.Rank, p.IsWhite ? s.File : 7 - s.File)
+        //    //    * (p.IsWhite == weAreWhite ? (board.SquareIsAttackedByOpponent(s) ? 0.1f : 1) : -0.9F));
+        //}
+        for (int x = 0; x <= 7; x++)
+        {
+            for (int y = 0; y <= 7; y++)
+            {
+                var s = new Square(x, y);
+                var p = board.GetPiece(s); // quite slow
+                if (p.IsNull)
+                {
+                    continue;
+                }
+                totalPieceValue += getPieceValue(p.PieceType, x, p.IsWhite ? y : 7 - y)
                 * (p.IsWhite ? 1 : -1);
 
-            //Console.WriteLine(getPieceValue(p.PieceType, s.Rank, p.IsWhite ? s.File : 7 - s.File)
-            //    * (p.IsWhite == weAreWhite ? (board.SquareIsAttackedByOpponent(s) ? 0.1f : 1) : -0.9F));
+            }
         }
-        //for (int x = 0; x <= 7; x++)
+
+        //totalPieceValue += board.GetAllPieceLists().SelectMany(x => x).Sum(p =>
         //{
-        //    for (int y = 0; y <= 7; y++)
+        //    var s = p.Square;
+        //    return getPieceValue(p.PieceType, s.Rank, p.IsWhite ? s.File : 7 - s.File) * (p.IsWhite ? 1 : -1);
+        //});
+
+        //foreach (PieceList plist in board.GetAllPieceLists())
+        //{
+        //    foreach (Piece p in plist)
         //    {
-        //        var s = new Square(x, y);
-        //        var p = board.GetPiece(s);
+        //        var s = p.Square;
+        //        totalPieceValue += getPieceValue(p.PieceType, s.File, p.IsWhite ? s.Rank : 7 - s.Rank)
+        //            * (p.IsWhite ? 1 : -1);
+        //    }
+        //}
+
         //        totalPieceValue += getPieceValue(p.PieceType, x, p.IsWhite ? y : 7 - y)
         //            * (p.IsWhite == weAreWhite ? (board.SquareIsAttackedByOpponent(s) ? 0.1f : 1) : -0.9F);
         //        //Console.WriteLine(getPieceValue(p.PieceType, p.IsWhite ? x : 7 - x, p.IsWhite ? y : 7 - y)
@@ -117,14 +143,14 @@ public class MyBot : IChessBot
         //}
 
         //Console.WriteLine("total piecevalue is:" + totalPieceValue);
-        
+
         return totalPieceValue;
     }
     private float getPieceValue(PieceType pieceType, int x, int y)
     {
         int pieceTypeIndex = (int)pieceType - 1;
         //Console.WriteLine(((x > 3 ? 7 - x : x /* this mirrors the table*/) + y * 4 + pieceTypeIndex * 32) * 2);
-        return pieceValues[pieceTypeIndex] + (pieceTypeIndex == 0 ? y * 10 : int.Parse(pieceSqareValues.Substring(((x > 3 ? 7 - x : x /* this mirrors the table*/) + y * 4 + pieceTypeIndex * 32) * 2, 1)) * 5 - 50);
+        return pieceValues[pieceTypeIndex] + (int.Parse(pieceSqareValues.Substring(((x > 3 ? 7 - x : x /* this mirrors the table*/) + y * 4 + pieceTypeIndex * 32) * 2, 1)) * 5 - 50);
 
     }
 
