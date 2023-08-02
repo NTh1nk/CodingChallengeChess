@@ -34,8 +34,9 @@ public class MyBot : IChessBot
 
         weAreWhite = board.IsWhiteToMove;
         Console.WriteLine(" ------ calculate new move -----" + board.IsWhiteToMove);
-        Console.WriteLine(miniMax(board, timer.MillisecondsRemaining < 12500 ? timer.MillisecondsRemaining < 5000 ? 1 : 2 : 3, weAreWhite ? 1 : -1).Item1);
-        return miniMax(board, timer.MillisecondsRemaining < 12500 ? timer.MillisecondsRemaining < 5000 ? 1 : 2 : 3, weAreWhite ? 1 : -1).Item1;
+        var bestMove = miniMax(board, timer.MillisecondsRemaining < 12500 ? timer.MillisecondsRemaining < 5000 ? 1 : 2 : 3, weAreWhite ? 1 : -1).Item1;
+        Console.WriteLine(bestMove);
+        return bestMove;
         //Console.WriteLine(isPieceProtectedAfterMove(board, moves[0]));
 
     }
