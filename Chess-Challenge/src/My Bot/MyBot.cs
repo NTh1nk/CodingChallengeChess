@@ -71,8 +71,14 @@ public class MyBot : IChessBot
                     {
                         bMove = move;
                         bMoveMat = v;
+
+                        
                     }
                     else printErrorDraw(move);
+                } 
+                else if(board.IsDraw())
+                {
+                    Console.WriteLine("found doublicate draw move");
                 }
             }
 
@@ -98,17 +104,17 @@ public class MyBot : IChessBot
 
         if (board.IsInCheckmate())
         {
-            return 1000000000000000000 * currentPlayer; // very height number (chose not to use float.MaxValue beacuse it uses more tokens (3 instead of 1)) 
+            return 100000000000 * currentPlayer; // very height number (chose not to use float.MaxValue beacuse it uses more tokens (3 instead of 1)) 
         }
         totalPieceValue = 0;
 
         //var skipped = board.TrySkipTurn();  // LOOK HERE: this needs to be here so we can if pieces will be atacked in the next round
        
 
-        if (board.IsDraw()) // seems to be slow
-        {
-            totalPieceValue -= 100 * currentPlayer; // try to avoid a draw
-        }
+        //if (board.IsDraw()) // seems to be slow
+        //{
+        //    totalPieceValue -= 100 * currentPlayer; // try to avoid a draw
+        //}
 
         //foreach (Piece p in board.GetAllPieceLists().SelectMany(x => x))
         //{
