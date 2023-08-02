@@ -35,30 +35,32 @@ public class MyBot : IChessBot
         weAreWhite = board.IsWhiteToMove;
         Console.WriteLine(" ------ calculate new move -----" + board.IsWhiteToMove);
         var bestMove = miniMax(board, timer.MillisecondsRemaining < 12500 ? timer.MillisecondsRemaining < 5000 ? 1 : 2 : 3, weAreWhite ? 1 : -1).Item1;
-        Console.WriteLine(bestMove);
-        return bestMove;
+        bestMove.ToList().ForEach(move => { Console.WriteLine(move); });
+        return bestMove[bestMove.Length - 1];
         //Console.WriteLine(isPieceProtectedAfterMove(board, moves[0]));
 
     }
 
-    private Tuple<Move, float> miniMax(Board board, int depth, int currentPlayer)
+    private Tuple<Move[], float> miniMax(Board board, int depth, int currentPlayer)
     {
         Move[] moves = board.GetLegalMoves();
-        if(moves.Length == 0)
+        if (moves.Length == 0)
         {
-            return new(Move.NullMove, -1000 * currentPlayer);
+            return new(new[] { Move.NullMove }, -1000 * currentPlayer);
         }
         Move bMove = moves[0];
         float bMoveMat = float.MinValue;
+        Tuple<Move[], float> bR = new(new[]{ bMove }, bMoveMat);
         foreach (var move in moves)
         {
             // code block to be executed
             board.MakeMove(move);
-            float v = (depth > 0 ? miniMax(board, depth - 1, currentPlayer * -1).Item2 : getPieceValues(board, currentPlayer)) * currentPlayer;
+            
+            Tuple<Move[], float> r = (depth > 0 ? miniMax(board, depth - 1, currentPlayer * -1) : new(new[] { move }, getPieceValues(board, currentPlayer)));
             //Console.WriteLine(v);
+            float v = r.Item2;
 
-
-            if (v > bMoveMat)
+            if (v * currentPlayer > bMoveMat)
             {
                 if (draw_moves.Count > 50)
                 {
@@ -69,8 +71,9 @@ public class MyBot : IChessBot
                 {
                     if (board.IsDraw() != true)
                     {
+                        bR = r;
                         bMove = move;
-                        bMoveMat = v;
+                        bMoveMat = v * currentPlayer;
 
                         
                     }
@@ -90,7 +93,7 @@ public class MyBot : IChessBot
             //}
            
         }
-        return new(bMove, bMoveMat * currentPlayer);
+        return new(bR.Item1.Append(bMove).ToArray(), bR.Item2);
     }
     
     void printErrorDraw(Move move)
