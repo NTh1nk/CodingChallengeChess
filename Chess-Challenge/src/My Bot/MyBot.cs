@@ -20,7 +20,7 @@ public class MyBot : IChessBot
     bool weAreWhite;
     //double arrCenterDistance = 33333333322222233211112332100123321001233211112332222223333333330.0; DOES NOT WORK because its floating point number
     string pieceSqareValues;  // kinda does work but hacky solution
-    int[] pieceValues = {100, 300, 300, 500, 900, 2000 };
+    int[] pieceValues = {100, 300, 320, 500, 900, 2000 };
     int[] arrCenterDistanceInt;
     List<Move> draw_moves = new();
     Dictionary<int,Queue<Move>> move_queue = new();
