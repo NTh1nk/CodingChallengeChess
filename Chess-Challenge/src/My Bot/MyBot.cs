@@ -1,5 +1,6 @@
 ﻿using ChessChallenge.API;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 
@@ -21,6 +22,7 @@ public class MyBot : IChessBot
     string pieceSqareValues;  // kinda does work but hacky solution
     int[] pieceValues = {100, 300, 300, 500, 900, 2000 };
     int[] arrCenterDistanceInt;
+    List<Move> draw_moves = new();
     public Move Think(Board board, Timer timer)
     {
         
@@ -32,6 +34,7 @@ public class MyBot : IChessBot
 
         weAreWhite = board.IsWhiteToMove;
         Console.WriteLine(" ------ calculate new move -----" + board.IsWhiteToMove);
+        Console.WriteLine(miniMax(board, timer.MillisecondsRemaining < 12500 ? timer.MillisecondsRemaining < 5000 ? 1 : 2 : 3, weAreWhite ? 1 : -1).Item1);
         return miniMax(board, timer.MillisecondsRemaining < 12500 ? timer.MillisecondsRemaining < 5000 ? 1 : 2 : 3, weAreWhite ? 1 : -1).Item1;
         //Console.WriteLine(isPieceProtectedAfterMove(board, moves[0]));
 
@@ -52,22 +55,37 @@ public class MyBot : IChessBot
             board.MakeMove(move);
             float v = (depth > 0 ? miniMax(board, depth - 1, currentPlayer * -1).Item2 : getPieceValues(board, currentPlayer)) * currentPlayer;
             //Console.WriteLine(v);
-            
+
 
             if (v > bMoveMat)
             {
-                bMove = move;
-                bMoveMat = v;
+                if (!draw_moves.Contains(move))
+                {
+                    if (board.IsDraw() != true)
+                    {
+                        bMove = move;
+                        bMoveMat = v;
+                    }
+                    else printErrorDraw(move);
+                }
+                else printErrorDraw(move);
             }
+
             board.UndoMove(move);
 
-            if(depth == 1)
-            {
+            //if(depth == 1)
+            //{
                 //Console.WriteLine("best move " + move + " with a v of " + v);
-            }
+            //}
            
         }
         return new(bMove, bMoveMat * currentPlayer);
+    }
+    
+    void printErrorDraw(Move move)
+    {
+        draw_moves.Add(move);
+        Console.WriteLine("draw detected" + move);
     }
 
     private float getPieceValues(Board board, int currentPlayer)
