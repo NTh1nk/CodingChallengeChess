@@ -73,7 +73,6 @@ public class MyBot : IChessBot
                     }
                     else printErrorDraw(move);
                 }
-                else printErrorDraw(move);
             }
 
             board.UndoMove(move);
