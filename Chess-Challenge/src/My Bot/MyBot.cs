@@ -59,6 +59,11 @@ public class MyBot : IChessBot
 
             if (v > bMoveMat)
             {
+                if (draw_moves.Count > 50)
+                {
+                    Console.WriteLine("flushing draw move bufffer");
+                    draw_moves.Clear();
+                }
                 if (!draw_moves.Contains(move))
                 {
                     if (board.IsDraw() != true)
