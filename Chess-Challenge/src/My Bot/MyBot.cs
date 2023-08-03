@@ -122,7 +122,7 @@ public class MyBot : IChessBot
 
                         
                     }
-                    else printErrorDraw(move);
+                    else printErrorDraw(move); //#DEBUG
                 } 
                 else if(board.IsDraw()) //#DEBUG
                 { //#DEBUG
@@ -144,7 +144,7 @@ public class MyBot : IChessBot
     void printErrorDraw(Move move) //#DEBUG
     {  //#DEBUG
         draw_moves.Add(move);
-        foundDrawMoves += " \'"+move+"\' "; //#DEBUG
+        foundDrawMoves += "\""+move+"\""; //#DEBUG
     } //#DEBUG
 
     private float getPieceValues(Board board, int currentPlayer)
