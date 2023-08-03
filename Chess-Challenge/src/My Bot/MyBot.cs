@@ -25,6 +25,10 @@ public class MyBot : IChessBot
     List<Move> draw_moves = new();
 
     public bool IsEndgameNoFunction = false;
+
+    int foundCheckMates = 0; //#DEBUG
+    int foundDublicateDrawMoves = 0; //#DEBUG
+    string foundDrawMoves; //#DEBUG
     public bool IsEndgame(Board board) //#DEBUG
     { //#DEBUG
       //Console.WriteLine(board.GetAllPieceLists()); 
@@ -68,6 +72,13 @@ public class MyBot : IChessBot
             IsEndgameNoFunction = true;
             Console.WriteLine("We are in the endgame"); //#DEBUG
         }
+
+        Console.WriteLine("found checkmate: "+foundCheckMates+" times this turn"); //#DEBUG
+        foundCheckMates = 0; //#DEBUG
+        Console.WriteLine("found: "+foundDublicateDrawMoves+" dublicate draw moves this turn"); //#DEBUG
+        foundDublicateDrawMoves = 0; //#DEBUG
+        Console.WriteLine("found these draw moves: "+foundDrawMoves+" this turn"); //#DEBUG
+
         return bestMove[bestMove.Length - 1];
         //Console.WriteLine(isPieceProtectedAfterMove(board, moves[0]));
         
@@ -96,12 +107,11 @@ public class MyBot : IChessBot
 
             if (v * currentPlayer > bMoveMat)
             {
-                if (draw_moves.Count > 50)
-                {
-                
+                if (draw_moves.Count > 20) //#DEBUG
+                { //#DEBUG
                     Console.WriteLine("flushing draw move bufffer"); //#DEBUG
                     draw_moves.Clear();
-                }
+                } //#DEBUG
                 if (!draw_moves.Contains(move))
                 {
                     if (board.IsDraw() != true)
@@ -114,10 +124,10 @@ public class MyBot : IChessBot
                     }
                     else printErrorDraw(move);
                 } 
-                else if(board.IsDraw())
-                {
-                    Console.WriteLine("found doublicate draw move");
-                }
+                else if(board.IsDraw()) //#DEBUG
+                { //#DEBUG
+                    foundDublicateDrawMoves++; //#DEBUG
+                } //#DEBUG
             }
 
             board.UndoMove(move);
@@ -134,7 +144,7 @@ public class MyBot : IChessBot
     void printErrorDraw(Move move) //#DEBUG
     {  //#DEBUG
         draw_moves.Add(move);
-        Console.WriteLine("draw detected" + move); //#DEBUG
+        foundDrawMoves += " \'"+move+"\' "; //#DEBUG
     } //#DEBUG
 
     private float getPieceValues(Board board, int currentPlayer)
@@ -142,10 +152,10 @@ public class MyBot : IChessBot
   
 
         if (board.IsInCheckmate())
-        {
-            Console.WriteLine("found checkmate"); //#DEBUG
+        { //#DEBUG
+            foundCheckMates++; //#DEBUG
             return 100000000000 * currentPlayer; // very height number (chose not to use float.MaxValue beacuse it uses more tokens (3 instead of 1)) 
-        }
+        } //#DEBUG
         totalPieceValue = board.HasKingsideCastleRight(true) ? 85 : 0;
         totalPieceValue += board.HasKingsideCastleRight(false) ? -75 : 0;
 
@@ -172,20 +182,20 @@ public class MyBot : IChessBot
          
 
         for (int x = 0; x <= 7; x++)
-        {
+        { //#DEBUG
             for (int y = 0; y <= 7; y++)
             {
                 var s = new Square(x, y);
                 var p = board.GetPiece(s); // quite slow
                 if (p.IsNull)
-                {
+                { //#DEBUG
                     continue;
-                }
+                } //#DEBUG
                 totalPieceValue += getPieceValue(p.PieceType, x, p.IsWhite ? y : 7 - y)
                 * (p.IsWhite ? 1 : -1);// * (board.SquareIsAttackedByOpponent(s) ? 0 : 1);
 
             }
-        }
+        } //#DEBUG
 
         //totalPieceValue += board.GetAllPieceLists().SelectMany(x => x).Sum(p =>
         //{
