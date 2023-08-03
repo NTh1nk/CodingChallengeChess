@@ -63,12 +63,12 @@ public class MyBot : IChessBot
 
 
         weAreWhite = board.IsWhiteToMove;
-        /*#DEBUG*/Console.WriteLine(" ------ calculate new move -----" + board.IsWhiteToMove);
-        var bestMove = miniMax(board, timer.MillisecondsRemaining < 12500 ? timer.MillisecondsRemaining < 5000 ? 1 : 2 : 3, weAreWhite ? 1 : -1).Item1;
+        Console.WriteLine(" ------ calculate new move -----" + board.IsWhiteToMove); //#DEBUG
+        var bestMove = miniMax(board, timer.MillisecondsRemaining < 12500 ? timer.MillisecondsRemaining < 5000 ? 1 : 2 : 4, weAreWhite ? 1 : -1).Item1;
         bestMove.ToList().ForEach(move => { Console.WriteLine(move); });
         if (IsEndgame(board)){
             IsEndgameNoFunction = true;
-            /*#DEBUG*/Console.WriteLine("We are in the endgame");
+            Console.WriteLine("We are in the endgame"); //#DEBUG
         }
         return bestMove[bestMove.Length - 1];
         //Console.WriteLine(isPieceProtectedAfterMove(board, moves[0]));
@@ -99,7 +99,7 @@ public class MyBot : IChessBot
             {
                 if (draw_moves.Count > 50)
                 {
-                    /*#DEBUG*/Console.WriteLine("flushing draw move bufffer");
+                    Console.WriteLine("flushing draw move bufffer"); //#DEBUG
                     draw_moves.Clear();
                 }
                 if (!draw_moves.Contains(move))
@@ -131,18 +131,18 @@ public class MyBot : IChessBot
         return new(bR.Item1.Append(bMove).ToArray(), bR.Item2);
     }
     
-    void printErrorDraw(Move move)
-    {
+    void printErrorDraw(Move move) //#DEBUG
+    {  //#DEBUG
         draw_moves.Add(move);
-        /*#DEBUG*/Console.WriteLine("draw detected" + move);
-    }
+        Console.WriteLine("draw detected" + move); //#DEBUG
+    } //#DEBUG
 
     private float getPieceValues(Board board, int currentPlayer)
     {
   
         if (board.IsInCheckmate())
         {
-            /*#DEBUG*/Console.WriteLine("found checkmate");
+            Console.WriteLine("found checkmate"); //#DEBUG
             return 100000000000 * currentPlayer; // very height number (chose not to use float.MaxValue beacuse it uses more tokens (3 instead of 1)) 
         }
         totalPieceValue = board.HasKingsideCastleRight(true) ? 25 : 0;
