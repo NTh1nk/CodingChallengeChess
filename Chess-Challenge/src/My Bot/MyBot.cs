@@ -26,6 +26,9 @@ public class MyBot : IChessBot
 
     public bool IsEndgameNoFunction = false;
 
+    //using a variable instead of float.minvalue for BBC saving
+    float minFloatValue = float.MinValue;
+
     int foundCheckMates = 0; //#DEBUG
     int foundDublicateDrawMoves = 0; //#DEBUG
     string foundDrawMoves; //#DEBUG
@@ -94,7 +97,7 @@ public class MyBot : IChessBot
             return new(new[] { Move.NullMove }, getPieceValues(board, currentPlayer)); //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
         }
         Move bMove = moves[0];
-        float bMoveMat = float.MinValue;
+        float bMoveMat = minFloatValue;
         Tuple<Move[], float> bR = new(new[]{ bMove }, bMoveMat);
         foreach (var move in moves)
         {
