@@ -23,7 +23,6 @@ public class MyBot : IChessBot
     int[] pieceValues = {100, 300, 320, 500, 900, 2000 };
     int[] arrCenterDistanceInt;
     List<Move> draw_moves = new();
-    Dictionary<int,Queue<Move>> move_queue = new();
     public Move Think(Board board, Timer timer)
     {
         
@@ -42,7 +41,7 @@ public class MyBot : IChessBot
 
     }
 
-    private Tuple<Move[], float> miniMax(Board board, int depth, int currentPlayer, int moveQueueID = -1)
+    private Tuple<Move[], float> miniMax(Board board, int depth, int currentPlayer)
     {
         Move[] moves = board.GetLegalMoves(depth < 1);
         if (moves.Length == 0)
@@ -52,17 +51,12 @@ public class MyBot : IChessBot
         Move bMove = moves[0];
         float bMoveMat = float.MinValue;
         Tuple<Move[], float> bR = new(new[]{ bMove }, bMoveMat);
-
-        int getMoveQueueIDCounter = 0;
         foreach (var move in moves)
         {
-            if (moveQueueID==-1) moveQueueID = getMoveQueueIDCounter;
-            /*#DEBUG*/Console.WriteLine("queue id is = "+moveQueueID);
             // code block to be executed
             board.MakeMove(move);
-            if (move_queue.ContainsKey(moveQueueID)) move_queue[moveQueueID].Enqueue(move);
-
-            Tuple<Move[], float> r = depth > 0 ? miniMax(board, depth - 1, currentPlayer * -1,moveQueueID) : new(new[] { move }, getPieceValues(board, currentPlayer));
+            
+            Tuple<Move[], float> r = (depth > 0 ? miniMax(board, depth - 1, currentPlayer * -1) : new(new[] { move }, getPieceValues(board, currentPlayer)));
             //Console.WriteLine(v);
             float v = r.Item2;
 
@@ -97,8 +91,7 @@ public class MyBot : IChessBot
             //{
                 //Console.WriteLine("best move " + move + " with a v of " + v);
             //}
-
-           moveQueueID++;
+           
         }
         return new(bR.Item1.Append(bMove).ToArray(), bR.Item2);
     }
