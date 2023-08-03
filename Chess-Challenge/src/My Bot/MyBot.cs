@@ -23,6 +23,8 @@ public class MyBot : IChessBot
     int[] pieceValues = {100, 300, 320, 500, 900, 2000 };
     int[] arrCenterDistanceInt;
     List<Move> draw_moves = new();
+
+    public bool IsEndgameNoFunction = false;
     public bool IsEndgame(Board board){
 
        //Console.WriteLine(board.GetAllPieceLists()); 
@@ -42,7 +44,7 @@ public class MyBot : IChessBot
 
             }
         }
-        if (totalPieceValue <= 5800)
+        if (totalPieceValue <= 511800)
             return true;
         else
             return false;
@@ -52,8 +54,10 @@ public class MyBot : IChessBot
     public Move Think(Board board, Timer timer)
     {
         
-        pieceSqareValues = toPieceArray(new[] { 1010101018181818, 1212141611111215, 1010101411090810, 1112120610101010, 0002040402061010, 0410121304111314, 0410131404111213, 0206101100020404, 0608080808101010, 0810111208111112, 0810121208121212, 0811101006080808, 1010101011121212, 0910101009101010, 0910101009101010, 0910101010101011, 0608080908101010, 0810111109101111, 1010111108111111, 0810111006080809, 0402020004020200, 0402020004020200, 0604040208060606, 1414101014161210 }); // use https://onlinestringtools.com/split-string to split into 16 long parts
-        //arrCenterDistanceInt = toPieceArray(arrCenterDistance);
+        pieceSqareValues = toPieceArray(new[] { 1010101018181818, 1212141611111215, 1010101411090810, 1112120610101010, 0002040402061010, 0410121304111314, 0410131404111213, 0206101100020404, 0608080808101010, 0810111208111112, 0810121208121212, 0811101006080808, 1010101011121212, 0910101009101010, 0910101009101010, 0910101010101011, 0608080908101010, 0810111109101111, 1010111108111111, 0810111006080809, 0402020004020200, 0402020004020200, 0604040208060606, 1414101014161210,
+        1010101036303230, 2015181412121413, 1212121211111111, 0909090910101010 }); // use https://onlinestringtools.com/split-string to split into 16 long parts
+        //Botton is endgame
+        //arrCenterDistanceInt = toPieceArray(arrCenterDistance);                                                                                                                                                                                                                                                                                                                                                                                                                                       
         //Console.WriteLine(pieceSqareValues.Length);
         //Console.WriteLine(getPieceValue(PieceType.King, 7, 7));
 
@@ -63,6 +67,7 @@ public class MyBot : IChessBot
         var bestMove = miniMax(board, timer.MillisecondsRemaining < 12500 ? timer.MillisecondsRemaining < 5000 ? 1 : 2 : 3, weAreWhite ? 1 : -1).Item1;
         bestMove.ToList().ForEach(move => { Console.WriteLine(move); });
         if (IsEndgame(board)){
+            IsEndgameNoFunction = true;
             Console.WriteLine("We are in the endgame");
         }
         return bestMove[bestMove.Length - 1];
@@ -213,6 +218,9 @@ public class MyBot : IChessBot
     {
         int pieceTypeIndex = (int)pieceType - 1;
         //Console.WriteLine(((x > 3 ? 7 - x : x /* this mirrors the table*/) + y * 4 + pieceTypeIndex * 32) * 2);
+      
+            // pieceValues[pieceTypeIndex] + (int.Parse(pieceSqareValues.Substring(((x > 3 ? 7 - x : x /* this mirrors the table*/) + y * 4 + 256) * 2, 1)) * 5 - 50);
+
         return pieceValues[pieceTypeIndex] + (int.Parse(pieceSqareValues.Substring(((x > 3 ? 7 - x : x /* this mirrors the table*/) + y * 4 + pieceTypeIndex * 32) * 2, 1)) * 5 - 50);
 
     }
