@@ -63,12 +63,12 @@ public class MyBot : IChessBot
 
 
         weAreWhite = board.IsWhiteToMove;
-        Console.WriteLine(" ------ calculate new move -----" + board.IsWhiteToMove);
+        /*#DEBUG*/Console.WriteLine(" ------ calculate new move -----" + board.IsWhiteToMove);
         var bestMove = miniMax(board, timer.MillisecondsRemaining < 20000 ? timer.MillisecondsRemaining < 5000 ? 2 : 3 : 4, weAreWhite ? 1 : -1, -1000000, 1000000).Item1;
         bestMove.ToList().ForEach(move => { Console.WriteLine(move); });
         if (IsEndgame(board)){
             IsEndgameNoFunction = true;
-            Console.WriteLine("We are in the endgame");
+            /*#DEBUG*/Console.WriteLine("We are in the endgame");
         }
         return bestMove[bestMove.Length - 1];
         //Console.WriteLine(isPieceProtectedAfterMove(board, moves[0]));
@@ -99,7 +99,7 @@ public class MyBot : IChessBot
             {
                 if (draw_moves.Count > 50)
                 {
-                    Console.WriteLine("flushing draw move bufffer");
+                    /*#DEBUG*/Console.WriteLine("flushing draw move bufffer");
                     draw_moves.Clear();
                 }
                 if (!draw_moves.Contains(move))
@@ -141,7 +141,7 @@ public class MyBot : IChessBot
     void printErrorDraw(Move move)
     {
         draw_moves.Add(move);
-        Console.WriteLine("draw detected" + move);
+        /*#DEBUG*/Console.WriteLine("draw detected" + move);
     }
 
     private float getPieceValues(Board board, int currentPlayer)
@@ -149,7 +149,7 @@ public class MyBot : IChessBot
   
         if (board.IsInCheckmate())
         {
-            Console.WriteLine("found checkmate");
+            /*#DEBUG*/Console.WriteLine("found checkmate");
             return 100000000000 * currentPlayer; // very height number (chose not to use float.MaxValue beacuse it uses more tokens (3 instead of 1)) 
         }
         totalPieceValue = 0;
