@@ -191,7 +191,7 @@ public class MyBot : IChessBot
     {
         int pieceTypeIndex = (int)pieceType - 1;
         //Console.WriteLine(((x > 3 ? 7 - x : x /* this mirrors the table*/) + y * 4 + pieceTypeIndex * 32) * 2);
-        return pieceValues[pieceTypeIndex] + (int.Parse(pieceSqareValues.Substring(((x > 3 ? 7 - x : x /* this mirrors the table*/) + y * 4 + (pieceTypeIndex + (isEndGameNoFunction ? 6 : 0)) * 32) * 2, 1)) * 5 - 50);
+        return pieceValues[pieceTypeIndex] + (int.Parse(pieceSqareValues.Substring(((x > 3 ? 7 - x : x /* this mirrors the table*/) + y * 4 + pieceTypeIndex * 32) * 2, 1)) * 5 - 50);
 
     }
 
