@@ -29,6 +29,7 @@ public class MyBot : IChessBot
     //using a variable instead of float.minvalue for BBC saving
     float minFloatValue = float.MinValue;
 
+    int searchedMoves = 0; //#DEBUG
     int foundCheckMates = 0; //#DEBUG
     int foundDublicateDrawMoves = 0; //#DEBUG
     string foundDrawMoves; //#DEBUG
@@ -69,7 +70,7 @@ public class MyBot : IChessBot
 
         weAreWhite = board.IsWhiteToMove;
         Console.WriteLine(" ------ calculate new move -----" + board.IsWhiteToMove); //#DEBUG
-        var bestMove = miniMax(board, timer.MillisecondsRemaining < 12500 ? timer.MillisecondsRemaining < 5000 ? 1 : 2 : 4, weAreWhite ? 1 : -1).Item1;
+        var bestMove = miniMax(board, timer.MillisecondsRemaining < 20000 ? timer.MillisecondsRemaining < 5000 ? 2 : 3 : 4, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue).Item1;
         bestMove.ToList().ForEach(move => { Console.WriteLine(move); });
         if (IsEndgame(board)){
             IsEndgameNoFunction = true;
@@ -81,13 +82,13 @@ public class MyBot : IChessBot
         Console.WriteLine("found: "+foundDublicateDrawMoves+" dublicate draw moves this turn"); //#DEBUG
         foundDublicateDrawMoves = 0; //#DEBUG
         Console.WriteLine("found these draw moves: "+foundDrawMoves+" this turn"); //#DEBUG
-
+        Console.WriteLine(searchedMoves); //#DEBUG
         return bestMove[bestMove.Length - 1];
         //Console.WriteLine(isPieceProtectedAfterMove(board, moves[0]));
         
     }
 
-    private Tuple<Move[], float> miniMax(Board board, int depth, int currentPlayer)
+    private Tuple<Move[], float> miniMax(Board board, int depth, int currentPlayer, float min, float max)
     {
         
         Move[] moves = board.GetLegalMoves(depth < 1);
@@ -97,18 +98,19 @@ public class MyBot : IChessBot
             return new(new[] { Move.NullMove }, getPieceValues(board, currentPlayer)); //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
         }
         Move bMove = moves[0];
-        float bMoveMat = minFloatValue;
+        float bMoveMat = minFloatValue * currentPlayer; // how good the best move is for the current player
         Tuple<Move[], float> bR = new(new[]{ bMove }, bMoveMat);
         foreach (var move in moves)
         {
             // code block to be executed
+            
             board.MakeMove(move);
             
-            Tuple<Move[], float> r = (depth > 0 ? miniMax(board, depth - 1, currentPlayer * -1) : new(new[] { move }, getPieceValues(board, currentPlayer)));
+            Tuple<Move[], float> r = (depth > 0 ? miniMax(board, depth - 1, currentPlayer * -1, (currentPlayer == 1 ? bMoveMat : minFloatValue), (currentPlayer == -1 ? bMoveMat : float.MaxValue)) : new(new[] { move }, getPieceValues(board, currentPlayer)));
             //Console.WriteLine(v);
             float v = r.Item2;
 
-            if (v * currentPlayer > bMoveMat)
+            if (currentPlayer == 1 ? v > bMoveMat : v < bMoveMat)
             {
                 if (draw_moves.Count > 20) //#DEBUG
                 { //#DEBUG
@@ -121,7 +123,14 @@ public class MyBot : IChessBot
                     {
                         bR = r;
                         bMove = move;
-                        bMoveMat = v * currentPlayer;
+                        bMoveMat = v;
+
+                        if(v > max || v < min)
+                        {
+                            board.UndoMove(move);
+                            break;
+                        }
+                        
 
                         
                     }
@@ -152,7 +161,8 @@ public class MyBot : IChessBot
 
     private float getPieceValues(Board board, int currentPlayer)
     {
-  
+        searchedMoves += 1; //#DEBUG
+
 
         if (board.IsInCheckmate())
         { //#DEBUG
