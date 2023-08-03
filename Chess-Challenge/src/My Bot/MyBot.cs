@@ -65,7 +65,7 @@ public class MyBot : IChessBot
 
 
         weAreWhite = board.IsWhiteToMove;
-        Console.WriteLine(" ------ calculate new move -----" + board.IsWhiteToMove);
+        Console.WriteLine(" ------ calculate new move -----" + board.IsWhiteToMove); //#DEBUG
         var bestMove = miniMax(board, timer.MillisecondsRemaining < 20000 ? timer.MillisecondsRemaining < 5000 ? 2 : 3 : 5, weAreWhite ? 1 : -1, float.MinValue, float.MaxValue).Item1;
         bestMove.ToList().ForEach(move => { Console.WriteLine(move); });
         if (IsEndgame(board)){
