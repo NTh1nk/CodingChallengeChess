@@ -77,7 +77,9 @@ public class MyBot : IChessBot
 
     private Tuple<Move[], float> miniMax(Board board, int depth, int currentPlayer)
     {
+        
         Move[] moves = board.GetLegalMoves(depth < 1);
+        
         if (moves.Length == 0)
         {
             return new(new[] { Move.NullMove }, getPieceValues(board, currentPlayer));
@@ -88,7 +90,6 @@ public class MyBot : IChessBot
         foreach (var move in moves)
         {
             // code block to be executed
-            
             board.MakeMove(move);
             
             Tuple<Move[], float> r = (depth > 0 ? miniMax(board, depth - 1, currentPlayer * -1) : new(new[] { move }, getPieceValues(board, currentPlayer)));
@@ -99,6 +100,7 @@ public class MyBot : IChessBot
             {
                 if (draw_moves.Count > 50)
                 {
+                
                     Console.WriteLine("flushing draw move bufffer"); //#DEBUG
                     draw_moves.Clear();
                 }
@@ -140,14 +142,14 @@ public class MyBot : IChessBot
     private float getPieceValues(Board board, int currentPlayer)
     {
   
+
         if (board.IsInCheckmate())
         {
             Console.WriteLine("found checkmate"); //#DEBUG
             return 100000000000 * currentPlayer; // very height number (chose not to use float.MaxValue beacuse it uses more tokens (3 instead of 1)) 
         }
-
-        totalPieceValue = board.HasKingsideCastleRight(true) ? 75 : 0;
-        totalPieceValue += board.HasKingsideCastleRight(false) ? -75 : 0;
+        totalPieceValue = board.HasKingsideCastleRight(true) ? 25 : 0;
+        totalPieceValue += board.HasKingsideCastleRight(false) ? -25 : 0;
 
         //var skipped = board.TrySkipTurn();  // LOOK HERE: this needs to be here so we can if pieces will be atacked in the next round
        
