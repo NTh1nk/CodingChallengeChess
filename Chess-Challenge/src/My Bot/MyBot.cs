@@ -26,6 +26,9 @@ public class MyBot : IChessBot
 
     public bool IsEndgameNoFunction = false;
 
+    //using a variable instead of float.minvalue for BBC saving
+    float minFloatValue = float.MinValue;
+
     int searchedMoves = 0; //#DEBUG
     int foundCheckMates = 0; //#DEBUG
     int foundDublicateDrawMoves = 0; //#DEBUG
@@ -67,7 +70,7 @@ public class MyBot : IChessBot
 
         weAreWhite = board.IsWhiteToMove;
         Console.WriteLine(" ------ calculate new move -----" + board.IsWhiteToMove); //#DEBUG
-        var bestMove = miniMax(board, timer.MillisecondsRemaining < 20000 ? timer.MillisecondsRemaining < 5000 ? 2 : 3 : 4, weAreWhite ? 1 : -1, float.MinValue, float.MaxValue).Item1;
+        var bestMove = miniMax(board, timer.MillisecondsRemaining < 20000 ? timer.MillisecondsRemaining < 5000 ? 2 : 3 : 4, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue).Item1;
         bestMove.ToList().ForEach(move => { Console.WriteLine(move); });
         if (IsEndgame(board)){
             IsEndgameNoFunction = true;
@@ -95,7 +98,7 @@ public class MyBot : IChessBot
             return new(new[] { Move.NullMove }, getPieceValues(board, currentPlayer)); //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
         }
         Move bMove = moves[0];
-        float bMoveMat = float.MinValue * currentPlayer; // how good the best move is for the current player
+        float bMoveMat = minFloatValue * currentPlayer; // how good the best move is for the current player
         Tuple<Move[], float> bR = new(new[]{ bMove }, bMoveMat);
         foreach (var move in moves)
         {
@@ -103,7 +106,7 @@ public class MyBot : IChessBot
             
             board.MakeMove(move);
             
-            Tuple<Move[], float> r = (depth > 0 ? miniMax(board, depth - 1, currentPlayer * -1, (currentPlayer == 1 ? bMoveMat : float.MinValue), (currentPlayer == -1 ? bMoveMat : float.MaxValue)) : new(new[] { move }, getPieceValues(board, currentPlayer)));
+            Tuple<Move[], float> r = (depth > 0 ? miniMax(board, depth - 1, currentPlayer * -1, (currentPlayer == 1 ? bMoveMat : minFloatValue), (currentPlayer == -1 ? bMoveMat : float.MaxValue)) : new(new[] { move }, getPieceValues(board, currentPlayer)));
             //Console.WriteLine(v);
             float v = r.Item2;
 
