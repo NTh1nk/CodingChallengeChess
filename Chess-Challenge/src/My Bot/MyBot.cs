@@ -26,6 +26,7 @@ public class MyBot : IChessBot
 
     public bool IsEndgameNoFunction = false;
 
+    int searchedMoves = 0; //#DEBUG
     int foundCheckMates = 0; //#DEBUG
     int foundDublicateDrawMoves = 0; //#DEBUG
     string foundDrawMoves; //#DEBUG
@@ -78,7 +79,7 @@ public class MyBot : IChessBot
         Console.WriteLine("found: "+foundDublicateDrawMoves+" dublicate draw moves this turn"); //#DEBUG
         foundDublicateDrawMoves = 0; //#DEBUG
         Console.WriteLine("found these draw moves: "+foundDrawMoves+" this turn"); //#DEBUG
-
+        Console.WriteLine(searchedMoves); //#DEBUG
         return bestMove[bestMove.Length - 1];
         //Console.WriteLine(isPieceProtectedAfterMove(board, moves[0]));
         
@@ -99,6 +100,7 @@ public class MyBot : IChessBot
         foreach (var move in moves)
         {
             // code block to be executed
+            
             board.MakeMove(move);
             
             Tuple<Move[], float> r = (depth > 0 ? miniMax(board, depth - 1, currentPlayer * -1, (currentPlayer == 1 ? bMoveMat : float.MinValue), (currentPlayer == -1 ? bMoveMat : float.MaxValue)) : new(new[] { move }, getPieceValues(board, currentPlayer)));
@@ -156,7 +158,8 @@ public class MyBot : IChessBot
 
     private float getPieceValues(Board board, int currentPlayer)
     {
-  
+        searchedMoves += 1; //#DEBUG
+
 
         if (board.IsInCheckmate())
         { //#DEBUG
