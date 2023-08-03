@@ -25,9 +25,9 @@ public class MyBot : IChessBot
     List<Move> draw_moves = new();
 
     public bool IsEndgameNoFunction = false;
-    public bool IsEndgame(Board board){
-
-       //Console.WriteLine(board.GetAllPieceLists()); 
+    public bool IsEndgame(Board board) //#DEBUG
+    { //#DEBUG
+      //Console.WriteLine(board.GetAllPieceLists()); 
         totalPieceValue = 0;
         for (int x = 0; x <= 7; x++)
         {
@@ -44,13 +44,11 @@ public class MyBot : IChessBot
 
             }
         }
-        if (totalPieceValue <= 511800)
+        if (totalPieceValue < 5851)
             return true;
         else
             return false;
-        
-
-    }
+    } //#DEBUG
     public Move Think(Board board, Timer timer)
     {
         
@@ -82,7 +80,7 @@ public class MyBot : IChessBot
         
         if (moves.Length == 0)
         {
-            return new(new[] { Move.NullMove }, getPieceValues(board, currentPlayer));
+            return new(new[] { Move.NullMove }, getPieceValues(board, currentPlayer)); //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
         }
         Move bMove = moves[0];
         float bMoveMat = float.MinValue;
@@ -148,8 +146,8 @@ public class MyBot : IChessBot
             Console.WriteLine("found checkmate"); //#DEBUG
             return 100000000000 * currentPlayer; // very height number (chose not to use float.MaxValue beacuse it uses more tokens (3 instead of 1)) 
         }
-        totalPieceValue = board.HasKingsideCastleRight(true) ? 25 : 0;
-        totalPieceValue += board.HasKingsideCastleRight(false) ? -25 : 0;
+        totalPieceValue = board.HasKingsideCastleRight(true) ? 85 : 0;
+        totalPieceValue += board.HasKingsideCastleRight(false) ? -75 : 0;
 
         //var skipped = board.TrySkipTurn();  // LOOK HERE: this needs to be here so we can if pieces will be atacked in the next round
        
@@ -221,25 +219,23 @@ public class MyBot : IChessBot
 
         return totalPieceValue;
     }
-    private float getPieceValue(PieceType pieceType, int x, int y)
-    {
+
+    //the DEBUGS are in place even tho it's called twice becaus in the end it shouldt be called more than once
+    private float getPieceValue(PieceType pieceType, int x, int y) //#DEBUG
+    { //#DEBUG
         int pieceTypeIndex = (int)pieceType - 1;
         //Console.WriteLine(((x > 3 ? 7 - x : x /* this mirrors the table*/) + y * 4 + pieceTypeIndex * 32) * 2);
         return pieceValues[pieceTypeIndex] + (int.Parse(pieceSqareValues.Substring(((x > 3 ? 7 - x : x /* this mirrors the table*/) + y * 4 + pieceTypeIndex * 32) * 2 + (IsEndgameNoFunction ? 384 : 0), 1)) * 5 - 50);
+    } //#DEBUG
 
-    }
-
-    string toPieceArray(long[] arr)
-    {
+    string toPieceArray(long[] arr) //#DEBUG
+    { //#DEBUG
         return string.Join("", Array.ConvertAll(arr, element => element.ToString("D16")));
-    }
+    } //#DEBUG
 
-    int evaluate(Board board)
-    {
-        return 0;
-    }
-
-    public bool isPieceProtectedAfterMove(Board board, Move move) {
-        return !board.SquareIsAttackedByOpponent(move.TargetSquare);
-    }
+    //left in the code for now even tho it's unused might be used in the future
+    public bool isPieceProtectedAfterMove(Board board, Move move) //#DEBUG
+    { //#DEBUG
+        return !board.SquareIsAttackedByOpponent(move.TargetSquare); //#DEBUG
+    } //#DEBUG
 }
