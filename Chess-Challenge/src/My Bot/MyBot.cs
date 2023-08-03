@@ -43,10 +43,10 @@ public class MyBot : IChessBot
 
     private Tuple<Move[], float> miniMax(Board board, int depth, int currentPlayer)
     {
-        Move[] moves = board.GetLegalMoves();
+        Move[] moves = board.GetLegalMoves(depth < 1);
         if (moves.Length == 0)
         {
-            return new(new[] { Move.NullMove }, -1000 * currentPlayer);
+            return new(new[] { Move.NullMove }, getPieceValues(board, currentPlayer));
         }
         Move bMove = moves[0];
         float bMoveMat = float.MinValue;
@@ -107,11 +107,12 @@ public class MyBot : IChessBot
 
         if (board.IsInCheckmate())
         {
+            Console.WriteLine("found checkmate");
             return 100000000000 * currentPlayer; // very height number (chose not to use float.MaxValue beacuse it uses more tokens (3 instead of 1)) 
         }
         totalPieceValue = 0;
 
-        //var skipped = board.TrySkipTurn();  // LOOK HERE: this needs to be here so we can if pieces will be atacked in the next round
+        var skipped = board.TrySkipTurn();  // LOOK HERE: this needs to be here so we can if pieces will be atacked in the next round
        
 
         //if (board.IsDraw()) // seems to be slow
@@ -141,7 +142,7 @@ public class MyBot : IChessBot
                     continue;
                 }
                 totalPieceValue += getPieceValue(p.PieceType, x, p.IsWhite ? y : 7 - y)
-                * (p.IsWhite ? 1 : -1);
+                * (p.IsWhite ? 1 : -1);// * (board.SquareIsAttackedByOpponent(s) ? 0 : 1);
 
             }
         }
@@ -169,10 +170,10 @@ public class MyBot : IChessBot
 
         //    }
         //}
-        //if (skipped)
-        //{
-        //    board.UndoSkipTurn();
-        //}
+        if (skipped)
+        {
+            board.UndoSkipTurn();
+        }
 
         //Console.WriteLine("total piecevalue is:" + totalPieceValue);
 
