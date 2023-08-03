@@ -23,6 +23,32 @@ public class MyBot : IChessBot
     int[] pieceValues = {100, 300, 320, 500, 900, 2000 };
     int[] arrCenterDistanceInt;
     List<Move> draw_moves = new();
+    public bool IsEndgame(Board board){
+
+       //Console.WriteLine(board.GetAllPieceLists()); 
+        totalPieceValue = 0;
+        for (int x = 0; x <= 7; x++)
+        {
+            for (int y = 0; y <= 7; y++)
+            {
+                var s = new Square(x, y);
+                var p = board.GetPiece(s); // quite slow
+                if (p.IsNull)
+                {
+                    continue;
+                }
+                totalPieceValue += getPieceValue(p.PieceType, x, p.IsWhite ? y : 7 - y);
+                
+
+            }
+        }
+        if (totalPieceValue <= 5800)
+            return true;
+        else
+            return false;
+        
+
+    }
     public Move Think(Board board, Timer timer)
     {
         
@@ -34,11 +60,14 @@ public class MyBot : IChessBot
 
         weAreWhite = board.IsWhiteToMove;
         Console.WriteLine(" ------ calculate new move -----" + board.IsWhiteToMove);
-        var bestMove = miniMax(board, timer.MillisecondsRemaining < 12500 ? timer.MillisecondsRemaining < 5000 ? 1 : 2 : 4, weAreWhite ? 1 : -1).Item1;
+        var bestMove = miniMax(board, timer.MillisecondsRemaining < 12500 ? timer.MillisecondsRemaining < 5000 ? 1 : 2 : 3, weAreWhite ? 1 : -1).Item1;
         bestMove.ToList().ForEach(move => { Console.WriteLine(move); });
+        if (IsEndgame(board)){
+            Console.WriteLine("We are in the endgame");
+        }
         return bestMove[bestMove.Length - 1];
         //Console.WriteLine(isPieceProtectedAfterMove(board, moves[0]));
-
+        
     }
 
     private Tuple<Move[], float> miniMax(Board board, int depth, int currentPlayer)
@@ -105,7 +134,7 @@ public class MyBot : IChessBot
 
     private float getPieceValues(Board board, int currentPlayer)
     {
-
+  
         if (board.IsInCheckmate())
         {
             Console.WriteLine("found checkmate");
