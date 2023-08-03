@@ -55,7 +55,7 @@ public class MyBot : IChessBot
     {
         
         pieceSqareValues = toPieceArray(new[] { 1010101018181818, 1212141611111215, 1010101411090810, 1112120610101010, 0002040402061010, 0410121304111314, 0410131404111213, 0206101100020404, 0608080808101010, 0810111208111112, 0810121208121212, 0811101006080808, 1010101011121212, 0910101009101010, 0910101009101010, 0910101010101011, 0608080908101010, 0810111109101111, 1010111108111111, 0810111006080809, 0402020004020200, 0402020004020200, 0604040208060606, 1414101014161210,
-        1010101036303230, 2015181412121413, 1212121211111111, 0909090910101010 }); // use https://onlinestringtools.com/split-string to split into 16 long parts
+                                                1010101036303230, 2015181412121413, 1212121211111111, 0909090910101010, 1010101036303230, 2015181412121413, 1212121211111111, 0909090910101010, 1010101036303230, 2015181412121413, 1212121211111111, 0909090910101010, 1010101036303230, 2015181412121413, 1212121211111111, 0909090910101010, 1010101036303230, 2015181412121413, 1212121211111111, 0909090910101010, 1010101036303230, 2015181412121413, 1212121211111111, 0909090910101010, }); // use https://onlinestringtools.com/split-string to split into 16 long parts
         //Botton is endgame
         //arrCenterDistanceInt = toPieceArray(arrCenterDistance);                                                                                                                                                                                                                                                                                                                                                                                                                                       
         //Console.WriteLine(pieceSqareValues.Length);
@@ -64,7 +64,7 @@ public class MyBot : IChessBot
 
         weAreWhite = board.IsWhiteToMove;
         /*#DEBUG*/Console.WriteLine(" ------ calculate new move -----" + board.IsWhiteToMove);
-        var bestMove = miniMax(board, timer.MillisecondsRemaining < 12500 ? timer.MillisecondsRemaining < 5000 ? 1 : 2 : 4, weAreWhite ? 1 : -1).Item1;
+        var bestMove = miniMax(board, timer.MillisecondsRemaining < 12500 ? timer.MillisecondsRemaining < 5000 ? 1 : 2 : 3, weAreWhite ? 1 : -1).Item1;
         bestMove.ToList().ForEach(move => { Console.WriteLine(move); });
         if (IsEndgame(board)){
             IsEndgameNoFunction = true;
@@ -145,7 +145,7 @@ public class MyBot : IChessBot
             /*#DEBUG*/Console.WriteLine("found checkmate");
             return 100000000000 * currentPlayer; // very height number (chose not to use float.MaxValue beacuse it uses more tokens (3 instead of 1)) 
         }
-        totalPieceValue = 0;
+        totalPieceValue = board.HasKingsideCastleRight(true) ? 25 : 0;
 
         //var skipped = board.TrySkipTurn();  // LOOK HERE: this needs to be here so we can if pieces will be atacked in the next round
        
@@ -166,6 +166,9 @@ public class MyBot : IChessBot
         //    //Console.WriteLine(getPieceValue(p.PieceType, s.Rank, p.IsWhite ? s.File : 7 - s.File)
         //    //    * (p.IsWhite == weAreWhite ? (board.SquareIsAttackedByOpponent(s) ? 0.1f : 1) : -0.9F));
         //}
+
+         
+
         for (int x = 0; x <= 7; x++)
         {
             for (int y = 0; y <= 7; y++)
@@ -218,7 +221,7 @@ public class MyBot : IChessBot
     {
         int pieceTypeIndex = (int)pieceType - 1;
         //Console.WriteLine(((x > 3 ? 7 - x : x /* this mirrors the table*/) + y * 4 + pieceTypeIndex * 32) * 2);
-        return pieceValues[pieceTypeIndex] + (int.Parse(pieceSqareValues.Substring(((x > 3 ? 7 - x : x /* this mirrors the table*/) + y * 4 + pieceTypeIndex * 32) * 2, 1)) * 5 - 50);
+        return pieceValues[pieceTypeIndex] + (int.Parse(pieceSqareValues.Substring(((x > 3 ? 7 - x : x /* this mirrors the table*/) + y * 4 + pieceTypeIndex * 32) * 2 + (IsEndgameNoFunction ? 384 : 0), 1)) * 5 - 50);
 
     }
 
