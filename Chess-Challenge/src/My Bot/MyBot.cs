@@ -76,13 +76,13 @@ public class MyBot : IChessBot
             IsEndgameNoFunction = true;
             Console.WriteLine("We are in the endgame"); //#DEBUG
         }
-
+        
         Console.WriteLine("found checkmate: "+foundCheckMates+" times this turn"); //#DEBUG
         foundCheckMates = 0; //#DEBUG
         Console.WriteLine("found: "+foundDublicateDrawMoves+" dublicate draw moves this turn"); //#DEBUG
         foundDublicateDrawMoves = 0; //#DEBUG
         Console.WriteLine("found these draw moves: "+foundDrawMoves+" this turn"); //#DEBUG
-        Console.WriteLine(searchedMoves); //#DEBUG
+        Console.WriteLine(searchedMoves + " Searched moves"); //#DEBUG
         return bestMove[bestMove.Length - 1];
         //Console.WriteLine(isPieceProtectedAfterMove(board, moves[0]));
         
@@ -150,6 +150,7 @@ public class MyBot : IChessBot
             //}
            
         }
+
         return new(bR.Item1.Append(bMove).ToArray(), bR.Item2);
     }
     
@@ -169,8 +170,8 @@ public class MyBot : IChessBot
             foundCheckMates++; //#DEBUG
             return 100000000000 * currentPlayer; // very height number (chose not to use float.MaxValue beacuse it uses more tokens (3 instead of 1)) 
         } //#DEBUG
-        totalPieceValue = board.HasKingsideCastleRight(true) ? 85 : 0;
-        totalPieceValue += board.HasKingsideCastleRight(false) ? -75 : 0;
+        totalPieceValue = board.HasKingsideCastleRight(true) ? 30 : 0;
+        totalPieceValue += board.HasKingsideCastleRight(false) ? -30 : 0;
 
         //var skipped = board.TrySkipTurn();  // LOOK HERE: this needs to be here so we can if pieces will be atacked in the next round
        
