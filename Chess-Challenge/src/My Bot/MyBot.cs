@@ -54,6 +54,7 @@ public class MyBot : IChessBot
         foreach (var move in moves)
         {
             // code block to be executed
+            
             board.MakeMove(move);
             
             Tuple<Move[], float> r = (depth > 0 ? miniMax(board, depth - 1, currentPlayer * -1) : new(new[] { move }, getPieceValues(board, currentPlayer)));
@@ -112,7 +113,7 @@ public class MyBot : IChessBot
         }
         totalPieceValue = 0;
 
-        var skipped = board.TrySkipTurn();  // LOOK HERE: this needs to be here so we can if pieces will be atacked in the next round
+        //var skipped = board.TrySkipTurn();  // LOOK HERE: this needs to be here so we can if pieces will be atacked in the next round
        
 
         //if (board.IsDraw()) // seems to be slow
@@ -170,10 +171,10 @@ public class MyBot : IChessBot
 
         //    }
         //}
-        if (skipped)
-        {
-            board.UndoSkipTurn();
-        }
+        //if (skipped)
+        //{
+        //    board.UndoSkipTurn();
+        //}
 
         //Console.WriteLine("total piecevalue is:" + totalPieceValue);
 
