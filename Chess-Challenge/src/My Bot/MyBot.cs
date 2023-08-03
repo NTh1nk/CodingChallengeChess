@@ -34,7 +34,7 @@ public class MyBot : IChessBot
 
         weAreWhite = board.IsWhiteToMove;
         Console.WriteLine(" ------ calculate new move -----" + board.IsWhiteToMove);
-        var bestMove = miniMax(board, timer.MillisecondsRemaining < 20000 ? timer.MillisecondsRemaining < 5000 ? 2 : 3 : 4, weAreWhite ? 1 : -1, -1000000, 1000000).Item1;
+        var bestMove = miniMax(board, timer.MillisecondsRemaining < 20000 ? timer.MillisecondsRemaining < 5000 ? 2 : 3 : 4, weAreWhite ? 1 : -1, float.MinValue, float.MaxValue).Item1;
         bestMove.ToList().ForEach(move => { Console.WriteLine(move); });
         return bestMove[bestMove.Length - 1];
         //Console.WriteLine(isPieceProtectedAfterMove(board, moves[0]));
@@ -49,7 +49,7 @@ public class MyBot : IChessBot
             return new(new[] { Move.NullMove }, getPieceValues(board, currentPlayer));
         }
         Move bMove = moves[0];
-        float bMoveMat = float.MinValue; // how good the best move is for the current player
+        float bMoveMat = float.MinValue * currentPlayer; // how good the best move is for the current player
         Tuple<Move[], float> bR = new(new[]{ bMove }, bMoveMat);
         foreach (var move in moves)
         {
@@ -57,11 +57,11 @@ public class MyBot : IChessBot
             
             board.MakeMove(move);
             
-            Tuple<Move[], float> r = (depth > 0 ? miniMax(board, depth - 1, currentPlayer * -1, (currentPlayer == 1 ? bMoveMat : -1000000), (currentPlayer == -1 && bMoveMat != float.MinValue ? bMoveMat : 1000000)) : new(new[] { move }, getPieceValues(board, currentPlayer)));
+            Tuple<Move[], float> r = (depth > 0 ? miniMax(board, depth - 1, currentPlayer * -1, (currentPlayer == 1 ? bMoveMat : float.MinValue), (currentPlayer == -1 ? bMoveMat : float.MaxValue)) : new(new[] { move }, getPieceValues(board, currentPlayer)));
             //Console.WriteLine(v);
             float v = r.Item2;
 
-            if (v * currentPlayer > bMoveMat)
+            if (currentPlayer == 1 ? v > bMoveMat : v < bMoveMat)
             {
                 if (draw_moves.Count > 50)
                 {
@@ -74,14 +74,14 @@ public class MyBot : IChessBot
                     {
                         bR = r;
                         bMove = move;
-                        bMoveMat = v * currentPlayer;
+                        bMoveMat = v;
 
-                        if(bMoveMat * currentPlayer > max || bMoveMat * currentPlayer < min)
+                        if(v > max || v < min)
                         {
-                            
-                            board.UndoMove(move); 
+                            board.UndoMove(move);
                             break;
                         }
+                        
 
                         
                     }
