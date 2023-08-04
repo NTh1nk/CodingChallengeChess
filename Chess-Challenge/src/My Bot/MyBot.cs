@@ -47,12 +47,12 @@ public class MyBot : IChessBot
                 {
                     continue;
                 }
-                totalPieceValue += getPieceValue(p.PieceType, x, p.IsWhite ? y : 7 - y);
+                totalPieceValue += getPieceValue(p.PieceType, x, p.IsWhite ? y : 7 - y, board);
                 
 
             }
         }
-        if (totalPieceValue < 5851)
+        if (totalPieceValue < 5850)
             return true;
         else
             return false;
@@ -171,6 +171,7 @@ public class MyBot : IChessBot
         searchedMoves += 1; //#DEBUG
 
 
+   
         if (board.IsInCheckmate())
         { //#DEBUG
             foundCheckMates++; //#DEBUG
@@ -212,7 +213,8 @@ public class MyBot : IChessBot
                 { //#DEBUG
                     continue;
                 } //#DEBUG
-                totalPieceValue += getPieceValue(p.PieceType, x, p.IsWhite ? y : 7 - y)
+   
+                totalPieceValue += getPieceValue(p.PieceType, x, p.IsWhite ? y : 7 - y, board)
                 * (p.IsWhite ? 1 : -1);// * (board.SquareIsAttackedByOpponent(s) ? 0 : 1);
 
             }
@@ -252,11 +254,19 @@ public class MyBot : IChessBot
     }
 
     //the DEBUGS are in place even tho it's called twice becaus in the end it shouldt be called more than once
-    private float getPieceValue(PieceType pieceType, int x, int y) //#DEBUG
+    private float getPieceValue(PieceType pieceType, int x, int y, Board board) //#DEBUG
     { //#DEBUG
+        
+        float endGameBonus = 0;
         int pieceTypeIndex = (int)pieceType - 1;
         //Console.WriteLine(((x > 3 ? 7 - x : x /* this mirrors the table*/) + y * 4 + pieceTypeIndex * 32) * 2);
-        return pieceValues[pieceTypeIndex] + (int.Parse(pieceSqareValues.Substring(((x > 3 ? 7 - x : x /* this mirrors the table*/) + y * 4 + pieceTypeIndex * 32) * 2 + (IsEndgameNoFunction ? 384 : 0), 1)) * 5 - 50);
+        if(IsEndgameNoFunction)
+        {
+             int distanceToEnemyKing = ManhattanDistance(board.GetKingSquare(weAreWhite), board.GetKingSquare(!weAreWhite));
+             int distanceBonus = 10 * (7 - distanceToEnemyKing); // Adjust the bonus factor as needed
+
+        }    
+        return pieceValues[pieceTypeIndex] + (int.Parse(pieceSqareValues.Substring(((x > 3 ? 7 - x : x /* this mirrors the table*/) + y * 4 + pieceTypeIndex * 32) * 2 + (IsEndgameNoFunction ? 384 : 0), 1) + endGameBonus) * 5 - 50);
     } //#DEBUG
 
     string toPieceArray(long[] arr) //#DEBUG
