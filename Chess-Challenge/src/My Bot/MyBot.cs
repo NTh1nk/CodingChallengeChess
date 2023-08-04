@@ -168,7 +168,7 @@ public class MyBot : IChessBot
         if (board.IsInCheckmate())
         { //#DEBUG
             foundCheckMates++; //#DEBUG
-            return 100000000000 * currentPlayer; // very height number (chose not to use float.MaxValue beacuse it uses more tokens (3 instead of 1)) 
+            return float.MaxValue * currentPlayer; // very height number (chose not to use float.MaxValue beacuse it uses more tokens (3 instead of 1)) 
         } //#DEBUG
         totalPieceValue = board.HasKingsideCastleRight(true) ? 30 : 0;
         totalPieceValue += board.HasKingsideCastleRight(false) ? -30 : 0;
