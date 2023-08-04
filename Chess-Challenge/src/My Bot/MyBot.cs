@@ -190,7 +190,7 @@ isFirstRun = false;
             {
                 if (!draw_moves.Contains(move))
                 {
-                    if (board.IsDraw() != true)
+                    if (!board.IsDraw())
                     {
                         bR = r;
                         bMove = move;
