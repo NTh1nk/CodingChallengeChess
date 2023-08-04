@@ -109,13 +109,23 @@ public class MyBot : IChessBot
 
         weAreWhite = board.IsWhiteToMove;
         Console.WriteLine("---calculate new move---" + board.IsWhiteToMove); //#DEBUG
-        var bestMove = miniMax(board, timer.MillisecondsRemaining < 20000 ? timer.MillisecondsRemaining < 5000 ? 2 : 3 : 4, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue).Item1;
+        var bestMove = miniMax(board, timer.MillisecondsRemaining < 20000 ? timer.MillisecondsRemaining < 5000 ? 2 : 3 : 5, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue).Item1;
         bestMove.ToList().ForEach(move => { /*Console.WriteLine(move);*/ });
         if (IsEndgame(board)){
             IsEndgameNoFunction = true;
             Console.WriteLine("We are in the endgame"); //#DEBUG
         }
         
+        if (boardHashes.Count > 9500)
+        { //#DEBUG
+            Console.WriteLine("flushing bordhashes buffer"); //#DEBUG
+            boardHashes.Clear();
+        } //#DEBUG
+        if (draw_moves.Count > 125)
+        { //#DEBUG
+            Console.WriteLine("flushing draw move bufffer"); //#DEBUG
+            draw_moves.Clear();
+        } //#DEBUG
         
         Console.WriteLine("found checkmate: "+foundCheckMates+" times this turn"); //#DEBUG
         foundCheckMates = 0; //#DEBUG
@@ -152,7 +162,9 @@ public class MyBot : IChessBot
         }
         Move bMove = moves[0];
         float bMoveMat = minFloatValue * currentPlayer; // how good the best move is for the current player
-        Tuple<Move[], float> bR = new(new[]{ bMove }, bMoveMat);
+        Tuple<Move[], float> bR = new(new[] { bMove }, bMoveMat);
+
+
         foreach (var move in moves)
         {
             // code block to be executed
@@ -166,11 +178,6 @@ public class MyBot : IChessBot
 
             if (currentPlayer == 1 ? v > bMoveMat : v < bMoveMat)
             {
-                if (draw_moves.Count > 20) //#DEBUG
-                { //#DEBUG
-                    Console.WriteLine("flushing draw move bufffer"); //#DEBUG
-                    draw_moves.Clear();
-                } //#DEBUG
                 if (!draw_moves.Contains(move))
                 {
                     if (board.IsDraw() != true)
@@ -181,11 +188,6 @@ public class MyBot : IChessBot
 
                         if(v > max || v < min)
                         {
-                            if(boardHashes.Count > 750)
-                            { //#DEBUG
-                                Console.WriteLine("flushing bordhashes buffer"); //#DEBUG
-                                boardHashes.Clear();
-                            } //#DEBUG
                             if (depth == 2 && !boardHashes.ContainsKey(board.ZobristKey))
                             { //#DEBUG
                                 addedZobristKeys++;
