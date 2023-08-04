@@ -160,6 +160,12 @@ public class MyBot : IChessBot
         foundDrawMoves += "\""+move+"\" "; //#DEBUG
     } //#DEBUG
 
+    private int ManhattanDistance(Square square1, Square square2)
+    {
+    int dx = Math.Abs(square1.File - square2.File);
+    int dy = Math.Abs(square1.Rank - square2.Rank);
+    return dx + dy;
+    }
     private float getPieceValues(Board board, int currentPlayer)
     {
         searchedMoves += 1; //#DEBUG
@@ -170,9 +176,10 @@ public class MyBot : IChessBot
             foundCheckMates++; //#DEBUG
             return float.MaxValue * currentPlayer; // very height number (chose not to use float.MaxValue beacuse it uses more tokens (3 instead of 1)) 
         } //#DEBUG
-        totalPieceValue = board.HasKingsideCastleRight(true) ? 30 : 0;
-        totalPieceValue += board.HasKingsideCastleRight(false) ? -30 : 0;
-
+        totalPieceValue = board.HasKingsideCastleRight(true) ? 22 : 0;
+        totalPieceValue += board.HasKingsideCastleRight(false) ? -22 : 0;
+        totalPieceValue = board.HasQueensideCastleRight(true) ? 10 : 0;
+        totalPieceValue += board.HasQueensideCastleRight(false) ? -10 : 0;
         //var skipped = board.TrySkipTurn();  // LOOK HERE: this needs to be here so we can if pieces will be atacked in the next round
        
 
