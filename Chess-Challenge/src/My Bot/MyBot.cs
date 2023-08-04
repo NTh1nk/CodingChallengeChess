@@ -165,7 +165,7 @@ public class MyBot : IChessBot
         Tuple<Move[], float> bR = new(new[] { bMove }, bMoveMat);
 
 
-        foreach (var move in moves)
+        foreach (Move move in moves)
         {
             // code block to be executed
             
