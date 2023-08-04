@@ -60,7 +60,7 @@ public class MyBot : IChessBot
     int addedZobristKeys = 0; //#DEBUG
     int usedZobristKeys = 0; //#DEBUG
 
-    int[] foundDrawMovesPerTurn;
+    Queue<int> foundDrawMovesPerTurn;
     int maxSearchDepth = 5;
     bool isFirstRun = true;
 
@@ -105,7 +105,7 @@ public class MyBot : IChessBot
 
         if(isFirstRun)
         {
-foundDrawMovesPerTurn = new int[maxSearchDepth];
+foundDrawMovesPerTurn = new Queue<int>;
 isFirstRun = false;
         }
 
