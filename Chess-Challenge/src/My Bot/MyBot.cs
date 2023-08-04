@@ -20,7 +20,7 @@ public class MyBot : IChessBot
     bool weAreWhite;
     //double arrCenterDistance = 33333333322222233211112332100123321001233211112332222223333333330.0; DOES NOT WORK because its floating point number
     string pieceSqareValues;  // kinda does work but hacky solution
-    int[] pieceValues = {100, 300, 320, 500, 900, 2000 };
+    int[] pieceValues = {100, 300, 320, 500, 900, 999999 };
     int[] arrCenterDistanceInt;
     List<Move> draw_moves = new();
 
@@ -160,12 +160,12 @@ public class MyBot : IChessBot
         foundDrawMoves += "\""+move+"\" "; //#DEBUG
     } //#DEBUG
 
-    private int ManhattanDistance(Square square1, Square square2)
+   /* private int ManhattanDistance(Square square1, Square square2)
     {
     int dx = Math.Abs(square1.File - square2.File);
     int dy = Math.Abs(square1.Rank - square2.Rank);
     return dx + dy;
-    }
+    } */
     private float getPieceValues(Board board, int currentPlayer)
     {
         searchedMoves += 1; //#DEBUG
@@ -262,8 +262,17 @@ public class MyBot : IChessBot
         //Console.WriteLine(((x > 3 ? 7 - x : x /* this mirrors the table*/) + y * 4 + pieceTypeIndex * 32) * 2);
         if(IsEndgameNoFunction)
         {
-             int distanceToEnemyKing = ManhattanDistance(board.GetKingSquare(weAreWhite), board.GetKingSquare(!weAreWhite));
-             int distanceBonus = 10 * (7 - distanceToEnemyKing); // Adjust the bonus factor as needed
+               
+            Square enemyKingSquare = board.GetKingSquare(!weAreWhite);
+            int distanceToNearestCorner = Math.Min(
+                Math.Min(enemyKingSquare.File, 7 - enemyKingSquare.File),
+                Math.Min(enemyKingSquare.Rank, 7 - enemyKingSquare.Rank)
+
+            );
+
+            endGameBonus = 1000 * (7 - distanceToNearestCorner);
+             //int distanceToEnemyKing = ManhattanDistance(board.GetKingSquare(weAreWhite), board.GetKingSquare(!weAreWhite));
+             //int distanceBonus = 10 * (7 - distanceToEnemyKing); // Adjust the bonus factor as needed
 
         }    
         return pieceValues[pieceTypeIndex] + (int.Parse(pieceSqareValues.Substring(((x > 3 ? 7 - x : x /* this mirrors the table*/) + y * 4 + pieceTypeIndex * 32) * 2 + (IsEndgameNoFunction ? 384 : 0), 1) + endGameBonus) * 5 - 50);
