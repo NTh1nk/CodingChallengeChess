@@ -17,7 +17,26 @@ public class MyBot : IChessBot
     //}
 
     //---this section is variables designated to zobrist hashing and the transportition table---
-    byte[] boardHash = new byte[8];
+    byte[] currentBoardHash = new byte[8];
+    Dictionary<ulong,float> boardHashes = new();
+
+    //right now this funktion is not needed as it seems board has a funktion to get the zobrist key but it might need to be reintruduced if the api funktion is to slow
+    //ulong hashBoard(Board board)
+    //{
+    //    PieceList[] PL = board.GetAllPieceLists();
+    //    Piece[] PA = new Piece[28];
+    //    int PAI = 0;
+    //    foreach (PieceList PL2 in PL)
+    //    {
+    //        for(int i=0;i<PL2.Count;i++)
+    //        {
+    //            PA[PAI] = PL2.GetPiece(i);
+    //            PAI++;
+    //        }
+    //    }
+    //    return 0;
+    //}
+
     //---end---
 
     // how much each piece is worth
@@ -38,6 +57,9 @@ public class MyBot : IChessBot
     int foundCheckMates = 0; //#DEBUG
     int foundDublicateDrawMoves = 0; //#DEBUG
     string foundDrawMoves; //#DEBUG
+    int addedZobristKeys = 0; //#DEBUG
+    int usedZobristKeys = 0; //#DEBUG
+
     public bool IsEndgame(Board board) //#DEBUG
     { //#DEBUG
       //Console.WriteLine(board.GetAllPieceLists()); 
@@ -64,12 +86,19 @@ public class MyBot : IChessBot
     } //#DEBUG
     public Move Think(Board board, Timer timer)
     {
-        Console.WriteLine(smallRandomNumberGenerator(1)); //#DEBUG
+        //testing the small random number gen
+        /*Console.WriteLine(smallRandomNumberGenerator(1)); //#DEBUG
         Console.WriteLine(smallRandomNumberGenerator(2)); //#DEBUG
         Console.WriteLine(smallRandomNumberGenerator(3)); //#DEBUG
         Console.WriteLine(smallRandomNumberGenerator(4)); //#DEBUG
         Console.WriteLine(smallRandomNumberGenerator()); //#DEBUG
         Console.WriteLine(smallRandomNumberGenerator()); //#DEBUG
+        Console.WriteLine(smallRandomNumberGenerator()); //#DEBUG
+        Console.WriteLine(smallRandomNumberGenerator(2)); //#DEBUG
+        Console.WriteLine(smallRandomNumberGenerator()); //#DEBUG
+        Console.WriteLine(smallRandomNumberGenerator()); //#DEBUG
+        */
+
         pieceSqareValues = toPieceArray(new[] { 1010101018181818, 1212141611111215, 1010101411090810, 1112120610101010, 0002040402061010, 0410121304111314, 0410131404111213, 0206101100020404, 0608080808101010, 0810111208111112, 0810121208121212, 0811101006080808, 1010101011121212, 0910101009101010, 0910101009101010, 0910101010101011, 0608080908101010, 0810111109101111, 1010111108111111, 0810111006080809, 0402020004020200, 0402020004020200, 0604040208060606, 1414060630341207,
                                                 1010101036303230, 2015181412121413, 1212121211111111, 0909090910101010, 1010101036303230, 2015181412121413, 1212121211111111, 0909090910101010, 1010101036303230, 2015181412121413, 1212121211111111, 0909090910101010, 1010101036303230, 2015181412121413, 1212121211111111, 0909090910101010, 1010101036303230, 2015181412121413, 1212121211111111, 0909090910101010, 1010101036303230, 2015181412121413, 1212121211111111, 0909090910101010, }); // use https://onlinestringtools.com/split-string to split into 16 long parts
         //Botton is endgame
@@ -79,20 +108,34 @@ public class MyBot : IChessBot
 
 
         weAreWhite = board.IsWhiteToMove;
-        Console.WriteLine(" ------ calculate new move -----" + board.IsWhiteToMove); //#DEBUG
+        Console.WriteLine("---calculate new move---" + board.IsWhiteToMove); //#DEBUG
         var bestMove = miniMax(board, timer.MillisecondsRemaining < 20000 ? timer.MillisecondsRemaining < 5000 ? 2 : 3 : 4, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue).Item1;
-        bestMove.ToList().ForEach(move => { Console.WriteLine(move); });
+        bestMove.ToList().ForEach(move => { /*Console.WriteLine(move);*/ });
         if (IsEndgame(board)){
             IsEndgameNoFunction = true;
             Console.WriteLine("We are in the endgame"); //#DEBUG
         }
         
+        
         Console.WriteLine("found checkmate: "+foundCheckMates+" times this turn"); //#DEBUG
         foundCheckMates = 0; //#DEBUG
+        
         Console.WriteLine("found: "+foundDublicateDrawMoves+" dublicate draw moves this turn"); //#DEBUG
         foundDublicateDrawMoves = 0; //#DEBUG
+        
         Console.WriteLine("found these draw moves: "+foundDrawMoves+" this turn"); //#DEBUG
+        foundDrawMoves = ""; //#DEBUG
+        
         Console.WriteLine(searchedMoves + " Searched moves"); //#DEBUG
+        
+        Console.WriteLine("adding: "+addedZobristKeys+" deep seached zobrist keys this turn"); //#DEBUG
+        addedZobristKeys = 0;
+
+        Console.WriteLine("found: " + usedZobristKeys + " positions already calculated this turn"); //#DEBUG
+        usedZobristKeys = 0;
+
+        Console.WriteLine("dececion took: "+timer.MillisecondsElapsedThisTurn+" ms this turn"); //#DEBUG
+
         return bestMove[bestMove.Length - 1];
         //Console.WriteLine(isPieceProtectedAfterMove(board, moves[0]));
         
@@ -115,8 +158,9 @@ public class MyBot : IChessBot
             // code block to be executed
             
             board.MakeMove(move);
-            
-            Tuple<Move[], float> r = (depth > 0 ? miniMax(board, depth - 1, currentPlayer * -1, (currentPlayer == 1 ? bMoveMat : minFloatValue), (currentPlayer == -1 ? bMoveMat : float.MaxValue)) : new(new[] { move }, getPieceValues(board, currentPlayer)));
+
+            if(boardHashes.ContainsKey(board.ZobristKey)) usedZobristKeys++; //#DEBUG
+            Tuple<Move[], float> r = (depth > 0 ? miniMax(board, depth - 1, currentPlayer * -1, (currentPlayer == 1 ? bMoveMat : minFloatValue), (currentPlayer == -1 ? bMoveMat : float.MaxValue)) : new(new[] { move }, boardHashes.ContainsKey(board.ZobristKey) ? boardHashes[board.ZobristKey] : getPieceValues(board, currentPlayer)));
             //Console.WriteLine(v);
             float v = r.Item2;
 
@@ -137,12 +181,19 @@ public class MyBot : IChessBot
 
                         if(v > max || v < min)
                         {
+                            if(boardHashes.Count > 750)
+                            { //#DEBUG
+                                Console.WriteLine("flushing bordhashes buffer"); //#DEBUG
+                                boardHashes.Clear();
+                            } //#DEBUG
+                            if (depth == 2 && !boardHashes.ContainsKey(board.ZobristKey))
+                            { //#DEBUG
+                                addedZobristKeys++;
+                                boardHashes.Add(board.ZobristKey, v);
+                            } //#DEBUG
                             board.UndoMove(move);
                             break;
                         }
-                        
-
-                        
                     }
                     else printErrorDraw(move); //#DEBUG
                 } 
@@ -156,10 +207,12 @@ public class MyBot : IChessBot
 
             //if(depth == 1)
             //{
-                //Console.WriteLine("best move " + move + " with a v of " + v);
+            //Console.WriteLine("best move " + move + " with a v of " + v);
             //}
-           
+
         }
+
+
 
         return new(bR.Item1.Append(bMove).ToArray(), bR.Item2);
     }
@@ -273,11 +326,11 @@ public class MyBot : IChessBot
         return !board.SquareIsAttackedByOpponent(move.TargetSquare); //#DEBUG
     } //#DEBUG
 
-    int prevSeed = 0;
-    int smallRandomNumberGenerator(int seed = -1)
+    ulong prevSeed = 0;
+    ulong smallRandomNumberGenerator(ulong seed = 0, int maxSizeRange = 100)
     {
-        if (seed == -1) seed = prevSeed;
-        prevSeed = Abs(((int)(((((seed * 325 + 162) / 313 + 26) * 17.5f)+(seed*17.93f)-23/(seed))/226.3*(seed/4511+15)/(seed/(4-seed/seed-2.3f)))));
+        if (seed == 0) seed = prevSeed;
+        prevSeed = (ulong)Abs(Cos(seed * 10) * maxSizeRange);
         return prevSeed;
     }
 }
