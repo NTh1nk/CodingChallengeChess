@@ -167,10 +167,12 @@ public class MyBot : IChessBot
         if (board.IsInCheckmate())
         { //#DEBUG
             foundCheckMates++; //#DEBUG
-            return 100000000000 * currentPlayer; // very height number (chose not to use float.MaxValue beacuse it uses more tokens (3 instead of 1)) 
+            return float.MaxValue * currentPlayer; // very height number (chose not to use float.MaxValue beacuse it uses more tokens (3 instead of 1)) 
         } //#DEBUG
-        totalPieceValue = board.HasKingsideCastleRight(true) ? 85 : 0;
-        totalPieceValue += board.HasKingsideCastleRight(false) ? -75 : 0;
+        totalPieceValue = board.HasKingsideCastleRight(true) ? 25 : 0;
+        totalPieceValue += board.HasKingsideCastleRight(false) ? -25 : 0;
+        totalPieceValue = board.HasQueensideCastleRight(true) ? 15 : 0;
+        totalPieceValue += board.HasQueensideCastleRight(false) ? -15 : 0;
 
         //var skipped = board.TrySkipTurn();  // LOOK HERE: this needs to be here so we can if pieces will be atacked in the next round
        
