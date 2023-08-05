@@ -52,7 +52,7 @@ public class MyBot : IChessBot
     float minFloatValue = float.MinValue;
 
 
-    // debug variables (variables only used for debuging
+    // debug variables (variables only used for debuging)
     int searchedMoves = 0; //#DEBUG
     int foundCheckMates = 0; //#DEBUG
     int foundDublicateDrawMoves = 0; //#DEBUG
@@ -61,7 +61,7 @@ public class MyBot : IChessBot
     int usedZobristKeys = 0; //#DEBUG
     // -----------------------------
     Queue<int> foundDrawMovesPerTurn = new();
-    int maxSearchDepth = 5;
+    int maxSearchDepth = 4;
 
     public bool IsEndgame(Board board, bool white) //#DEBUG
     { //#DEBUG
@@ -78,7 +78,6 @@ public class MyBot : IChessBot
 
                 totalPieceValue += pieceValues[(int)p.PieceType - 1];
                 
-
             }
         }
         if (totalPieceValue < 2900)
