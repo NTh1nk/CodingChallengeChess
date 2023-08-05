@@ -181,7 +181,7 @@ public class MyBot : IChessBot
             board.MakeMove(move);
 
             if(boardHashes.ContainsKey(board.ZobristKey)) usedZobristKeys++; //#DEBUG
-            Tuple<Move[], float> r = (depth > 0 ? miniMax(board, depth - 1, currentPlayer * -1, (currentPlayer == 1 ? bMoveMat : minFloatValue), (currentPlayer == -1 ? bMoveMat : float.MaxValue)) : new(new[] { move }, boardHashes.ContainsKey(board.ZobristKey) ? boardHashes[board.ZobristKey] : getPieceValues(board, currentPlayer)));
+            Tuple<Move[], float> r = (depth > 0 ? miniMax(board, depth - 1, currentPlayer * -1, currentPlayer == 1 ? bMoveMat : minFloatValue, currentPlayer == -1 ? bMoveMat : float.MaxValue) : new(new[] { move }, boardHashes.ContainsKey(board.ZobristKey) ? boardHashes[board.ZobristKey] : getPieceValues(board, currentPlayer)));
             //Console.WriteLine(v);
             float v = r.Item2;
 
