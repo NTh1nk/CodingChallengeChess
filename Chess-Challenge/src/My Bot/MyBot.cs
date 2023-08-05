@@ -81,7 +81,20 @@ public class MyBot : IChessBot
             }
         }
         if (totalPieceValue < 2900)
+            {
+
+                pieceValues = new [] {
+                160, // Pawn
+                320, // Knight
+                345, // Bishop
+                530, // Rook
+                940, // Queen
+                2000 // King
+                
+            };
             return true;
+            }
+
         
         return false;
     } //#DEBUG
