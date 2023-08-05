@@ -162,11 +162,18 @@ public class MyBot : IChessBot
             
             board.MakeMove(move);
 
-            if(boardHashes.ContainsKey(board.ZobristKey)) usedZobristKeys++; //#DEBUG
-            Tuple<Move[], float> r = (depth > 0 ? miniMax(board, depth - 1, currentPlayer * -1, currentPlayer == 1 ? bMoveMat : minFloatValue, currentPlayer == -1 ? bMoveMat : float.MaxValue) : new(new[] { move }, boardHashes.ContainsKey(board.ZobristKey) ? boardHashes[board.ZobristKey] : getPieceValues(board, currentPlayer)));
+            if (boardHashes.ContainsKey(board.ZobristKey)) usedZobristKeys++; //#DEBUG
+            Tuple<Move[], float> r = 
+                (depth > 0 ? miniMax(board, depth - 1, currentPlayer * -1, currentPlayer == 1 ? bMoveMat : minFloatValue, currentPlayer == -1 ? bMoveMat : float.MaxValue) : // use minimax if the depth is bigger than 0
+                new(new[] { move }, boardHashes.ContainsKey(board.ZobristKey) ? boardHashes[board.ZobristKey] : getPieceValues(board, currentPlayer))); // use the stored value or get piece values new
             //Console.WriteLine(v);
             float v = r.Item2;
 
+            if (!boardHashes.ContainsKey(board.ZobristKey))
+            {
+                addedZobristKeys++;
+                boardHashes.Add(board.ZobristKey, v);
+            }
             if (currentPlayer == 1 ? v > bMoveMat : v < bMoveMat)
             {
                 if (!draw_moves.Contains(move))
@@ -181,8 +188,6 @@ public class MyBot : IChessBot
                         {
                             if (depth == 2 && !boardHashes.ContainsKey(board.ZobristKey))
                             { //#DEBUG
-                                addedZobristKeys++;
-                                boardHashes.Add(board.ZobristKey, v);
                             } //#DEBUG
                             board.UndoMove(move);
                             break;
