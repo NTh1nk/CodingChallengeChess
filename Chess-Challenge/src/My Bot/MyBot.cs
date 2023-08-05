@@ -9,13 +9,6 @@ public class MyBot : IChessBot
 {
     // right now funktions are seperated. before submision, everything will be compacted into the think function if possible.
 
-    //example code
-    //public Move Think(Board board, Timer timer)
-    //{
-    //    Move[] moves = board.GetLegalMoves();
-    //    return moves[0];
-    //}
-
     //---this section is variables designated to zobrist hashing and the transportition table---
     byte[] currentBoardHash = new byte[8];
     Dictionary<ulong,float> boardHashes = new();
@@ -39,11 +32,11 @@ public class MyBot : IChessBot
 
     //---end---
 
-    // how much each piece is worth
     //float totalPieceValue;
     bool weAreWhite;
     //double arrCenterDistance = 33333333322222233211112332100123321001233211112332222223333333330.0; DOES NOT WORK because its floating point number
     string pieceSqareValues;  // kinda does work but hacky solution
+    // how much each piece is worth
     int[] pieceValues = {
         100, // Pawn
         300, // Knight
