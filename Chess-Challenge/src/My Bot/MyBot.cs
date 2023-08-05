@@ -61,7 +61,7 @@ public class MyBot : IChessBot
     int usedZobristKeys = 0; //#DEBUG
     // -----------------------------
     Queue<int> foundDrawMovesPerTurn = new();
-    int maxSearchDepth = 6;
+    int maxSearchDepth = 7;
 
     public bool IsEndgame(Board board, bool white) //#DEBUG
     { //#DEBUG
@@ -111,7 +111,7 @@ public class MyBot : IChessBot
         //Console.WriteLine(getPieceValue(PieceType.Pawn, 0, 7 - 6));               
         weAreWhite = board.IsWhiteToMove;
         Console.WriteLine("---calculate new move---" + board.IsWhiteToMove); //#DEBUG
-        var bestMove = miniMax(board, timer.MillisecondsRemaining < 20000 ? timer.MillisecondsRemaining < 5000 ? 2 : 3 : maxSearchDepth, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue, getPieceValues(board, weAreWhite ? 1 : -1)).Item1;
+        var bestMove = miniMax(board, timer.MillisecondsRemaining < 20000 ? timer.MillisecondsRemaining < 5000 ? 2 : 3 : maxSearchDepth, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue, getPieceValues(board, weAreWhite ? 1 : -1) + evaluateTop(board, weAreWhite ? 1 : -1)).Item1;
         bestMove.ToList().ForEach(move => { Console.WriteLine("predicted move: " + move); });
         if (IsEndgame(board, !weAreWhite)){
             IsEndgameNoFunction = true;
@@ -246,21 +246,6 @@ public class MyBot : IChessBot
     } */
     private float getPieceValues(Board board, int currentPlayer)
     {
-        
-        searchedMoves += 1; //#DEBUG
-        float totalPieceValue = 0;
-
-
-
-        if (board.IsInCheckmate())
-        { //#DEBUG
-            foundCheckMates++; //#DEBUG
-            return 1000000000000 * -currentPlayer; // very height number (chose not to use float.MaxValue beacuse it uses more tokens (3 instead of 1)) 
-        } //#DEBUG
-        totalPieceValue = board.HasKingsideCastleRight(true) ? 22 : 0;
-        totalPieceValue += board.HasKingsideCastleRight(false) ? -22 : 0;
-        totalPieceValue = board.HasQueensideCastleRight(true) ? 10 : 0;
-        totalPieceValue += board.HasQueensideCastleRight(false) ? -10 : 0;
         //var skipped = board.TrySkipTurn();  // LOOK HERE: this needs to be here so we can if pieces will be atacked in the next round
 
 
@@ -279,25 +264,11 @@ public class MyBot : IChessBot
 
         //}
 
-
-
-        for (int x = 0; x <= 7; x++)
-            for (int y = 0; y <= 7; y++)
-            {
-                var s = new Square(x, y);
-                var p = board.GetPiece(s); // quite slow
-                if (p.IsNull) continue;
-
-                totalPieceValue += getPieceValue(p.PieceType, s, p.IsWhite)
-                * (p.IsWhite ? 1 : -1);// * (board.SquareIsAttackedByOpponent(s) ? 0 : 1);
-
-            }
-
-        //totalPieceValue += board.GetAllPieceLists().SelectMany(x => x).Sum(p =>
-        //{
-        //    var s = p.Square;
-        //    return getPieceValue(p.PieceType, s.Rank, p.IsWhite ? s.File : 7 - s.File) * (p.IsWhite ? 1 : -1);
-        //});
+        return board.GetAllPieceLists().SelectMany(x => x).Sum(p =>
+        {
+            var s = p.Square;
+            return getPieceValue(p.PieceType, s, p.IsWhite) * (p.IsWhite ? 1 : -1);
+        });
 
         //foreach (PieceList plist in board.GetAllPieceLists()) // seems to be about 100 ms faster than using .SelectMany()
         //{
@@ -322,8 +293,6 @@ public class MyBot : IChessBot
         //}
 
         //Console.WriteLine("total piecevalue is:" + totalPieceValue);
-
-        return totalPieceValue;
     }
 
     //the DEBUGS are in place even tho it's called twice becaus in the end it shouldt be called more than once
@@ -358,7 +327,6 @@ public class MyBot : IChessBot
     float evaluateBase(float prevBase, Move move, int currentPlayer)
     {
         bool isWhite = currentPlayer < 0; // doesn't matter if it a variable or called each time BBS-wise
-        
         return
             -getPieceValue(move.MovePieceType, move.StartSquare, isWhite)  // remove the old piece 
             +getPieceValue(move.IsPromotion ? move.PromotionPieceType : move.MovePieceType, move.TargetSquare, isWhite) // add the new piece (move piece type if it is't promotion. if it is use the promotion piece type)
