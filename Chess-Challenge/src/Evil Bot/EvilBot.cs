@@ -133,43 +133,43 @@ isFirstRun = false;
         //IsEndgameNoFunction = true;
         //Console.WriteLine(getPieceValue(PieceType.Pawn, 0, 7 - 6));               
         weAreWhite = board.IsWhiteToMove;
-        Console.WriteLine("---calculate new move---" + board.IsWhiteToMove); //#DEBUG
+        //Console.WriteLine("---calculate new move---" + board.IsWhiteToMove); //#DEBUG
         var bestMove = miniMax(board, timer.MillisecondsRemaining < 20000 ? timer.MillisecondsRemaining < 5000 ? 2 : 3 : maxSearchDepth, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue).Item1;
         bestMove.ToList().ForEach(move => { /*Console.WriteLine(move);*/ });
         if (IsEndgame(board, !weAreWhite)){
             IsEndgameNoFunction = true;
-            Console.WriteLine("We are in the endgame"); //#DEBUG
+            //Console.WriteLine("We are in the endgame"); //#DEBUG
         }
         
         if (boardHashes.Count > 9500)
         { //#DEBUG
-            Console.WriteLine("flushing bordhashes buffer"); //#DEBUG
+            //Console.WriteLine("flushing bordhashes buffer"); //#DEBUG
             boardHashes.Clear();
         } //#DEBUG
         if (draw_moves.Count > 125)
         { //#DEBUG
-            Console.WriteLine("flushing draw move bufffer"); //#DEBUG
+            //Console.WriteLine("flushing draw move bufffer"); //#DEBUG
             draw_moves.Clear();
         } //#DEBUG
         
-        Console.WriteLine("found checkmate: "+foundCheckMates+" times this turn"); //#DEBUG
+        //Console.WriteLine("found checkmate: "+foundCheckMates+" times this turn"); //#DEBUG
         foundCheckMates = 0; //#DEBUG
         
-        Console.WriteLine("found: "+foundDublicateDrawMoves+" dublicate draw moves this turn"); //#DEBUG
+        //Console.WriteLine("found: "+foundDublicateDrawMoves+" dublicate draw moves this turn"); //#DEBUG
         foundDublicateDrawMoves = 0; //#DEBUG
         
-        Console.WriteLine("found these draw moves: "+foundDrawMoves+" this turn"); //#DEBUG
+        //Console.WriteLine("found these draw moves: "+foundDrawMoves+" this turn"); //#DEBUG
         foundDrawMoves = ""; //#DEBUG
         
-        Console.WriteLine(searchedMoves + " Searched moves"); //#DEBUG
+        //Console.WriteLine(searchedMoves + " Searched moves"); //#DEBUG
         
-        Console.WriteLine("adding: "+addedZobristKeys+" deep seached zobrist keys this turn"); //#DEBUG
+        //Console.WriteLine("adding: "+addedZobristKeys+" deep seached zobrist keys this turn"); //#DEBUG
         addedZobristKeys = 0;
 
-        Console.WriteLine("found: " + usedZobristKeys + " positions already calculated this turn"); //#DEBUG
+        //Console.WriteLine("found: " + usedZobristKeys + " positions already calculated this turn"); //#DEBUG
         usedZobristKeys = 0;
 
-        Console.WriteLine("dececion took: "+timer.MillisecondsElapsedThisTurn+" ms this turn"); //#DEBUG
+        //Console.WriteLine("dececion took: "+timer.MillisecondsElapsedThisTurn+" ms this turn"); //#DEBUG
 
         return bestMove[bestMove.Length - 1];
         //Console.WriteLine(isPieceProtectedAfterMove(board, moves[0]));
@@ -232,7 +232,7 @@ isFirstRun = false;
             }
             if(depth == 4)
             {
-                Console.WriteLine($"{move}: {v}");
+                //Console.WriteLine($"{move}: {v}");
             }
 
             board.UndoMove(move);
