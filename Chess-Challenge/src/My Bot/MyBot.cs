@@ -166,13 +166,15 @@ public class MyBot : IChessBot
         float bMoveMat = minFloatValue * currentPlayer;
         Tuple<Move[], float> bR = new(new[] { bMove }, bMoveMat);
 
+        List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(prevBase, m, currentPlayer))).ToList();
+        //sortedMoves = sortedMoves.OrderByDescending(item => item.Base).ToList();
 
-        foreach (Move move in moves)
+        foreach (var (move, Base)  in sortedMoves)
         {
             
             
             board.MakeMove(move);
-            float newBase = prevBase + evaluateBase(prevBase, move, currentPlayer) * currentPlayer;
+            float newBase = prevBase + Base * currentPlayer;
 
             //if (boardHashes.ContainsKey(board.ZobristKey)) usedZobristKeys++; //#DEBUG
 
