@@ -109,7 +109,7 @@ public class MyBot : IChessBot
 
         if(isFirstRun)
         {
-foundDrawMovesPerTurn = new Queue<int>;
+foundDrawMovesPerTurn = new Queue<int>();
 isFirstRun = false;
         }
 
