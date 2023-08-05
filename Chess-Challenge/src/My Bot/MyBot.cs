@@ -209,11 +209,8 @@ public class MyBot : IChessBot
             {
                 var s = new Square(x, y);
                 var p = board.GetPiece(s); // quite slow
-                if (p.IsNull)
-                { //#DEBUG
-                    continue;
-                } //#DEBUG
-   
+                if (p.IsNull) continue;
+                
                 totalPieceValue += getPieceValue(p.PieceType, x, p.IsWhite ? y : 7 - y, board)
                 * (p.IsWhite ? 1 : -1);// * (board.SquareIsAttackedByOpponent(s) ? 0 : 1);
 
