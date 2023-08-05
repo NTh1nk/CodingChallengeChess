@@ -20,7 +20,13 @@ public class MyBot : IChessBot
     bool weAreWhite;
     //double arrCenterDistance = 33333333322222233211112332100123321001233211112332222223333333330.0; DOES NOT WORK because its floating point number
     string pieceSqareValues;  // kinda does work but hacky solution
-    int[] pieceValues = {100, 300, 320, 500, 900, 999999 };
+    int[] pieceValues = {
+        100, // Pawn
+        300, // Knight
+        320, // Bishop
+        500, // Rook
+        900, // Queen
+        2000 }; // King
     int[] arrCenterDistanceInt;
     List<Move> draw_moves = new();
 
@@ -33,9 +39,9 @@ public class MyBot : IChessBot
     int foundCheckMates = 0; //#DEBUG
     int foundDublicateDrawMoves = 0; //#DEBUG
     string foundDrawMoves; //#DEBUG
-    public bool IsEndgame(Board board) //#DEBUG
+    public bool IsEndgame(Board board, bool white) //#DEBUG
     { //#DEBUG
-      //Console.WriteLine(board.GetAllPieceLists()); 
+
         totalPieceValue = 0;
         for (int x = 0; x <= 7; x++)
         {
@@ -43,36 +49,34 @@ public class MyBot : IChessBot
             {
                 var s = new Square(x, y);
                 var p = board.GetPiece(s); // quite slow
-                if (p.IsNull)
-                {
-                    continue;
-                }
-                totalPieceValue += getPieceValue(p.PieceType, x, p.IsWhite ? y : 7 - y, board);
+                if (p.IsNull || white != p.IsWhite) continue;
+
+                totalPieceValue += pieceValues[(int)p.PieceType - 1];
                 
 
             }
         }
-        if (totalPieceValue < 5850)
+        if (totalPieceValue < 2900)
             return true;
-        else
-            return false;
+        
+        return false;
     } //#DEBUG
     public Move Think(Board board, Timer timer)
     {
         
         pieceSqareValues = toPieceArray(new[] { 1010101018181818, 1212141611111215, 1010101411090810, 1112120610101010, 0002040402061010, 0410121304111314, 0410131404111213, 0206101100020404, 0608080808101010, 0810111208111112, 0810121208121212, 0811101006080808, 1010101011121212, 0910101009101010, 0910101009101010, 0910101010101011, 0608080908101010, 0810111109101111, 1010111108111111, 0810111006080809, 0402020004020200, 0402020004020200, 0604040208060606, 1414060630341207,
-                                                1010101036303230, 2015181412121413, 1212121211111111, 0909090910101010, 1010101036303230, 2015181412121413, 1212121211111111, 0909090910101010, 1010101036303230, 2015181412121413, 1212121211111111, 0909090910101010, 1010101036303230, 2015181412121413, 1212121211111111, 0909090910101010, 1010101036303230, 2015181412121413, 1212121211111111, 0909090910101010, 1010101036303230, 2015181412121413, 1212121211111111, 0909090910101010, }); // use https://onlinestringtools.com/split-string to split into 16 long parts
+                                                1010101036303230, 2015181412121413, 1212121211111111, 0909090910101010, 0002040402061010, 0410121304111314, 0410131404111213, 0206101100020404, 0608080808101010, 0810111208111112, 0810121208121212, 0811101006080808, 1010101011121212, 0910101009101010, 0910101009101010, 0910101010101011, 0608080908101010, 0810111109101111, 1010111108111111, 0810111006080809, 0402020004020200, 0402020004020200, 0604040208060606, 1414060630341207 }); // use https://onlinestringtools.com/split-string to split into 16 long parts
         //Botton is endgame
         //arrCenterDistanceInt = toPieceArray(arrCenterDistance);                                                                                                                                                                                                                                                                                                                                                                                                                                       
         //Console.WriteLine(pieceSqareValues.Length);
         //Console.WriteLine(getPieceValue(PieceType.King, 7, 7));
-
-
+        //IsEndgameNoFunction = true;
+        //Console.WriteLine(getPieceValue(PieceType.Pawn, 0, 7 - 6));               
         weAreWhite = board.IsWhiteToMove;
         Console.WriteLine(" ------ calculate new move -----" + board.IsWhiteToMove); //#DEBUG
         var bestMoves = miniMax(board, timer.MillisecondsRemaining < 20000 ? timer.MillisecondsRemaining < 5000 ? 2 : 3 : 4, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue).Item1;
         bestMoves.ToList().ForEach(move => { Console.WriteLine(move); });
-        if (IsEndgame(board)){
+        if (IsEndgame(board, !weAreWhite)){
             IsEndgameNoFunction = true;
             Console.WriteLine("We are in the endgame"); //#DEBUG
         }
@@ -81,7 +85,7 @@ public class MyBot : IChessBot
         foundCheckMates = 0; //#DEBUG
         Console.WriteLine("found: "+foundDublicateDrawMoves+" dublicate draw moves this turn"); //#DEBUG
         foundDublicateDrawMoves = 0; //#DEBUG
-        Console.WriteLine("found these draw moves: "+foundDrawMoves+" this turn"); //#DEBUG
+        //Console.WriteLine("found these draw moves: "+foundDrawMoves+" this turn"); //#DEBUG
         Console.WriteLine(searchedMoves + " Searched moves"); //#DEBUG
         return bestMoves[bestMoves.Length - 1];
         //Console.WriteLine(isPieceProtectedAfterMove(board, moves[0]));
@@ -102,6 +106,7 @@ public class MyBot : IChessBot
         Tuple<Move[], float> bR = new(new[]{ bMove }, bMoveMat);
         foreach (var move in moves)
         {
+            
             // code block to be executed
             
             board.MakeMove(move);
@@ -114,7 +119,7 @@ public class MyBot : IChessBot
             {
                 if (draw_moves.Count > 20) //#DEBUG
                 { //#DEBUG
-                    Console.WriteLine("flushing draw move bufffer"); //#DEBUG
+                    //Console.WriteLine("flushing draw move bufffer"); //#DEBUG
                     draw_moves.Clear();
                 } //#DEBUG
                 if (!draw_moves.Contains(move))
@@ -140,6 +145,10 @@ public class MyBot : IChessBot
                 { //#DEBUG
                     foundDublicateDrawMoves++; //#DEBUG
                 } //#DEBUG
+            }
+            if(depth == 4)
+            {
+                Console.WriteLine($"{move}: {v}");
             }
 
             board.UndoMove(move);
@@ -189,33 +198,31 @@ public class MyBot : IChessBot
         //    totalPieceValue -= 100 * currentPlayer; // try to avoid a draw
         //}
 
-        //foreach (Piece p in board.GetAllPieceLists().SelectMany(x => x))
-        //{
+        foreach (Piece p in board.GetAllPieceLists().SelectMany(x => x))
+        {
 
 
-        //    var s = p.Square;
-        //    totalPieceValue += getPieceValue(p.PieceType, s.File, p.IsWhite ? s.Rank : 7 - s.Rank)
-        //        * (p.IsWhite ? 1 : -1);
+            var s = p.Square;
+            totalPieceValue += getPieceValue(p.PieceType, s.File, p.IsWhite ? s.Rank : 7 - s.Rank)
+                * (p.IsWhite ? 1 : -1);
 
-        //    //Console.WriteLine(getPieceValue(p.PieceType, s.Rank, p.IsWhite ? s.File : 7 - s.File)
-        //    //    * (p.IsWhite == weAreWhite ? (board.SquareIsAttackedByOpponent(s) ? 0.1f : 1) : -0.9F));
-        //}
+            //Console.WriteLine(getPieceValue(p.PieceType, s.Rank, p.IsWhite ? s.File : 7 - s.File)
+            //    * (p.IsWhite == weAreWhite ? (board.SquareIsAttackedByOpponent(s) ? 0.1f : 1) : -0.9F));
+        }
 
-         
+
 
         for (int x = 0; x <= 7; x++)
-        { //#DEBUG
             for (int y = 0; y <= 7; y++)
             {
                 var s = new Square(x, y);
                 var p = board.GetPiece(s); // quite slow
                 if (p.IsNull) continue;
                 
-                totalPieceValue += getPieceValue(p.PieceType, x, p.IsWhite ? y : 7 - y, board)
+                totalPieceValue += getPieceValue(p.PieceType, x, p.IsWhite ? 7 - y : y)
                 * (p.IsWhite ? 1 : -1);// * (board.SquareIsAttackedByOpponent(s) ? 0 : 1);
 
             }
-        } //#DEBUG
 
         //totalPieceValue += board.GetAllPieceLists().SelectMany(x => x).Sum(p =>
         //{
@@ -251,28 +258,26 @@ public class MyBot : IChessBot
     }
 
     //the DEBUGS are in place even tho it's called twice becaus in the end it shouldt be called more than once
-    private float getPieceValue(PieceType pieceType, int x, int y, Board board) //#DEBUG
+    private float getPieceValue(PieceType pieceType, int x, int y) //#DEBUG
     { //#DEBUG
         
         float endGameBonus = 0;
         int pieceTypeIndex = (int)pieceType - 1;
         //Console.WriteLine(((x > 3 ? 7 - x : x /* this mirrors the table*/) + y * 4 + pieceTypeIndex * 32) * 2);
-        if(IsEndgameNoFunction)
-        {
-               
-            Square enemyKingSquare = board.GetKingSquare(!weAreWhite);
-            int distanceToNearestCorner = Math.Min(
-                Math.Min(enemyKingSquare.File, 7 - enemyKingSquare.File),
-                Math.Min(enemyKingSquare.Rank, 7 - enemyKingSquare.Rank)
+        //if(IsEndgameNoFunction && pieceTypeIndex == 6)
+        //{
 
-            );
+        //    //Square enemyKingSquare = board.GetKingSquare(!weAreWhite);
+        //    int distanceToNearestCorner = Math.Min(x, 7 - x) + Math.Min(y, 7 - y);
 
-            endGameBonus = 1000 * (7 - distanceToNearestCorner);
-             //int distanceToEnemyKing = ManhattanDistance(board.GetKingSquare(weAreWhite), board.GetKingSquare(!weAreWhite));
-             //int distanceBonus = 10 * (7 - distanceToEnemyKing); // Adjust the bonus factor as needed
+            
 
-        }    
-        return pieceValues[pieceTypeIndex] + (int.Parse(pieceSqareValues.Substring(((x > 3 ? 7 - x : x /* this mirrors the table*/) + y * 4 + pieceTypeIndex * 32) * 2 + (IsEndgameNoFunction ? 384 : 0), 1) + endGameBonus) * 5 - 50);
+        //    endGameBonus = 10000 * (distanceToNearestCorner);
+        //     //int distanceToEnemyKing = ManhattanDistance(board.GetKingSquare(weAreWhite), board.GetKingSquare(!weAreWhite));
+        //     //int distanceBonus = 10 * (7 - distanceToEnemyKing); // Adjust the bonus factor as needed
+
+        //}    
+        return pieceValues[pieceTypeIndex] + (int.Parse(pieceSqareValues.Substring(((x > 3 ? 7 - x : x /* this mirrors the table*/) + y * 4 + pieceTypeIndex * 32) * 2 + (IsEndgameNoFunction ? 384 : 0), 2)) * 5 - 50) + endGameBonus;
     } //#DEBUG
 
     string toPieceArray(long[] arr) => string.Join("", Array.ConvertAll(arr, element => element.ToString("D16")));
