@@ -40,7 +40,7 @@ public class MyBot : IChessBot
     //---end---
 
     // how much each piece is worth
-    float totalPieceValue;
+    //float totalPieceValue;
     bool weAreWhite;
     //double arrCenterDistance = 33333333322222233211112332100123321001233211112332222223333333330.0; DOES NOT WORK because its floating point number
     string pieceSqareValues;  // kinda does work but hacky solution
@@ -355,10 +355,10 @@ public class MyBot : IChessBot
  
 
     ulong prevSeed = 0;
-    ulong smallRandomNumberGenerator(ulong seed = 0, int maxSizeRange = 100)
-    {
-        if (seed == 0) seed = prevSeed;
-        prevSeed = (ulong)Abs(Cos(seed * 10) * maxSizeRange);
-        return prevSeed;
-    }
+    //ulong smallRandomNumberGenerator(ulong seed = 0, int maxSizeRange = 100)
+    //{
+    //    if (seed == 0) seed = prevSeed;
+    //    prevSeed = (ulong)Abs(Cos(seed * 10) * maxSizeRange);
+    //    return prevSeed;
+    //}
 }
