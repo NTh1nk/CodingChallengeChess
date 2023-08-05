@@ -35,12 +35,12 @@ public class MyBot : IChessBot
     bool weAreWhite;
     string pieceSqareValues;
     // how much each piece is worth
-    int[] pieceValues = {
-        100, // Pawn
-        300, // Knight
-        320, // Bishop
-        500, // Rook
-        900, // Queen
+    public int[] pieceValues = {
+        57, // Pawn
+        352, // Knight
+        372, // Bishop
+        575, // Rook
+        1142, // Queen
         2000 }; // King
 
     int[] arrCenterDistanceInt;
@@ -81,8 +81,16 @@ public class MyBot : IChessBot
 
             }
         }
-        if (totalPieceValue < 2900)
+        if (totalPieceValue < 3000) {
+            this.pieceValues = new int[] {
+                94, // Pawn
+                385, // Knight
+                412, // Bishop
+                621, // Rook
+                1207, // Queen
+                2000 }; // King
             return true;
+        }
         
         return false;
     } //#DEBUG
