@@ -61,7 +61,7 @@ public class MyBot : IChessBot
     int usedZobristKeys = 0; //#DEBUG
     // -----------------------------
     Queue<int> foundDrawMovesPerTurn = new();
-    int maxSearchDepth = 7;
+    int maxSearchDepth = 5;
 
     public bool IsEndgame(Board board, bool white) //#DEBUG
     { //#DEBUG
@@ -200,7 +200,7 @@ public class MyBot : IChessBot
                         bMove = move;
                         bMoveMat = v;
 
-                        if(v > max || v < min)
+                        if(v <= max || v <= min)
                         {
                             board.UndoMove(move);
                             break;
