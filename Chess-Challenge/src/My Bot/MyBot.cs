@@ -2,7 +2,7 @@
 using System;
 using static System.Math;
 using System.Collections.Generic;
-using System.Linq;
+//using System.Linq;
 using System.Runtime.InteropServices;
 
 public class MyBot : IChessBot
@@ -61,7 +61,7 @@ public class MyBot : IChessBot
     int usedZobristKeys = 0; //#DEBUG
     // -----------------------------
     Queue<int> foundDrawMovesPerTurn = new();
-    int maxSearchDepth = 5;
+    int maxSearchDepth = 6;
 
     public bool IsEndgame(Board board, bool white) //#DEBUG
     { //#DEBUG
@@ -200,10 +200,10 @@ public class MyBot : IChessBot
                     foundDublicateDrawMoves++; //#DEBUG
                 } //#DEBUG
             }
-            if(depth == 4)
-            {
-                Console.WriteLine($"{move}: {v}");
-            }
+            if(depth == maxSearchDepth) //#DEBUG
+            {//#DEBUG
+                Console.WriteLine($"{move}: {v}");//#DEBUG
+            }//#DEBUG
 
             board.UndoMove(move);
 
@@ -256,17 +256,17 @@ public class MyBot : IChessBot
         //    totalPieceValue -= 100 * currentPlayer; // try to avoid a draw
         //}
 
-        foreach (Piece p in board.GetAllPieceLists().SelectMany(x => x))
-        {
+        //foreach (Piece p in board.GetAllPieceLists().SelectMany(x => x))
+        //{
 
 
-            var s = p.Square;
-            totalPieceValue += getPieceValue(p.PieceType, s.File, p.IsWhite ? s.Rank : 7 - s.Rank)
-                * (p.IsWhite ? 1 : -1);
+        //    var s = p.Square;
+        //    totalPieceValue += getPieceValue(p.PieceType, s.File, p.IsWhite ? s.Rank : 7 - s.Rank)
+        //        * (p.IsWhite ? 1 : -1);
 
-            //Console.WriteLine(getPieceValue(p.PieceType, s.Rank, p.IsWhite ? s.File : 7 - s.File)
-            //    * (p.IsWhite == weAreWhite ? (board.SquareIsAttackedByOpponent(s) ? 0.1f : 1) : -0.9F));
-        }
+        //    //Console.WriteLine(getPieceValue(p.PieceType, s.Rank, p.IsWhite ? s.File : 7 - s.File)
+        //    //    * (p.IsWhite == weAreWhite ? (board.SquareIsAttackedByOpponent(s) ? 0.1f : 1) : -0.9F));
+        //}
 
 
 
