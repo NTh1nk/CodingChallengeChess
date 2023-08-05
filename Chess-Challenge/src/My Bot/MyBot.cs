@@ -61,7 +61,7 @@ public class MyBot : IChessBot
     int usedZobristKeys = 0; //#DEBUG
     // -----------------------------
     Queue<int> foundDrawMovesPerTurn = new();
-    int maxSearchDepth = 3;
+    int maxSearchDepth = 6;
 
     public bool IsEndgame(Board board, bool white) //#DEBUG
     { //#DEBUG
@@ -111,7 +111,7 @@ public class MyBot : IChessBot
         //Console.WriteLine(getPieceValue(PieceType.Pawn, 0, 7 - 6));               
         weAreWhite = board.IsWhiteToMove;
         Console.WriteLine("---calculate new move---" + board.IsWhiteToMove); //#DEBUG
-        var bestMove = miniMax(board, timer.MillisecondsRemaining < 20000 ? timer.MillisecondsRemaining < 5000 ? 2 : 3 : maxSearchDepth, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue).Item1;
+        var bestMove = miniMax(board, timer.MillisecondsRemaining < 20000 ? timer.MillisecondsRemaining < 5000 ? 2 : 3 : maxSearchDepth, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue, getPieceValues(board, weAreWhite ? 1 : -1)).Item1;
         bestMove.ToList().ForEach(move => { Console.WriteLine("predicted move: " + move); });
         if (IsEndgame(board, !weAreWhite)){
             IsEndgameNoFunction = true;
@@ -153,17 +153,17 @@ public class MyBot : IChessBot
         
     }
 
-    private Tuple<Move[], float> miniMax(Board board, int depth, int currentPlayer, float min, float max)
+    private Tuple<Move[], float> miniMax(Board board, int depth, int currentPlayer, float min, float max, float prevBase)
     {
         
         Move[] moves = board.GetLegalMoves(depth < 1);
         
         if (moves.Length == 0)
         {
-            return new(new[] { Move.NullMove }, getPieceValues(board, currentPlayer)); //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
+            return new(new[] { Move.NullMove }, prevBase); //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
         }
         Move bMove = moves[0];
-        float bMoveMat = minFloatValue * currentPlayer; // how good the best move is for the current player
+        float bMoveMat = minFloatValue * currentPlayer;
         Tuple<Move[], float> bR = new(new[] { bMove }, bMoveMat);
 
 
@@ -172,19 +172,22 @@ public class MyBot : IChessBot
             
             
             board.MakeMove(move);
+            float newBase = prevBase + evaluateBase(prevBase, move, currentPlayer) * currentPlayer;
 
-            if (boardHashes.ContainsKey(board.ZobristKey)) usedZobristKeys++; //#DEBUG
+            //if (boardHashes.ContainsKey(board.ZobristKey)) usedZobristKeys++; //#DEBUG
+
+
             Tuple<Move[], float> r = 
-                (depth > 0 ? miniMax(board, depth - 1, currentPlayer * -1, currentPlayer == 1 ? bMoveMat : minFloatValue, currentPlayer == -1 ? bMoveMat : float.MaxValue) : // use minimax if the depth is bigger than 0
-                new(new[] { move }, boardHashes.ContainsKey(board.ZobristKey) ? boardHashes[board.ZobristKey] : getPieceValues(board, currentPlayer))); // use the stored value or get piece values new
+                (depth > 0 ? miniMax(board, depth - 1, currentPlayer * -1, currentPlayer == 1 ? bMoveMat : minFloatValue, currentPlayer == -1 ? bMoveMat : float.MaxValue, newBase)  : // use minimax if the depth is bigger than 0
+                new(new[] { move }, /*boardHashes.ContainsKey(board.ZobristKey) ? boardHashes[board.ZobristKey] : */newBase + evaluateTop(board, currentPlayer))); // use the stored value or get piece values new
             //Console.WriteLine(v);
             float v = r.Item2;
 
-            if (!boardHashes.ContainsKey(board.ZobristKey))
-            {
-                addedZobristKeys++;
-                boardHashes.Add(board.ZobristKey, v); // makes ram usage hight but speeds up a little bit
-            }
+            //if (!boardHashes.ContainsKey(board.ZobristKey))
+            //{
+            //    addedZobristKeys++;
+            //    boardHashes.Add(board.ZobristKey, v); // makes ram usage hight but speeds up a little bit
+            //}
             if (currentPlayer == 1 ? v > bMoveMat : v < bMoveMat)
             {
                 if (!draw_moves.Contains(move))
