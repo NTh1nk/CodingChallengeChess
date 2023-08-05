@@ -9,13 +9,6 @@ public class EvilBot : IChessBot
 {
     // right now funktions are seperated. before submision, everything will be compacted into the think function if possible.
 
-    //example code
-    //public Move Think(Board board, Timer timer)
-    //{
-    //    Move[] moves = board.GetLegalMoves();
-    //    return moves[0];
-    //}
-
     //---this section is variables designated to zobrist hashing and the transportition table---
     byte[] currentBoardHash = new byte[8];
     Dictionary<ulong,float> boardHashes = new();
@@ -39,11 +32,9 @@ public class EvilBot : IChessBot
 
     //---end---
 
-    // how much each piece is worth
-    float totalPieceValue;
     bool weAreWhite;
-    //double arrCenterDistance = 33333333322222233211112332100123321001233211112332222223333333330.0; DOES NOT WORK because its floating point number
-    string pieceSqareValues;  // kinda does work but hacky solution
+    string pieceSqareValues;
+    // how much each piece is worth
     int[] pieceValues = {
         100, // Pawn
         300, // Knight
@@ -51,6 +42,7 @@ public class EvilBot : IChessBot
         500, // Rook
         900, // Queen
         2000 }; // King
+
     int[] arrCenterDistanceInt;
     List<Move> draw_moves = new();
 
@@ -59,21 +51,23 @@ public class EvilBot : IChessBot
     //using a variable instead of float.minvalue for BBC saving
     float minFloatValue = float.MinValue;
 
+
+    // debug variables (variables only used for debuging)
     int searchedMoves = 0; //#DEBUG
     int foundCheckMates = 0; //#DEBUG
     int foundDublicateDrawMoves = 0; //#DEBUG
     string foundDrawMoves; //#DEBUG
     int addedZobristKeys = 0; //#DEBUG
     int usedZobristKeys = 0; //#DEBUG
-
-    Queue<int> foundDrawMovesPerTurn;
-    int maxSearchDepth = 3;
-    bool isFirstRun = true;
+    // -----------------------------
+    Queue<int> foundDrawMovesPerTurn = new();
+    int maxSearchDepth = 4;
 
     public bool IsEndgame(Board board, bool white) //#DEBUG
     { //#DEBUG
 
-        totalPieceValue = 0;
+
+        float totalPieceValue = 0;
         for (int x = 0; x <= 7; x++)
         {
             for (int y = 0; y <= 7; y++)
@@ -84,45 +78,17 @@ public class EvilBot : IChessBot
 
                 totalPieceValue += pieceValues[(int)p.PieceType - 1];
                 
-
             }
         }
         if (totalPieceValue < 2900)
-        {
-            pieceValues = new [] {
-                160, // Pawn
-                320, // Knight
-                345, // Bishop
-                530, // Rook
-                940, // Queen
-                2000 // King
-
-            };
-
             return true;
-        }
+            
+
+        
         return false;
     } //#DEBUG
     public Move Think(Board board, Timer timer)
     {
-        //testing the small random number gen
-        /*Console.WriteLine(smallRandomNumberGenerator(1)); //#DEBUG
-        Console.WriteLine(smallRandomNumberGenerator(2)); //#DEBUG
-        Console.WriteLine(smallRandomNumberGenerator(3)); //#DEBUG
-        Console.WriteLine(smallRandomNumberGenerator(4)); //#DEBUG
-        Console.WriteLine(smallRandomNumberGenerator()); //#DEBUG
-        Console.WriteLine(smallRandomNumberGenerator()); //#DEBUG
-        Console.WriteLine(smallRandomNumberGenerator()); //#DEBUG
-        Console.WriteLine(smallRandomNumberGenerator(2)); //#DEBUG
-        Console.WriteLine(smallRandomNumberGenerator()); //#DEBUG
-        Console.WriteLine(smallRandomNumberGenerator()); //#DEBUG
-        */
-
-        if(isFirstRun)
-        {
-foundDrawMovesPerTurn = new Queue<int>();
-isFirstRun = false;
-        }
 
         pieceSqareValues = toPieceArray(new[] { 1010101018181818, 1212141611111215, 1010101411090810, 1112120610101010, 0002040402061010, 0410121304111314, 0410131404111213, 0206101100020404, 0608080808101010, 0810111208111112, 0810121208121212, 0811101006080808, 1010101011121212, 0910101009101010, 0910101009101010, 0910101010101011, 0608080908101010, 0810111109101111, 1010111108111111, 0810111006080809, 0402020004020200, 0402020004020200, 0604040208060606, 1414060630341207,
                                                 1010101036303230, 2015181412121413, 1212121211111111, 0909090910101010, 0002040402061010, 0410121304111314, 0410131404111213, 0206101100020404, 0608080808101010, 0810111208111112, 0810121208121212, 0811101006080808, 1010101011121212, 0910101009101010, 0910101009101010, 0910101010101011, 0608080908101010, 0810111109101111, 1010111108111111, 0810111006080809, 0402020004020200, 0402020004020200, 0604040208060606, 1414060630341207 }); // use https://onlinestringtools.com/split-string to split into 16 long parts
@@ -133,43 +99,43 @@ isFirstRun = false;
         //IsEndgameNoFunction = true;
         //Console.WriteLine(getPieceValue(PieceType.Pawn, 0, 7 - 6));               
         weAreWhite = board.IsWhiteToMove;
-        //Console.WriteLine("---calculate new move---" + board.IsWhiteToMove); //#DEBUG
+        Console.WriteLine("---calculate new move---" + board.IsWhiteToMove); //#DEBUG
         var bestMove = miniMax(board, timer.MillisecondsRemaining < 20000 ? timer.MillisecondsRemaining < 5000 ? 2 : 3 : maxSearchDepth, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue).Item1;
-        bestMove.ToList().ForEach(move => { /*Console.WriteLine(move);*/ });
+        bestMove.ToList().ForEach(move => { Console.WriteLine("predicted move: " + move); });
         if (IsEndgame(board, !weAreWhite)){
             IsEndgameNoFunction = true;
-            //Console.WriteLine("We are in the endgame"); //#DEBUG
+            Console.WriteLine("We are in the endgame"); //#DEBUG
         }
         
         if (boardHashes.Count > 9500)
         { //#DEBUG
-            //Console.WriteLine("flushing bordhashes buffer"); //#DEBUG
+            Console.WriteLine("flushing bordhashes buffer"); //#DEBUG
             boardHashes.Clear();
         } //#DEBUG
         if (draw_moves.Count > 125)
         { //#DEBUG
-            //Console.WriteLine("flushing draw move bufffer"); //#DEBUG
+            Console.WriteLine("flushing draw move bufffer"); //#DEBUG
             draw_moves.Clear();
         } //#DEBUG
         
-        //Console.WriteLine("found checkmate: "+foundCheckMates+" times this turn"); //#DEBUG
+        Console.WriteLine("found checkmate: "+foundCheckMates+" times this turn"); //#DEBUG
         foundCheckMates = 0; //#DEBUG
         
-        //Console.WriteLine("found: "+foundDublicateDrawMoves+" dublicate draw moves this turn"); //#DEBUG
+        Console.WriteLine("found: "+foundDublicateDrawMoves+" dublicate draw moves this turn"); //#DEBUG
         foundDublicateDrawMoves = 0; //#DEBUG
         
-        //Console.WriteLine("found these draw moves: "+foundDrawMoves+" this turn"); //#DEBUG
+        Console.WriteLine("found these draw moves: "+foundDrawMoves+" this turn"); //#DEBUG
         foundDrawMoves = ""; //#DEBUG
         
-        //Console.WriteLine(searchedMoves + " Searched moves"); //#DEBUG
+        Console.WriteLine(searchedMoves + " Searched moves"); //#DEBUG
         
-        //Console.WriteLine("adding: "+addedZobristKeys+" deep seached zobrist keys this turn"); //#DEBUG
+        Console.WriteLine("adding: "+addedZobristKeys+" deep seached zobrist keys this turn"); //#DEBUG
         addedZobristKeys = 0;
 
-        //Console.WriteLine("found: " + usedZobristKeys + " positions already calculated this turn"); //#DEBUG
+        Console.WriteLine("found: " + usedZobristKeys + " positions already calculated this turn"); //#DEBUG
         usedZobristKeys = 0;
 
-        //Console.WriteLine("dececion took: "+timer.MillisecondsElapsedThisTurn+" ms this turn"); //#DEBUG
+        Console.WriteLine("dececion took: "+timer.MillisecondsElapsedThisTurn+" ms this turn"); //#DEBUG
 
         return bestMove[bestMove.Length - 1];
         //Console.WriteLine(isPieceProtectedAfterMove(board, moves[0]));
@@ -193,15 +159,21 @@ isFirstRun = false;
         foreach (Move move in moves)
         {
             
-            // code block to be executed
             
             board.MakeMove(move);
 
-            if(boardHashes.ContainsKey(board.ZobristKey)) usedZobristKeys++; //#DEBUG
-            Tuple<Move[], float> r = (depth > 0 ? miniMax(board, depth - 1, currentPlayer * -1, (currentPlayer == 1 ? bMoveMat : minFloatValue), (currentPlayer == -1 ? bMoveMat : float.MaxValue)) : new(new[] { move }, boardHashes.ContainsKey(board.ZobristKey) ? boardHashes[board.ZobristKey] : getPieceValues(board, currentPlayer)));
+            if (boardHashes.ContainsKey(board.ZobristKey)) usedZobristKeys++; //#DEBUG
+            Tuple<Move[], float> r = 
+                (depth > 0 ? miniMax(board, depth - 1, currentPlayer * -1, currentPlayer == 1 ? bMoveMat : minFloatValue, currentPlayer == -1 ? bMoveMat : float.MaxValue) : // use minimax if the depth is bigger than 0
+                new(new[] { move }, boardHashes.ContainsKey(board.ZobristKey) ? boardHashes[board.ZobristKey] : getPieceValues(board, currentPlayer))); // use the stored value or get piece values new
             //Console.WriteLine(v);
             float v = r.Item2;
 
+            if (!boardHashes.ContainsKey(board.ZobristKey))
+            {
+                addedZobristKeys++;
+                boardHashes.Add(board.ZobristKey, v); // makes ram usage hight but speeds up a little bit
+            }
             if (currentPlayer == 1 ? v > bMoveMat : v < bMoveMat)
             {
                 if (!draw_moves.Contains(move))
@@ -214,11 +186,6 @@ isFirstRun = false;
 
                         if(v > max || v < min)
                         {
-                            if (depth == 2 && !boardHashes.ContainsKey(board.ZobristKey))
-                            { //#DEBUG
-                                addedZobristKeys++;
-                                boardHashes.Add(board.ZobristKey, v);
-                            } //#DEBUG
                             board.UndoMove(move);
                             break;
                         }
@@ -230,10 +197,10 @@ isFirstRun = false;
                     foundDublicateDrawMoves++; //#DEBUG
                 } //#DEBUG
             }
-            if(depth == 4)
-            {
-                //Console.WriteLine($"{move}: {v}");
-            }
+            if(depth == maxSearchDepth) //#DEBUG
+            {//#DEBUG
+                Console.WriteLine($"{move}: {v}");//#DEBUG
+            }//#DEBUG
 
             board.UndoMove(move);
 
@@ -263,10 +230,12 @@ isFirstRun = false;
     } */
     private float getPieceValues(Board board, int currentPlayer)
     {
+        
         searchedMoves += 1; //#DEBUG
+        float totalPieceValue = 0;
 
 
-   
+
         if (board.IsInCheckmate())
         { //#DEBUG
             foundCheckMates++; //#DEBUG
@@ -277,24 +246,22 @@ isFirstRun = false;
         totalPieceValue = board.HasQueensideCastleRight(true) ? 10 : 0;
         totalPieceValue += board.HasQueensideCastleRight(false) ? -10 : 0;
         //var skipped = board.TrySkipTurn();  // LOOK HERE: this needs to be here so we can if pieces will be atacked in the next round
-       
+
 
         //if (board.IsDraw()) // seems to be slow
         //{
         //    totalPieceValue -= 100 * currentPlayer; // try to avoid a draw
         //}
 
-        foreach (Piece p in board.GetAllPieceLists().SelectMany(x => x))
-        {
+        //foreach (Piece p in board.GetAllPieceLists().SelectMany(x => x)) // 49.7  left (3 seconds faster than looping over them all) (depth 6)
+        //{
 
 
-            var s = p.Square;
-            totalPieceValue += getPieceValue(p.PieceType, s.File, p.IsWhite ? s.Rank : 7 - s.Rank)
-                * (p.IsWhite ? 1 : -1);
+        //    var s = p.Square;
+        //    totalPieceValue += getPieceValue(p.PieceType, s.File, p.IsWhite ? s.Rank : 7 - s.Rank)
+        //        * (p.IsWhite ? 1 : -1);
 
-            //Console.WriteLine(getPieceValue(p.PieceType, s.Rank, p.IsWhite ? s.File : 7 - s.File)
-            //    * (p.IsWhite == weAreWhite ? (board.SquareIsAttackedByOpponent(s) ? 0.1f : 1) : -0.9F));
-        }
+        //}
 
 
 
@@ -304,7 +271,7 @@ isFirstRun = false;
                 var s = new Square(x, y);
                 var p = board.GetPiece(s); // quite slow
                 if (p.IsNull) continue;
-                
+
                 totalPieceValue += getPieceValue(p.PieceType, x, p.IsWhite ? 7 - y : y)
                 * (p.IsWhite ? 1 : -1);// * (board.SquareIsAttackedByOpponent(s) ? 0 : 1);
 
@@ -316,7 +283,7 @@ isFirstRun = false;
         //    return getPieceValue(p.PieceType, s.Rank, p.IsWhite ? s.File : 7 - s.File) * (p.IsWhite ? 1 : -1);
         //});
 
-        //foreach (PieceList plist in board.GetAllPieceLists())
+        //foreach (PieceList plist in board.GetAllPieceLists()) // seems to be about 100 ms faster than using .SelectMany()
         //{
         //    foreach (Piece p in plist)
         //    {
@@ -374,10 +341,10 @@ isFirstRun = false;
  
 
     ulong prevSeed = 0;
-    ulong smallRandomNumberGenerator(ulong seed = 0, int maxSizeRange = 100)
-    {
-        if (seed == 0) seed = prevSeed;
-        prevSeed = (ulong)Abs(Cos(seed * 10) * maxSizeRange);
-        return prevSeed;
-    }
+    //ulong smallRandomNumberGenerator(ulong seed = 0, int maxSizeRange = 100)
+    //{
+    //    if (seed == 0) seed = prevSeed;
+    //    prevSeed = (ulong)Abs(Cos(seed * 10) * maxSizeRange);
+    //    return prevSeed;
+    //}
 }
