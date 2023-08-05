@@ -90,11 +90,11 @@ public class EvilBot : IChessBot
         if (totalPieceValue < 2900)
         {
             pieceValues = new [] {
-                100, // Pawn
-                300, // Knight
-                320, // Bishop
-                500, // Rook
-                900, // Queen
+                160, // Pawn
+                320, // Knight
+                345, // Bishop
+                530, // Rook
+                940, // Queen
                 2000 // King
 
             };
