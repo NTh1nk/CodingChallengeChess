@@ -100,7 +100,7 @@ public class MyBot : IChessBot
         weAreWhite = board.IsWhiteToMove;
         Console.WriteLine("---calculate new move---" + board.IsWhiteToMove); //#DEBUG
         var bestMove = miniMax(board, timer.MillisecondsRemaining < 20000 ? timer.MillisecondsRemaining < 5000 ? 2 : 3 : maxSearchDepth, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue).Item1;
-        bestMove.ToList().ForEach(move => { /*Console.WriteLine(move);*/ });
+        bestMove.ToList().ForEach(move => { Console.WriteLine("predicted move: " + move); });
         if (IsEndgame(board, !weAreWhite)){
             IsEndgameNoFunction = true;
             Console.WriteLine("We are in the endgame"); //#DEBUG
@@ -172,7 +172,7 @@ public class MyBot : IChessBot
             if (!boardHashes.ContainsKey(board.ZobristKey))
             {
                 addedZobristKeys++;
-                boardHashes.Add(board.ZobristKey, v);
+                boardHashes.Add(board.ZobristKey, v); // makes ram usage hight but speeds up a little bit
             }
             if (currentPlayer == 1 ? v > bMoveMat : v < bMoveMat)
             {
@@ -249,22 +249,22 @@ public class MyBot : IChessBot
         totalPieceValue = board.HasQueensideCastleRight(true) ? 10 : 0;
         totalPieceValue += board.HasQueensideCastleRight(false) ? -10 : 0;
         //var skipped = board.TrySkipTurn();  // LOOK HERE: this needs to be here so we can if pieces will be atacked in the next round
-       
+
 
         //if (board.IsDraw()) // seems to be slow
         //{
         //    totalPieceValue -= 100 * currentPlayer; // try to avoid a draw
         //}
 
-        foreach (Piece p in board.GetAllPieceLists().SelectMany(x => x)) // 49.7  left (3 seconds faster than looping over them all) (depth 6)
-        {
+        //foreach (Piece p in board.GetAllPieceLists().SelectMany(x => x)) // 49.7  left (3 seconds faster than looping over them all) (depth 6)
+        //{
 
 
-            var s = p.Square;
-            totalPieceValue += getPieceValue(p.PieceType, s.File, p.IsWhite ? s.Rank : 7 - s.Rank)
-                * (p.IsWhite ? 1 : -1);
+        //    var s = p.Square;
+        //    totalPieceValue += getPieceValue(p.PieceType, s.File, p.IsWhite ? s.Rank : 7 - s.Rank)
+        //        * (p.IsWhite ? 1 : -1);
 
-        }
+        //}
 
 
 
@@ -286,15 +286,15 @@ public class MyBot : IChessBot
         //    return getPieceValue(p.PieceType, s.Rank, p.IsWhite ? s.File : 7 - s.File) * (p.IsWhite ? 1 : -1);
         //});
 
-        //foreach (PieceList plist in board.GetAllPieceLists())
-        //{
-        //    foreach (Piece p in plist)
-        //    {
-        //        var s = p.Square;
-        //        totalPieceValue += getPieceValue(p.PieceType, s.File, p.IsWhite ? s.Rank : 7 - s.Rank)
-        //            * (p.IsWhite ? 1 : -1);
-        //    }
-        //}
+        foreach (PieceList plist in board.GetAllPieceLists()) // seems to be about 100 ms faster than using .SelectMany()
+        {
+            foreach (Piece p in plist)
+            {
+                var s = p.Square;
+                totalPieceValue += getPieceValue(p.PieceType, s.File, p.IsWhite ? s.Rank : 7 - s.Rank)
+                    * (p.IsWhite ? 1 : -1);
+            }
+        }
 
         //        totalPieceValue += getPieceValue(p.PieceType, x, p.IsWhite ? y : 7 - y)
         //            * (p.IsWhite == weAreWhite ? (board.SquareIsAttackedByOpponent(s) ? 0.1f : 1) : -0.9F);
