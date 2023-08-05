@@ -167,9 +167,9 @@ public class MyBot : IChessBot
         Tuple<Move[], float> bR = new(new[] { bMove }, bMoveMat);
 
         List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(prevBase, m, currentPlayer))).ToList();
-        //sortedMoves = sortedMoves.OrderByDescending(item => item.Base).ToList();
+        sortedMoves = sortedMoves.OrderByDescending(item => item.Base).ToList();
 
-        foreach (var (move, Base)  in sortedMoves)
+        foreach (var (move, Base) in sortedMoves)
         {
             
             
