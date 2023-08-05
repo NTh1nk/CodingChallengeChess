@@ -283,7 +283,7 @@ public class MyBot : IChessBot
                 var p = board.GetPiece(s); // quite slow
                 if (p.IsNull) continue;
 
-                totalPieceValue += getPieceValue(p.PieceType, x, p.IsWhite ? 7 - y : y)
+                totalPieceValue += getPieceValue(p.PieceType, s, p.IsWhite)
                 * (p.IsWhite ? 1 : -1);// * (board.SquareIsAttackedByOpponent(s) ? 0 : 1);
 
             }
@@ -322,11 +322,13 @@ public class MyBot : IChessBot
     }
 
     //the DEBUGS are in place even tho it's called twice becaus in the end it shouldt be called more than once
-    private float getPieceValue(PieceType pieceType, int x, int y) //#DEBUG
+    private float getPieceValue(PieceType pieceType, Square s, bool IsWhite) //#DEBUG
     { //#DEBUG
         
         float endGameBonus = 0;
         int pieceTypeIndex = (int)pieceType - 1;
+
+        if (pieceTypeIndex < 0) return 0;
         //Console.WriteLine(((x > 3 ? 7 - x : x /* this mirrors the table*/) + y * 4 + pieceTypeIndex * 32) * 2);
         //if(IsEndgameNoFunction && pieceTypeIndex == 6)
         //{
@@ -341,10 +343,44 @@ public class MyBot : IChessBot
         //     //int distanceBonus = 10 * (7 - distanceToEnemyKing); // Adjust the bonus factor as needed
 
         //}    
-        return pieceValues[pieceTypeIndex] + (int.Parse(pieceSqareValues.Substring(((x > 3 ? 7 - x : x /* this mirrors the table*/) + y * 4 + pieceTypeIndex * 32) * 2 + (IsEndgameNoFunction ? 384 : 0), 2)) * 5 - 50) + endGameBonus;
+        return pieceValues[pieceTypeIndex] + (int.Parse(pieceSqareValues.Substring(((s.File > 3 ? 7 - s.File : s.File /* this mirrors the table*/) + (IsWhite ? 7 - s.Rank : s.Rank) * 4 + pieceTypeIndex * 32) * 2 + (IsEndgameNoFunction ? 384 : 0), 2)) * 5 - 50) + endGameBonus;
     } //#DEBUG
 
+
+
     string toPieceArray(long[] arr) => string.Join("", Array.ConvertAll(arr, element => element.ToString("D16")));
+
+    float evaluateBase(float prevBase, Move move, int currentPlayer)
+    {
+        bool isWhite = currentPlayer < 0; // doesn't matter if it a variable or called each time BBS-wise
+        
+        return
+            -getPieceValue(move.MovePieceType, move.StartSquare, isWhite)  // remove the old piece 
+            +getPieceValue(move.IsPromotion ? move.PromotionPieceType : move.MovePieceType, move.TargetSquare, isWhite) // add the new piece (move piece type if it is't promotion. if it is use the promotion piece type)
+            +getPieceValue(move.CapturePieceType, move.TargetSquare, isWhite) // remove the captured piece (plus beacuse we capture the oponements piece wich is good for the current player)
+            ;
+
+    }
+
+    float evaluateTop(Board board, int currentPlayer)
+    {
+
+        if (board.IsInCheckmate())
+        { //#DEBUG
+            foundCheckMates++; //#DEBUG
+            return 1000000000000000 * -currentPlayer; // very height number (chose not to use float.MaxValue beacuse it uses more tokens (3 instead of 1)) 
+        } //#DEBUG
+        return (board.HasKingsideCastleRight(true) ? 22 : 0)
+             + (board.HasKingsideCastleRight(false) ? -22 : 0)
+             + (board.HasQueensideCastleRight(true) ? 10 : 0)
+             + (board.HasQueensideCastleRight(false) ? -10 : 0);
+
+
+
+    }
+
+    
+
 
 
     //left in the code for now even tho it's unused might be used in the future
