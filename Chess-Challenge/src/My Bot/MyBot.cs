@@ -275,14 +275,10 @@ public class MyBot : IChessBot
         return pieceValues[pieceTypeIndex] + (int.Parse(pieceSqareValues.Substring(((x > 3 ? 7 - x : x /* this mirrors the table*/) + y * 4 + pieceTypeIndex * 32) * 2 + (IsEndgameNoFunction ? 384 : 0), 1) + endGameBonus) * 5 - 50);
     } //#DEBUG
 
-    string toPieceArray(long[] arr) //#DEBUG
-    { //#DEBUG
-        return string.Join("", Array.ConvertAll(arr, element => element.ToString("D16")));
-    } //#DEBUG
+    string toPieceArray(long[] arr) => string.Join("", Array.ConvertAll(arr, element => element.ToString("D16")));
+
 
     //left in the code for now even tho it's unused might be used in the future
-    public bool isPieceProtectedAfterMove(Board board, Move move) //#DEBUG
-    { //#DEBUG
-        return !board.SquareIsAttackedByOpponent(move.TargetSquare); //#DEBUG
-    } //#DEBUG
+    public bool isPieceProtectedAfterMove(Board board, Move move) => !board.SquareIsAttackedByOpponent(move.TargetSquare); //#DEBUG
+
 }
