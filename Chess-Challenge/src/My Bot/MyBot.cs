@@ -158,7 +158,6 @@ public class MyBot : IChessBot
         foreach (Move move in moves)
         {
             
-            // code block to be executed
             
             board.MakeMove(move);
 
@@ -186,9 +185,6 @@ public class MyBot : IChessBot
 
                         if(v > max || v < min)
                         {
-                            if (depth == 2 && !boardHashes.ContainsKey(board.ZobristKey))
-                            { //#DEBUG
-                            } //#DEBUG
                             board.UndoMove(move);
                             break;
                         }
@@ -268,17 +264,17 @@ public class MyBot : IChessBot
 
 
 
-        //for (int x = 0; x <= 7; x++)
-        //    for (int y = 0; y <= 7; y++)
-        //{
-        //    var s = new Square(x, y);
-        //    var p = board.GetPiece(s); // quite slow
-        //    if (p.IsNull) continue;
+        for (int x = 0; x <= 7; x++)
+            for (int y = 0; y <= 7; y++)
+            {
+                var s = new Square(x, y);
+                var p = board.GetPiece(s); // quite slow
+                if (p.IsNull) continue;
 
-        //    totalPieceValue += getPieceValue(p.PieceType, x, p.IsWhite ? 7 - y : y)
-        //    * (p.IsWhite ? 1 : -1);// * (board.SquareIsAttackedByOpponent(s) ? 0 : 1);
+                totalPieceValue += getPieceValue(p.PieceType, x, p.IsWhite ? 7 - y : y)
+                * (p.IsWhite ? 1 : -1);// * (board.SquareIsAttackedByOpponent(s) ? 0 : 1);
 
-        //}
+            }
 
         //totalPieceValue += board.GetAllPieceLists().SelectMany(x => x).Sum(p =>
         //{
@@ -286,15 +282,15 @@ public class MyBot : IChessBot
         //    return getPieceValue(p.PieceType, s.Rank, p.IsWhite ? s.File : 7 - s.File) * (p.IsWhite ? 1 : -1);
         //});
 
-        foreach (PieceList plist in board.GetAllPieceLists()) // seems to be about 100 ms faster than using .SelectMany()
-        {
-            foreach (Piece p in plist)
-            {
-                var s = p.Square;
-                totalPieceValue += getPieceValue(p.PieceType, s.File, p.IsWhite ? s.Rank : 7 - s.Rank)
-                    * (p.IsWhite ? 1 : -1);
-            }
-        }
+        //foreach (PieceList plist in board.GetAllPieceLists()) // seems to be about 100 ms faster than using .SelectMany()
+        //{
+        //    foreach (Piece p in plist)
+        //    {
+        //        var s = p.Square;
+        //        totalPieceValue += getPieceValue(p.PieceType, s.File, p.IsWhite ? s.Rank : 7 - s.Rank)
+        //            * (p.IsWhite ? 1 : -1);
+        //    }
+        //}
 
         //        totalPieceValue += getPieceValue(p.PieceType, x, p.IsWhite ? y : 7 - y)
         //            * (p.IsWhite == weAreWhite ? (board.SquareIsAttackedByOpponent(s) ? 0.1f : 1) : -0.9F);
