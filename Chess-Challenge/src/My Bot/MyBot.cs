@@ -2,7 +2,7 @@
 using System;
 using static System.Math;
 using System.Collections.Generic;
-//using System.Linq;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 public class MyBot : IChessBot
@@ -256,31 +256,29 @@ public class MyBot : IChessBot
         //    totalPieceValue -= 100 * currentPlayer; // try to avoid a draw
         //}
 
-        //foreach (Piece p in board.GetAllPieceLists().SelectMany(x => x))
+        foreach (Piece p in board.GetAllPieceLists().SelectMany(x => x)) // 49.7  left (3 seconds faster than looping over them all) (depth 6)
+        {
+
+
+            var s = p.Square;
+            totalPieceValue += getPieceValue(p.PieceType, s.File, p.IsWhite ? s.Rank : 7 - s.Rank)
+                * (p.IsWhite ? 1 : -1);
+
+        }
+
+
+
+        //for (int x = 0; x <= 7; x++)
+        //    for (int y = 0; y <= 7; y++)
         //{
+        //    var s = new Square(x, y);
+        //    var p = board.GetPiece(s); // quite slow
+        //    if (p.IsNull) continue;
 
+        //    totalPieceValue += getPieceValue(p.PieceType, x, p.IsWhite ? 7 - y : y)
+        //    * (p.IsWhite ? 1 : -1);// * (board.SquareIsAttackedByOpponent(s) ? 0 : 1);
 
-        //    var s = p.Square;
-        //    totalPieceValue += getPieceValue(p.PieceType, s.File, p.IsWhite ? s.Rank : 7 - s.Rank)
-        //        * (p.IsWhite ? 1 : -1);
-
-        //    //Console.WriteLine(getPieceValue(p.PieceType, s.Rank, p.IsWhite ? s.File : 7 - s.File)
-        //    //    * (p.IsWhite == weAreWhite ? (board.SquareIsAttackedByOpponent(s) ? 0.1f : 1) : -0.9F));
         //}
-
-
-
-        for (int x = 0; x <= 7; x++)
-            for (int y = 0; y <= 7; y++)
-            {
-                var s = new Square(x, y);
-                var p = board.GetPiece(s); // quite slow
-                if (p.IsNull) continue;
-                
-                totalPieceValue += getPieceValue(p.PieceType, x, p.IsWhite ? 7 - y : y)
-                * (p.IsWhite ? 1 : -1);// * (board.SquareIsAttackedByOpponent(s) ? 0 : 1);
-
-            }
 
         //totalPieceValue += board.GetAllPieceLists().SelectMany(x => x).Sum(p =>
         //{
