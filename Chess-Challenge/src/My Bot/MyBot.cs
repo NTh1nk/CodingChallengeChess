@@ -61,7 +61,7 @@ public class MyBot : IChessBot
     int usedZobristKeys = 0; //#DEBUG
     // -----------------------------
     Queue<int> foundDrawMovesPerTurn = new();
-    int maxSearchDepth = 6;
+    int maxSearchDepth = 5;
 
     public bool IsEndgame(Board board, bool white) //#DEBUG
     { //#DEBUG
@@ -182,7 +182,7 @@ public class MyBot : IChessBot
 
             Tuple<Move[], float> r = 
                 (depth > 0 ? 
-                    miniMax(board, depth - 1, currentPlayer * -1, currentPlayer == 1 ? bMoveMat : minFloatValue, currentPlayer == -1 ? bMoveMat : float.MaxValue, newBase)  : // use minimax if the depth is bigger than 0
+                    miniMax(board, depth - 1, currentPlayer * -1, min, max, newBase)  : // use minimax if the depth is bigger than 0
                     new(new[] { move }, /*boardHashes.ContainsKey(board.ZobristKey) ? boardHashes[board.ZobristKey] : */newBase + evaluateTop(board, currentPlayer))); // use the stored value or get piece values new
             //Console.WriteLine(v);
             float v = r.Item2;
@@ -201,12 +201,6 @@ public class MyBot : IChessBot
                         bR = r;
                         bMove = move;
                         bMoveMat = v;
-
-                        if(v >= max || v <= min)
-                        {
-                            board.UndoMove(move);
-                            break;
-                        }
                     }
                     else printErrorDraw(move); //#DEBUG
                 } 
@@ -222,6 +216,17 @@ public class MyBot : IChessBot
             }//#DEBUG
 
             board.UndoMove(move);
+            if(currentPlayer == 1)
+            {
+                min = Math.Max(min, v);
+                if (v > max) break;
+            } else
+            {
+                max = Math.Min(max, v);
+                if(v < min) break;
+            }
+            //if (v > max || v < min) break;
+
 
             //if(depth == 1)
             //{
