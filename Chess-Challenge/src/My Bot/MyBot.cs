@@ -61,7 +61,7 @@ public class MyBot : IChessBot
     int usedZobristKeys = 0; //#DEBUG
     // -----------------------------
     Queue<int> foundDrawMovesPerTurn = new();
-    int maxSearchDepth = 6;
+    int maxSearchDepth = 5;
 
     public bool IsEndgame(Board board, bool white) //#DEBUG
     { //#DEBUG
@@ -106,6 +106,7 @@ public class MyBot : IChessBot
         //Botton is endgame
         //arrCenterDistanceInt = toPieceArray(arrCenterDistance);                                                                                                                                                                                                                                                                                                                                                                                                                                       
         //Console.WriteLine(pieceSqareValues.Length);
+        Console.WriteLine("cewefefrw " + (getPieceValues(board, -1) + evaluateTop(board, -1)));
         //Console.WriteLine(getPieceValue(PieceType.King, 7, 7));
         //IsEndgameNoFunction = true;
         //Console.WriteLine(getPieceValue(PieceType.Pawn, 0, 7 - 6));               
@@ -182,7 +183,7 @@ public class MyBot : IChessBot
             Tuple<Move[], float> r = 
                 (depth > 0 ? 
                     miniMax(board, depth - 1, currentPlayer * -1, currentPlayer == 1 ? bMoveMat : minFloatValue, currentPlayer == -1 ? bMoveMat : float.MaxValue, newBase)  : // use minimax if the depth is bigger than 0
-                    new(new[] { move }, /*boardHashes.ContainsKey(board.ZobristKey) ? boardHashes[board.ZobristKey] : */newBase + evaluateTop(board, currentPlayer))); // use the stored value or get piece values new
+                    new(new[] { move }, /*boardHashes.ContainsKey(board.ZobristKey) ? boardHashes[board.ZobristKey] : */getPieceValues(board, currentPlayer) + evaluateTop(board, currentPlayer))); // use the stored value or get piece values new
             //Console.WriteLine(v);
             float v = r.Item2;
 
