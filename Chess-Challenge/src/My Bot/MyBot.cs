@@ -203,8 +203,8 @@ public class MyBot : IChessBot
 
                         if(v >= max || v <= min)
                         {
-                            board.UndoMove(move);
-                            break;
+                            //board.UndoMove(move);
+                            //break;
                         }
                     }
                     else printErrorDraw(move); //#DEBUG
@@ -216,6 +216,7 @@ public class MyBot : IChessBot
             }
             if(depth == maxSearchDepth) //#DEBUG
             {//#DEBUG
+                //Console.WriteLine($"{move}: {v}");//#DEBUG
                 Console.WriteLine($"{v}");//#DEBUG
             }//#DEBUG
 
@@ -342,6 +343,7 @@ public class MyBot : IChessBot
 
     float evaluateTop(Board board, int currentPlayer)
     {
+        //bool isWhite = currentPlayer > 0; // doesn't matter if it a variable or called each time BBS-wise
 
         if (board.IsInCheckmate())
         { //#DEBUG
