@@ -112,7 +112,7 @@ public class MyBot : IChessBot
         //Console.WriteLine(getPieceValue(PieceType.Pawn, 0, 7 - 6));               
         weAreWhite = board.IsWhiteToMove;
         Console.WriteLine("---calculate new move---" + board.IsWhiteToMove); //#DEBUG
-        var bestMove = miniMax(board, timer.MillisecondsRemaining < 20000 ? timer.MillisecondsRemaining < 5000 ? 2 : 3 : maxSearchDepth, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue, getPieceValues(board, weAreWhite ? 1 : -1)).Item1;
+        var bestMove = miniMax(board, timer.MillisecondsRemaining < 20000 ? timer.MillisecondsRemaining < 5000 ? 2 : 3 : maxSearchDepth, weAreWhite ? 1 : -1, minFloatValue, -minFloatValue, getPieceValues(board, weAreWhite ? 1 : -1)).Item1;
         bestMove.ToList().ForEach(move => { Console.WriteLine("predicted move: " + move); });
         if (IsEndgame(board, !weAreWhite)){
             IsEndgameNoFunction = true;
@@ -154,8 +154,9 @@ public class MyBot : IChessBot
         
     }
 
-    private Tuple<Move[], float> miniMax(Board board, int depth, int currentPlayer, float min, float max, float prevBase)
+    private Tuple<Move[], float> miniMax(Board board, int depth, int currentPlayer, float alpha, float beta, float prevBase)
     {
+        Console.WriteLine("start of minimxax " + alpha + " " + beta);
         
         Move[] moves = board.GetLegalMoves(depth < 1);
         
@@ -176,13 +177,13 @@ public class MyBot : IChessBot
             
             board.MakeMove(move);
             float newBase = prevBase + Base * currentPlayer;
-
+            Console.WriteLine($"Move: {newBase}");
             //if (boardHashes.ContainsKey(board.ZobristKey)) usedZobristKeys++; //#DEBUG
-
+            
 
             Tuple<Move[], float> r = 
                 (depth > 0 ? 
-                    miniMax(board, depth - 1, currentPlayer * -1, currentPlayer == 1 ? bMoveMat : minFloatValue, currentPlayer == -1 ? bMoveMat : float.MaxValue, newBase)  : // use minimax if the depth is bigger than 0
+                    miniMax(board, depth - 1, currentPlayer * -1, alpha, beta, newBase)  : // use minimax if the depth is bigger than 0
                     new(new[] { move }, /*boardHashes.ContainsKey(board.ZobristKey) ? boardHashes[board.ZobristKey] : */newBase + evaluateTop(board, currentPlayer))); // use the stored value or get piece values new
             //Console.WriteLine(v);
             float v = r.Item2;
@@ -201,20 +202,27 @@ public class MyBot : IChessBot
                         bR = r;
                         bMove = move;
                         bMoveMat = v;
-
-                        if(v >= max || v <= min)
-                        {
-                            //board.UndoMove(move);
-                            //break;
-                        }
                     }
                     else printErrorDraw(move); //#DEBUG
                 } 
-                else if(board.IsDraw()) //#DEBUG
-                { //#DEBUG
-                    foundDublicateDrawMoves++; //#DEBUG
-                } //#DEBUG
+                //else if(board.IsDraw()) //#DEBUG
+                //{ //#DEBUG
+                //    foundDublicateDrawMoves++; //#DEBUG
+                //} //#DEBUG
             }
+            if(currentPlayer == 1)
+            {
+                alpha = Math.Max(alpha, v);
+                if (beta <= alpha) break;
+
+            }
+            else
+            {
+                beta = Math.Min(beta, v);
+                if (beta <= alpha) break;
+                
+            }
+
             if(depth == maxSearchDepth) //#DEBUG
             {//#DEBUG
                 //Console.WriteLine($"{move}: {v}");//#DEBUG
