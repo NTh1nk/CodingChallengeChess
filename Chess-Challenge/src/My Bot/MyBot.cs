@@ -61,7 +61,7 @@ public class MyBot : IChessBot
     int usedZobristKeys = 0; //#DEBUG
     // -----------------------------
     Queue<int> foundDrawMovesPerTurn = new();
-    int maxSearchDepth = 5;
+    int maxSearchDepth = 6;
 
     public bool IsEndgame(Board board, bool white) //#DEBUG
     { //#DEBUG
@@ -168,7 +168,7 @@ public class MyBot : IChessBot
         Tuple<Move[], float> bR = new(new[] { bMove }, bMoveMat);
 
         List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(prevBase, m, currentPlayer, board))).ToList();
-        //sortedMoves = sortedMoves.OrderByDescending(item => item.Base).ToList();
+        sortedMoves = sortedMoves.OrderByDescending(item => item.Base).ToList();
 
         foreach (var (move, Base) in sortedMoves)
         {
@@ -204,8 +204,8 @@ public class MyBot : IChessBot
 
                         if(v >= max || v <= min)
                         {
-                            //board.UndoMove(move);
-                            //break;
+                            board.UndoMove(move);
+                            break;
                         }
                     }
                     else printErrorDraw(move); //#DEBUG
