@@ -151,7 +151,7 @@ public class MyBot : IChessBot
 
         return bestMove[bestMove.Length - 1];
         //Console.WriteLine(isPieceProtectedAfterMove(board, moves[0]));
-        
+
     }
 
     private Tuple<Move[], float> miniMax(Board board, int depth, int currentPlayer, float min, float max, float prevBase)
@@ -177,52 +177,34 @@ public class MyBot : IChessBot
             board.MakeMove(move);
             float newBase = prevBase + Base * currentPlayer;
 
-            //if (boardHashes.ContainsKey(board.ZobristKey)) usedZobristKeys++; //#DEBUG
-
 
             Tuple<Move[], float> r = 
                 (depth > 0 ? 
                     miniMax(board, depth - 1, currentPlayer * -1, min, max, newBase)  : // use minimax if the depth is bigger than 0
-                    new(new[] { move }, /*boardHashes.ContainsKey(board.ZobristKey) ? boardHashes[board.ZobristKey] : */newBase + evaluateTop(board, currentPlayer))); // use the stored value or get piece values new
-            //Console.WriteLine(v);
+                    new(new[] { move }, newBase + evaluateTop(board, currentPlayer))); // use the stored value or get piece values new
+            
             float v = r.Item2;
 
-            //if (!boardHashes.ContainsKey(board.ZobristKey))
-            //{
-            //    addedZobristKeys++;
-            //    boardHashes.Add(board.ZobristKey, v); // makes ram usage hight but speeds up a little bit
-            //}
             if (currentPlayer == 1 ? v > bMoveMat : v < bMoveMat)
             {
-                if (!draw_moves.Contains(move))
-                {
-                    if (!board.IsDraw())
-                    {
-                        bR = r;
-                        bMove = move;
-                        bMoveMat = v;
-                    }
-                    else printErrorDraw(move); //#DEBUG
-                } 
-                else if(board.IsDraw()) //#DEBUG
-                { //#DEBUG
-                    foundDublicateDrawMoves++; //#DEBUG
-                } //#DEBUG
+                bR = r;
+                bMove = move;
+                bMoveMat = v;
             }
             if(depth == maxSearchDepth) //#DEBUG
             {//#DEBUG
                 //Console.WriteLine($"{move}: {v}");//#DEBUG
-                Console.WriteLine($"{v}");//#DEBUG
+                Console.WriteLine($"{move}");//#DEBUG
             }//#DEBUG
 
             board.UndoMove(move);
             if(currentPlayer == 1)
             {
-                min = Math.Max(min, v);
+                min = Max(min, v);
                 if (v > max) break;
             } else
             {
-                max = Math.Min(max, v);
+                max = Min(max, v);
                 if(v < min) break;
             }
             //if (v > max || v < min) break;
@@ -359,7 +341,8 @@ public class MyBot : IChessBot
         return (board.HasKingsideCastleRight(true) ? 22 : 0)
              + (board.HasKingsideCastleRight(false) ? -22 : 0)
              + (board.HasQueensideCastleRight(true) ? 10 : 0)
-             + (board.HasQueensideCastleRight(false) ? -10 : 0);
+             + (board.HasQueensideCastleRight(false) ? -10 : 0)
+             + (board.IsRepeatedPosition() || board.IsFiftyMoveDraw() ? 30000000 * currentPlayer : 0);
 
 
 
