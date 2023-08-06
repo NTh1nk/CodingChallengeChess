@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 
-public class EvalByMover_MoveOrder : IChessBot
+public class EvalByMove : IChessBot
 {
     // right now funktions are seperated. before submision, everything will be compacted into the think function if possible.
 
@@ -167,7 +167,7 @@ public class EvalByMover_MoveOrder : IChessBot
         Tuple<Move[], float> bR = new(new[] { bMove }, bMoveMat);
 
         List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(prevBase, m, currentPlayer, board))).ToList();
-        sortedMoves = sortedMoves.OrderByDescending(item => item.Base).ToList();
+        //sortedMoves = sortedMoves.OrderByDescending(item => item.Base).ToList();
 
         foreach (var (move, Base) in sortedMoves)
         {
@@ -327,11 +327,11 @@ public class EvalByMover_MoveOrder : IChessBot
 
     float evaluateBase(float prevBase, Move move, int currentPlayer, Board board)
     {
-        bool isWhite = currentPlayer < 0; // doesn't matter if it a variable or called each time BBS-wise
-        if(move.IsEnPassant || move.IsCastles)
-        {
-            return (getPieceValues(board, currentPlayer) - prevBase) * currentPlayer;
-        }
+        bool isWhite = currentPlayer > 0; // doesn't matter if it a variable or called each time BBS-wise
+        //if(move.IsEnPassant || move.IsCastles)
+        //{
+        //    return (getPieceValues(board, currentPlayer) - prevBase) * currentPlayer;
+        //}
         return
             -getPieceValue(move.MovePieceType, move.StartSquare, isWhite)  // remove the old piece 
             +getPieceValue(move.IsPromotion ? move.PromotionPieceType : move.MovePieceType, move.TargetSquare, isWhite) // add the new piece (move piece type if it is't promotion. if it is use the promotion piece type)
