@@ -108,7 +108,8 @@ public class MyBot : IChessBot
         //Console.WriteLine(pieceSqareValues.Length);
         //Console.WriteLine(getPieceValue(PieceType.King, 7, 7));
         //IsEndgameNoFunction = true;
-        //Console.WriteLine(getPieceValue(PieceType.Pawn, 0, 7 - 6));               
+        //Console.WriteLine(getPieceValue(PieceType.Pawn, 0, 7 - 6));
+        Console.WriteLine("hfehfehf" + (getPieceValues(board, -1)));
         weAreWhite = board.IsWhiteToMove;
         Console.WriteLine("---calculate new move---" + board.IsWhiteToMove); //#DEBUG
         var bestMove = miniMax(board, timer.MillisecondsRemaining < 20000 ? timer.MillisecondsRemaining < 5000 ? 2 : 3 : maxSearchDepth, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue).Item1;
@@ -293,13 +294,14 @@ public class MyBot : IChessBot
         //    var s = p.Square;
         //    return getPieceValue(p.PieceType, s.Rank, p.IsWhite ? s.File : 7 - s.File) * (p.IsWhite ? 1 : -1);
         //});
+        //totalPieceValue = 0;
 
         foreach (PieceList plist in board.GetAllPieceLists()) // seems to be about 100 ms faster than using .SelectMany()
         {
             foreach (Piece p in plist)
             {
                 var s = p.Square;
-                totalPieceValue += getPieceValue(p.PieceType, s.File, p.IsWhite ? s.Rank : 7 - s.Rank)
+                totalPieceValue += getPieceValue(p.PieceType, s.File, p.IsWhite ? 7 - s.Rank : s.Rank)
                     * (p.IsWhite ? 1 : -1);
             }
         }
