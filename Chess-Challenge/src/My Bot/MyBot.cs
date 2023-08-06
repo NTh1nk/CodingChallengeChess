@@ -111,7 +111,7 @@ public class MyBot : IChessBot
         //Console.WriteLine(getPieceValue(PieceType.Pawn, 0, 7 - 6));               
         weAreWhite = board.IsWhiteToMove;
         Console.WriteLine("---calculate new move---" + board.IsWhiteToMove); //#DEBUG
-        var bestMove = miniMax(board, timer.MillisecondsRemaining < 20000 ? timer.MillisecondsRemaining < 5000 ? 2 : 3 : maxSearchDepth, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue, getPieceValues(board, weAreWhite ? 1 : -1) + evaluateTop(board, weAreWhite ? 1 : -1)).Item1;
+        var bestMove = miniMax(board, timer.MillisecondsRemaining < 20000 ? timer.MillisecondsRemaining < 5000 ? 2 : 3 : maxSearchDepth, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue, getPieceValues(board, weAreWhite ? 1 : -1)).Item1;
         bestMove.ToList().ForEach(move => { Console.WriteLine("predicted move: " + move); });
         if (IsEndgame(board, !weAreWhite)){
             IsEndgameNoFunction = true;
@@ -166,7 +166,7 @@ public class MyBot : IChessBot
         float bMoveMat = minFloatValue * currentPlayer;
         Tuple<Move[], float> bR = new(new[] { bMove }, bMoveMat);
 
-        List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(prevBase, m, currentPlayer))).ToList();
+        List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(prevBase, m, currentPlayer, board))).ToList();
         sortedMoves = sortedMoves.OrderByDescending(item => item.Base).ToList();
 
         foreach (var (move, Base) in sortedMoves)
@@ -180,8 +180,9 @@ public class MyBot : IChessBot
 
 
             Tuple<Move[], float> r = 
-                (depth > 0 ? miniMax(board, depth - 1, currentPlayer * -1, currentPlayer == 1 ? bMoveMat : minFloatValue, currentPlayer == -1 ? bMoveMat : float.MaxValue, newBase)  : // use minimax if the depth is bigger than 0
-                new(new[] { move }, /*boardHashes.ContainsKey(board.ZobristKey) ? boardHashes[board.ZobristKey] : */newBase + evaluateTop(board, currentPlayer))); // use the stored value or get piece values new
+                (depth > 0 ? 
+                    miniMax(board, depth - 1, currentPlayer * -1, currentPlayer == 1 ? bMoveMat : minFloatValue, currentPlayer == -1 ? bMoveMat : float.MaxValue, newBase)  : // use minimax if the depth is bigger than 0
+                    new(new[] { move }, /*boardHashes.ContainsKey(board.ZobristKey) ? boardHashes[board.ZobristKey] : */newBase + evaluateTop(board, currentPlayer))); // use the stored value or get piece values new
             //Console.WriteLine(v);
             float v = r.Item2;
 
@@ -200,7 +201,7 @@ public class MyBot : IChessBot
                         bMove = move;
                         bMoveMat = v;
 
-                        if(v <= max || v <= min)
+                        if(v >= max || v <= min)
                         {
                             board.UndoMove(move);
                             break;
@@ -215,7 +216,7 @@ public class MyBot : IChessBot
             }
             if(depth == maxSearchDepth) //#DEBUG
             {//#DEBUG
-                Console.WriteLine($"{move}: {v}");//#DEBUG
+                Console.WriteLine($"{v}");//#DEBUG
             }//#DEBUG
 
             board.UndoMove(move);
@@ -324,13 +325,17 @@ public class MyBot : IChessBot
 
     string toPieceArray(long[] arr) => string.Join("", Array.ConvertAll(arr, element => element.ToString("D16")));
 
-    float evaluateBase(float prevBase, Move move, int currentPlayer)
+    float evaluateBase(float prevBase, Move move, int currentPlayer, Board board)
     {
         bool isWhite = currentPlayer < 0; // doesn't matter if it a variable or called each time BBS-wise
+        if(move.IsEnPassant || move.IsCastles)
+        {
+            return (getPieceValues(board, currentPlayer) - prevBase) * currentPlayer;
+        }
         return
             -getPieceValue(move.MovePieceType, move.StartSquare, isWhite)  // remove the old piece 
             +getPieceValue(move.IsPromotion ? move.PromotionPieceType : move.MovePieceType, move.TargetSquare, isWhite) // add the new piece (move piece type if it is't promotion. if it is use the promotion piece type)
-            +getPieceValue(move.CapturePieceType, move.TargetSquare, isWhite) // remove the captured piece (plus beacuse we capture the oponements piece wich is good for the current player)
+            +getPieceValue(move.CapturePieceType, move.TargetSquare, !isWhite) // remove the captured piece (plus beacuse we capture the oponements piece wich is good for the current player)
             ;
 
     }
