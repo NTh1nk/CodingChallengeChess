@@ -62,7 +62,7 @@ public class EvilBot : IChessBot
     int usedZobristKeys = 0; //#DEBUG
     // -----------------------------
     Queue<int> foundDrawMovesPerTurn = new();
-    int maxSearchDepth = 5;
+    int maxSearchDepth = 3;
 
     public bool IsEndgame(Board board, bool white) //#DEBUG
     { //#DEBUG
@@ -189,7 +189,13 @@ public class EvilBot : IChessBot
                     miniMax(board, depth - 1, currentPlayer * -1, min, max, newBase) : // use minimax if the depth is bigger than 0
                     new(new[] { move }, newBase + evaluateTop(board, currentPlayer))); // use the stored value or get piece values new
 
+            if(getPieceValues(board, currentPlayer) + evaluateTop(board, currentPlayer) != getPieceValuesNew(board, currentPlayer))
+            {
+                Console.WriteLine("fhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh");
 
+
+
+            }
             float v = r.Item2;
             if (depth < 1)
             {
@@ -254,6 +260,89 @@ public class EvilBot : IChessBot
      int dy = Math.Abs(square1.Rank - square2.Rank);
      return dx + dy;
      } */
+
+    private float getPieceValuesNew(Board board, int currentPlayer)
+    {
+
+        searchedMoves += 1; //#DEBUG
+        float totalPieceValue = 0;
+
+
+
+        if (board.IsInCheckmate())
+        { //#DEBUG
+            foundCheckMates++; //#DEBUG
+            return 1000000000000 * -currentPlayer; // very height number (chose not to use float.MaxValue beacuse it uses more tokens (3 instead of 1)) 
+        } //#DEBUG
+        //totalPieceValue = board.HasKingsideCastleRight(true) ? 22 : 0;
+        //totalPieceValue += board.HasKingsideCastleRight(false) ? -22 : 0;
+        //totalPieceValue = board.HasQueensideCastleRight(true) ? 10 : 0;
+        //totalPieceValue += board.HasQueensideCastleRight(false) ? -10 : 0;
+        //var skipped = board.TrySkipTurn();  // LOOK HERE: this needs to be here so we can if pieces will be atacked in the next round
+
+
+        //if (board.IsDraw()) // seems to be slow
+        //{
+        //    totalPieceValue -= 100 * currentPlayer; // try to avoid a draw
+        //}
+
+        //foreach (Piece p in board.GetAllPieceLists().SelectMany(x => x)) // 49.7  left (3 seconds faster than looping over them all) (depth 6)
+        //{
+
+
+        //    var s = p.Square;
+        //    totalPieceValue += getPieceValue(p.PieceType, s.File, p.IsWhite ? s.Rank : 7 - s.Rank)
+        //        * (p.IsWhite ? 1 : -1);
+
+        //}
+
+
+
+        //for (int x = 0; x <= 7; x++)
+        //    for (int y = 0; y <= 7; y++)
+        //    {
+        //        var s = new Square(x, y);
+        //        var p = board.GetPiece(s); // quite slow
+        //        if (p.IsNull) continue;
+
+        //        totalPieceValue += getPieceValue(p.PieceType, x, p.IsWhite ? 7 - y : y)
+        //        * (p.IsWhite ? 1 : -1);// * (board.SquareIsAttackedByOpponent(s) ? 0 : 1);
+
+        //    }
+
+        //totalPieceValue += board.GetAllPieceLists().SelectMany(x => x).Sum(p =>
+        //{
+        //    var s = p.Square;
+        //    return getPieceValue(p.PieceType, s.Rank, p.IsWhite ? s.File : 7 - s.File) * (p.IsWhite ? 1 : -1);
+        //});
+        //totalPieceValue = 0;
+
+        foreach (PieceList plist in board.GetAllPieceLists()) // seems to be about 100 ms faster than using .SelectMany()
+        {
+            foreach (Piece p in plist)
+            {
+                var s = p.Square;
+                totalPieceValue += getPieceValue(p.PieceType, s, p.IsWhite)
+                    * (p.IsWhite ? 1 : -1);
+            }
+        }
+
+        //        totalPieceValue += getPieceValue(p.PieceType, x, p.IsWhite ? y : 7 - y)
+        //            * (p.IsWhite == weAreWhite ? (board.SquareIsAttackedByOpponent(s) ? 0.1f : 1) : -0.9F);
+        //        //Console.WriteLine(getPieceValue(p.PieceType, p.IsWhite ? x : 7 - x, p.IsWhite ? y : 7 - y)
+        //        //* (p.IsWhite == weAreWhite ? (board.SquareIsAttackedByOpponent(s) ? 0.1f : 1) : -0.9F));
+
+        //    }
+        //}
+        //if (skipped)
+        //{
+        //    board.UndoSkipTurn();
+        //}
+
+        //Console.WriteLine("total piecevalue is:" + totalPieceValue);
+
+        return totalPieceValue;
+    }
     private float getPieceValues(Board board, int currentPlayer)
     {
         //var skipped = board.TrySkipTurn();  // LOOK HERE: this needs to be here so we can if pieces will be atacked in the next round
@@ -356,12 +445,13 @@ public class EvilBot : IChessBot
         if (board.IsInCheckmate())
         { //#DEBUG
             foundCheckMates++; //#DEBUG
-            return 1000000000000000 * -currentPlayer; // very height number (chose not to use float.MaxValue beacuse it uses more tokens (3 instead of 1)) 
+            return 1000000000000 * -currentPlayer; // very height number (chose not to use float.MaxValue beacuse it uses more tokens (3 instead of 1)) 
         } //#DEBUG
-        return (board.HasKingsideCastleRight(true) ? 22 : 0)
-             + (board.HasKingsideCastleRight(false) ? -22 : 0)
-             + (board.HasQueensideCastleRight(true) ? 10 : 0)
-             + (board.HasQueensideCastleRight(false) ? -10 : 0);
+        //return (board.HasKingsideCastleRight(true) ? 22 : 0)
+        //     + (board.HasKingsideCastleRight(false) ? -22 : 0)
+        //     + (board.HasQueensideCastleRight(true) ? 10 : 0)
+        //     + (board.HasQueensideCastleRight(false) ? -10 : 0);
+        return 0;
 
 
 
