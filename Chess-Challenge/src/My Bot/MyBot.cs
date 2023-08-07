@@ -62,7 +62,7 @@ public class MyBot : IChessBot
     int usedZobristKeys = 0; //#DEBUG
     // -----------------------------
     Queue<int> foundDrawMovesPerTurn = new();
-    int maxSearchDepth = 3;
+    int maxSearchDepth = 5;
 
     public bool IsEndgame(Board board, bool white) //#DEBUG
     { //#DEBUG
@@ -159,13 +159,15 @@ public class MyBot : IChessBot
     {
         //Console.WriteLine("----- depth " + depth + " -----");
         
-        Move[] moves = board.GetLegalMoves();
+        Move[] moves = board.GetLegalMoves(depth < 1);
+
+        //Console.Write("[");
         
-        //if (moves.Length == 0)
-        //{
-        //    // Console.WriteLine("there where 0 moves so returning early");
-        //    return new(new[] { Move.NullMove }, prevBase + evaluateTop(board, currentPlayer)); //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
-        //}
+        if (moves.Length == 0)
+        {
+            // Console.WriteLine("there where 0 moves so returning early");
+            return new(new[] { Move.NullMove }, prevBase + evaluateTop(board, currentPlayer)); //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
+        }
         Move bMove = moves[0];
         float bMoveMat = minFloatValue * currentPlayer;
         Tuple<Move[], float> bR = new(new[] { bMove }, bMoveMat);
@@ -179,14 +181,19 @@ public class MyBot : IChessBot
             
             board.MakeMove(move);
             float newBase = prevBase + Base * currentPlayer;
-
+            
 
             Tuple<Move[], float> r = 
                 (depth > 0 ? 
                     miniMax(board, depth - 1, currentPlayer * -1, min, max, newBase)  : // use minimax if the depth is bigger than 0
                     new(new[] { move }, newBase + evaluateTop(board, currentPlayer))); // use the stored value or get piece values new
             
+
             float v = r.Item2;
+            if(depth < 1)
+            {
+                //Console.Write(v + ", ");
+            }
 
             if (currentPlayer == 1 ? v > bMoveMat : v < bMoveMat)
             {
@@ -204,16 +211,11 @@ public class MyBot : IChessBot
             if(currentPlayer > 0)
             {
                 min = Max(min, v);
-                if (v >= max){
-                    break;
-                }
-            } 
-            else
-            {
+                if (v >= max) break;
+
+            } else {
                 max = Min(max, v);
-                if(v <= min) {
-                    break;
-                }
+                if (v <= min) break;
             }
             //if (v > max || v < min) break;
 
@@ -226,6 +228,13 @@ public class MyBot : IChessBot
         }
 
         //Console.WriteLine("best move was " + bMove);
+        //Console.Write("], ");
+
+        if(depth == maxSearchDepth)
+        {
+            Console.WriteLine("best moves mat was: " + bMoveMat);
+        }
+
 
         return new(bR.Item1.Append(bMove).ToArray(), bR.Item2);
     }
