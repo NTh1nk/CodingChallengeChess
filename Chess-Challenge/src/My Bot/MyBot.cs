@@ -61,7 +61,7 @@ public class MyBot : IChessBot
     int usedZobristKeys = 0; //#DEBUG
     // -----------------------------
     Queue<int> foundDrawMovesPerTurn = new();
-    int maxSearchDepth = 5;
+    int maxSearchDepth = 3;
 
     public bool IsEndgame(Board board, bool white) //#DEBUG
     { //#DEBUG
@@ -188,8 +188,8 @@ public class MyBot : IChessBot
             }
             if (currentPlayer == 1 ? v > bMoveMat : v < bMoveMat)
             {
-                if (!draw_moves.Contains(move))
-                {
+                //if (!draw_moves.Contains(move))
+                //{
                     if (!board.IsDraw())
                     {
                         bR = r;
@@ -201,17 +201,17 @@ public class MyBot : IChessBot
                             board.UndoMove(move);
                             break;
                         }
-                    }
-                    else printErrorDraw(move); //#DEBUG
+                    //}
+                    //else printErrorDraw(move); //#DEBUG
                 } 
-                else if(board.IsDraw()) //#DEBUG
-                { //#DEBUG
-                    foundDublicateDrawMoves++; //#DEBUG
-                } //#DEBUG
+                //else if(board.IsDraw()) //#DEBUG
+                //{ //#DEBUG
+                    //foundDublicateDrawMoves++; //#DEBUG
+                //} //#DEBUG
             }
             if(depth == maxSearchDepth) //#DEBUG
             {//#DEBUG
-                Console.WriteLine($"{v}");//#DEBUG
+                //Console.WriteLine($"{v}");//#DEBUG
             }//#DEBUG
 
             board.UndoMove(move);
