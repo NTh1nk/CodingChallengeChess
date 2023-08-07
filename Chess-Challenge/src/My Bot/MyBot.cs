@@ -173,7 +173,7 @@ public class MyBot : IChessBot
         Tuple<Move[], float> bR = new(new[] { bMove }, bMoveMat);
 
         List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(prevBase, m, currentPlayer, board))).ToList();
-        //sortedMoves = sortedMoves.OrderByDescending(item => item.Base).ToList();
+        sortedMoves = sortedMoves.OrderByDescending(item => item.Base).ToList();
 
         foreach (var (move, Base) in sortedMoves)
         {
@@ -211,11 +211,11 @@ public class MyBot : IChessBot
             if(currentPlayer > 0)
             {
                 min = Max(min, v);
-                //if (v >= max) break;
+                if (v >= max) break;
 
             } else {
                 max = Min(max, v);
-                //if (v <= min) break;
+                if (v <= min) break;
             }
             //if (v > max || v < min) break;
 
