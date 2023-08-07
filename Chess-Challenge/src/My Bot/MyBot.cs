@@ -157,15 +157,15 @@ public class MyBot : IChessBot
 
     private Tuple<Move[], float> miniMax(Board board, int depth, int currentPlayer, float min, float max, float prevBase)
     {
-        Console.WriteLine("----- depth " + depth + " -----");
+        //Console.WriteLine("----- depth " + depth + " -----");
         
-        Move[] moves = board.GetLegalMoves(depth < 1);
+        Move[] moves = board.GetLegalMoves();
         
-        if (moves.Length == 0)
-        {
-            Console.WriteLine("there where 0 moves so returning early");
-            return new(new[] { Move.NullMove }, prevBase + evaluateTop(board, currentPlayer)); //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
-        }
+        //if (moves.Length == 0)
+        //{
+        //    // Console.WriteLine("there where 0 moves so returning early");
+        //    return new(new[] { Move.NullMove }, prevBase + evaluateTop(board, currentPlayer)); //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
+        //}
         Move bMove = moves[0];
         float bMoveMat = minFloatValue * currentPlayer;
         Tuple<Move[], float> bR = new(new[] { bMove }, bMoveMat);
@@ -194,44 +194,25 @@ public class MyBot : IChessBot
                 bMove = move;
                 bMoveMat = v;
             }
-            if(depth == maxSearchDepth) //#DEBUG
+             if(depth == maxSearchDepth) //#DEBUG
             {//#DEBUG
-                //Console.WriteLine($"{move}: {v}");//#DEBUG
+             //Console.WriteLine($"{move}: {v}");//#DEBUG
                 Console.WriteLine($"{v}");//#DEBUG
             }//#DEBUG
 
             board.UndoMove(move);
-            if(currentPlayer == 1)
+            if(currentPlayer > 0)
             {
-                if(min < v)
-                {
-                    min = v;
-                    Console.WriteLine("made min bigger: " + min + " on depth " + depth);
+                min = Max(min, v);
+                if (v >= max){
+                    break;
                 }
-                //min = Max(min, v);
-                //Console.WriteLine("min: " + min);
-                if (v > max)
-                {
-                    Console.WriteLine("cut of branch. current depth: " + depth + " current move: " + move + $" {v} > {max}");
-
-                    //break;
-                }
-            } else
+            } 
+            else
             {
-                if(v < max)
-                {
-                    max = v;
-                    Console.WriteLine("made max smaller: " + max + " on depth " + depth);
-
-                }
-                //max = Min(max, v);
-                //Console.WriteLine("max: " + max);
-
-                if (v < min)
-                {
-
-                    Console.WriteLine("cut of branch. current depth: " + depth + " current move: " + move + $" {v} < {min}");
-                    //break;
+                max = Min(max, v);
+                if(v <= min) {
+                    break;
                 }
             }
             //if (v > max || v < min) break;
@@ -244,7 +225,7 @@ public class MyBot : IChessBot
 
         }
 
-        Console.WriteLine("best move was " + bMove);
+        //Console.WriteLine("best move was " + bMove);
 
         return new(bR.Item1.Append(bMove).ToArray(), bR.Item2);
     }

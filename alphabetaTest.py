@@ -4,8 +4,8 @@ infinity = float("inf")
 maxDepth = 2
 
 def minimax(board, depth, currentPlayer, _min, _max):
-    bMoveMat = -infinity * currentPlayer;
     moves = board
+    bMoveMat = -infinity * currentPlayer;
     notEval = False
     for newBoard in moves:
         
