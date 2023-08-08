@@ -174,7 +174,7 @@ public class EvilBot : IChessBot
         Tuple<Move[], float> bR = new(new[] { bMove }, bMoveMat);
 
         List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(prevBase, m, currentPlayer, board))).ToList();
-        sortedMoves = sortedMoves.OrderByDescending(item => item.Base).ToList();
+        //sortedMoves = sortedMoves.OrderByDescending(item => item.Base).ToList();
 
         foreach (var (move, Base) in sortedMoves)
         {
@@ -184,18 +184,18 @@ public class EvilBot : IChessBot
             float newBase = prevBase + Base * currentPlayer;
 
 
+            //if (newBase + evaluateTop(board, currentPlayer) != getPieceValuesNew(board, currentPlayer))
+            //{
+            //    Console.WriteLine("fhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh");
+
+
+
+            //}
             Tuple<Move[], float> r =
                 (depth > 0 ?
                     miniMax(board, depth - 1, currentPlayer * -1, min, max, newBase) : // use minimax if the depth is bigger than 0
                     new(new[] { move }, newBase + evaluateTop(board, currentPlayer))); // use the stored value or get piece values new
 
-            if(getPieceValues(board, currentPlayer) + evaluateTop(board, currentPlayer) != getPieceValuesNew(board, currentPlayer))
-            {
-                Console.WriteLine("fhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh");
-
-
-
-            }
             float v = r.Item2;
             if (depth < 1)
             {
@@ -218,13 +218,13 @@ public class EvilBot : IChessBot
             if (currentPlayer > 0)
             {
                 min = Max(min, v);
-                if (v >= max) break;
+                //if (v >= max) break;
 
             }
             else
             {
                 max = Min(max, v);
-                if (v <= min) break;
+                //if (v <= min) break;
             }
             //if (v > max || v < min) break;
 
@@ -426,10 +426,10 @@ public class EvilBot : IChessBot
     float evaluateBase(float prevBase, Move move, int currentPlayer, Board board)
     {
         bool isWhite = currentPlayer > 0; // doesn't matter if it a variable or called each time BBS-wise
-        //if(move.IsEnPassant || move.IsCastles)
-        //{
-        //    return (getPieceValues(board, currentPlayer) - prevBase) * currentPlayer;
-        //}
+        if(move.IsEnPassant || move.IsCastles)
+        {
+            return (getPieceValues(board, currentPlayer) - prevBase) * currentPlayer;
+        }
         return
             -getPieceValue(move.MovePieceType, move.StartSquare, isWhite)  // remove the old piece 
             + getPieceValue(move.IsPromotion ? move.PromotionPieceType : move.MovePieceType, move.TargetSquare, isWhite) // add the new piece (move piece type if it is't promotion. if it is use the promotion piece type)
