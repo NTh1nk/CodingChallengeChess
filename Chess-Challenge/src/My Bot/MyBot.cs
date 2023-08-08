@@ -11,8 +11,8 @@ public class MyBot : IChessBot
     // right now funktions are seperated. before submision, everything will be compacted into the think function if possible.
 
     //---this section is variables designated to zobrist hashing and the transportition table---
-    byte[] currentBoardHash = new byte[8];
-    Dictionary<ulong,Tuple<float,int>> boardHashes = new();
+    int randomBoardHashCounter = 0;
+    Dictionary<ulong,Tuple<float,int>> boardHashes = new(); //dict <zobrist key, tuple<total_board_value, depth_iteration>>
 
     //right now this funktion is not needed as it seems board has a funktion to get the zobrist key but it might need to be reintruduced if the api funktion is to slow
     //ulong hashBoard(Board board)
@@ -143,19 +143,21 @@ public class MyBot : IChessBot
         Console.WriteLine(searchedMoves + " Searched moves"); //#DEBUG
         
         Console.WriteLine("adding: "+addedZobristKeys+" deep seached zobrist keys this turn"); //#DEBUG
-        addedZobristKeys = 0;
+        addedZobristKeys = 0; //#DEBUG
 
         Console.WriteLine("found: " + usedZobristKeys + " positions already calculated this turn"); //#DEBUG
-        usedZobristKeys = 0;
+        usedZobristKeys = 0; //#DEBUG
 
         Console.WriteLine("dececion took: "+timer.MillisecondsElapsedThisTurn+" ms this turn"); //#DEBUG
+        
+        randomBoardHashCounter=+maxSearchDepth;
+        foreach (var i in boardHashes) if (boardHashes[i.Key].Item2 < randomBoardHashCounter - 5) boardHashes.Remove(i.Key); 
 
         return bestMove[bestMove.Length - 1];
         //Console.WriteLine(isPieceProtectedAfterMove(board, moves[0]));
 
     }
 
-    int randomBoardHashCounter = 0;
     private Tuple<Move[], float> miniMax(Board board, int depth, int currentPlayer, float min, float max, float prevBase)
     {
 
@@ -182,18 +184,26 @@ public class MyBot : IChessBot
             
             
             board.MakeMove(move);
+
+            ulong zobristKey = board.ZobristKey;
+
             float newBase = prevBase + Base * currentPlayer;
 
-            if (!boardHashes.ContainsKey(board.ZobristKey) && depth < maxSearchDepth)
-            {
+            bool t = boardHashes.ContainsKey(zobristKey);
 
-            }
+            float total = t ? boardHashes[zobristKey].Item1 : newBase + evaluateTop(board, currentPlayer);
 
             Tuple<Move[], float> r = 
                 (depth > 0 ? 
                     miniMax(board, depth - 1, currentPlayer * -1, min, max, newBase)  : // use minimax if the depth is bigger than 0
-                    new(new[] { move }, newBase + evaluateTop(board, currentPlayer))); // use the stored value or get piece values new
+                    new(new[] { move }, total)); // use the stored value or get piece values new
             
+            if (!boardHashes.ContainsKey(zobristKey) && depth < maxSearchDepth)
+            { //#DEBUG
+                boardHashes.Add(zobristKey, new Tuple<float, int>(total, randomBoardHashCounter+(maxSearchDepth-depth)));
+                addedZobristKeys++; //#DEBUG
+            } //#DEBUG
+            if (t) usedZobristKeys++; //#DEBUG
 
             float v = r.Item2;
             if(depth < 1)
@@ -233,7 +243,6 @@ public class MyBot : IChessBot
 
         }
 
-        randomBoardHashCounter++;
 
         //Console.WriteLine("best move was " + bMove);
         //Console.Write("], ");
