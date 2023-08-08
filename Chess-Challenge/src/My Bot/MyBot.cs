@@ -12,7 +12,7 @@ public class MyBot : IChessBot
 
     //---this section is variables designated to zobrist hashing and the transportition table---
     byte[] currentBoardHash = new byte[8];
-    Dictionary<ulong,float> boardHashes = new();
+    Dictionary<ulong,Tuple<float,int>> boardHashes = new();
 
     //right now this funktion is not needed as it seems board has a funktion to get the zobrist key but it might need to be reintruduced if the api funktion is to slow
     //ulong hashBoard(Board board)
@@ -155,8 +155,10 @@ public class MyBot : IChessBot
 
     }
 
+    int randomBoardHashCounter = 0;
     private Tuple<Move[], float> miniMax(Board board, int depth, int currentPlayer, float min, float max, float prevBase)
     {
+
         //Console.WriteLine("----- depth " + depth + " -----");
         
         Move[] moves = board.GetLegalMoves(depth < 1);
@@ -181,7 +183,11 @@ public class MyBot : IChessBot
             
             board.MakeMove(move);
             float newBase = prevBase + Base * currentPlayer;
-            
+
+            if (!boardHashes.ContainsKey(board.ZobristKey) && depth < maxSearchDepth)
+            {
+
+            }
 
             Tuple<Move[], float> r = 
                 (depth > 0 ? 
@@ -226,6 +232,8 @@ public class MyBot : IChessBot
             //}
 
         }
+
+        randomBoardHashCounter++;
 
         //Console.WriteLine("best move was " + bMove);
         //Console.Write("], ");
