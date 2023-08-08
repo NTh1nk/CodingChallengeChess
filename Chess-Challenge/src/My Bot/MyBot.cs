@@ -372,11 +372,11 @@ public class MyBot : IChessBot
     public bool isPieceProtectedAfterMove(Board board, Move move) => !board.SquareIsAttackedByOpponent(move.TargetSquare); //#DEBUG
  
 
-    ulong prevSeed = 0;
-    //ulong smallRandomNumberGenerator(ulong seed = 0, int maxSizeRange = 100)
-    //{
-    //    if (seed == 0) seed = prevSeed;
-    //    prevSeed = (ulong)Abs(Cos(seed * 10) * maxSizeRange);
-    //    return prevSeed;
-    //}
+    /*ulong prevSeed = 0;
+    ulong smallRandomNumberGenerator(ulong seed = 0, int maxSizeRange = 100)
+    {
+        if (seed == 0) seed = prevSeed;
+        prevSeed = (ulong)Abs(Cos(seed * 10) * maxSizeRange);
+        return prevSeed;
+    }*/
 }
