@@ -159,7 +159,7 @@ public class MyBot : IChessBot
     {
         //Console.WriteLine("----- depth " + depth + " -----");
         
-        Move[] moves = board.GetLegalMoves(depth < 1);
+        Move[] moves = board.GetLegalMoves();
 
         //Console.Write("[");
         
@@ -180,9 +180,12 @@ public class MyBot : IChessBot
             
             
             board.MakeMove(move);
-            float newBase = prevBase + Base * currentPlayer;
+            float newBase = prevBase + evaluateBase(prevBase, move, currentPlayer, board) * currentPlayer;
             
-
+            if (newBase != getPieceValues(board, currentPlayer))
+            {
+                Console.WriteLine("depth: " + depth + " is captrue: " + move.IsCapture);
+            }
             Tuple<Move[], float> r = 
                 (depth > 0 ? 
                     miniMax(board, depth - 1, currentPlayer * -1, min, max, newBase)  : // use minimax if the depth is bigger than 0
@@ -334,10 +337,11 @@ public class MyBot : IChessBot
     float evaluateBase(float prevBase, Move move, int currentPlayer, Board board)
     {
         bool isWhite = currentPlayer > 0; // doesn't matter if it a variable or called each time BBS-wise
-        //if(move.IsEnPassant || move.IsCastles)
-        //{
-        //    return (getPieceValues(board, currentPlayer) - prevBase) * currentPlayer;
-        //}
+        //return (getPieceValues(board, currentPlayer) - prevBase) * currentPlayer;
+        if(move.IsEnPassant || move.IsCastles) // beause it is a "special" move it we return to use the old function
+        {
+            return (getPieceValues(board, currentPlayer) - prevBase) * currentPlayer;
+        }
         return
             -getPieceValue(move.MovePieceType, move.StartSquare, isWhite)  // remove the old piece 
             +getPieceValue(move.IsPromotion ? move.PromotionPieceType : move.MovePieceType, move.TargetSquare, isWhite) // add the new piece (move piece type if it is't promotion. if it is use the promotion piece type)
@@ -353,7 +357,7 @@ public class MyBot : IChessBot
         if (board.IsInCheckmate())
         { //#DEBUG
             foundCheckMates++; //#DEBUG
-            return 1000000000000000 * -currentPlayer; // very height number (chose not to use float.MaxValue beacuse it uses more tokens (3 instead of 1)) 
+            return 10000000000000 * -currentPlayer; // very height number (chose not to use float.MaxValue beacuse it uses more tokens (3 instead of 1)) 
         } //#DEBUG
         return (board.HasKingsideCastleRight(true) ? 22 : 0)
              + (board.HasKingsideCastleRight(false) ? -22 : 0)
