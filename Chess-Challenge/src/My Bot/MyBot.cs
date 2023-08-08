@@ -62,7 +62,7 @@ public class MyBot : IChessBot
     int usedZobristKeys = 0; //#DEBUG
     // -----------------------------
     Queue<int> foundDrawMovesPerTurn = new();
-    int maxSearchDepth = 5;
+    int maxSearchDepth = 7;
 
     public bool IsEndgame(Board board, bool white) //#DEBUG
     { //#DEBUG
@@ -151,7 +151,7 @@ public class MyBot : IChessBot
         Console.WriteLine("dececion took: "+timer.MillisecondsElapsedThisTurn+" ms this turn"); //#DEBUG
         
         randomBoardHashCounter=+maxSearchDepth;
-        foreach (var i in boardHashes) if (boardHashes[i.Key].Item2 < randomBoardHashCounter - 5) boardHashes.Remove(i.Key); 
+        foreach (ulong i in boardHashes.Keys) if (boardHashes[i].Item2 < randomBoardHashCounter - maxSearchDepth) boardHashes.Remove(i); 
 
         return bestMove[bestMove.Length - 1];
         //Console.WriteLine(isPieceProtectedAfterMove(board, moves[0]));
@@ -195,7 +195,7 @@ public class MyBot : IChessBot
 
             Tuple<Move[], float> r = 
                 (depth > 0 ? 
-                    miniMax(board, depth - 1, currentPlayer * -1, min, max, newBase)  : // use minimax if the depth is bigger than 0
+                    miniMax(board, depth - 1, -currentPlayer, min, max, newBase)  : // use minimax if the depth is bigger than 0
                     new(new[] { move }, total)); // use the stored value or get piece values new
             
             if (!boardHashes.ContainsKey(zobristKey) && depth < maxSearchDepth)
@@ -206,10 +206,10 @@ public class MyBot : IChessBot
             if (t) usedZobristKeys++; //#DEBUG
 
             float v = r.Item2;
-            if(depth < 1)
+            /*if(depth < 1)
             {
                 //Console.Write(v + ", ");
-            }
+            }*/
 
             if ((currentPlayer == 1 ? v > bMoveMat : v < bMoveMat) && !board.IsDraw())
             {
@@ -217,7 +217,7 @@ public class MyBot : IChessBot
                 bMove = move;
                 bMoveMat = v;
             }
-             if(depth == maxSearchDepth) //#DEBUG
+            if(depth == maxSearchDepth) //#DEBUG
             {//#DEBUG
              //Console.WriteLine($"{move}: {v}");//#DEBUG
                 Console.WriteLine($"{v}");//#DEBUG
