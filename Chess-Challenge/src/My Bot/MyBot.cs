@@ -165,7 +165,7 @@ public class MyBot : IChessBot
         
         if (moves.Length == 0)
         {
-            // Console.WriteLine("there where 0 moves so returning early");
+            // Console.WriteLine("there where 0 moves returning early");
             return new(new[] { Move.NullMove }, prevBase + evaluateTop(board, currentPlayer)); //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
         }
         Move bMove = moves[0];
