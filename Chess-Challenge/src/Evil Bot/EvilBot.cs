@@ -174,16 +174,19 @@ public class EvilBot : IChessBot
         Tuple<Move[], float> bR = new(new[] { bMove }, bMoveMat);
 
         List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(prevBase, m, currentPlayer, board))).ToList();
-        //sortedMoves = sortedMoves.OrderByDescending(item => item.Base).ToList();
+        sortedMoves = sortedMoves.OrderByDescending(item => item.Base).ToList();
 
         foreach (var (move, Base) in sortedMoves)
         {
 
 
             board.MakeMove(move);
-            float newBase = prevBase + Base * currentPlayer;
+            float newBase = prevBase + evaluateBase(prevBase, move, currentPlayer, board) * currentPlayer;
 
-
+            //if(newBase != getPieceValues(board, currentPlayer))
+            //{
+            //    Console.WriteLine("cfheeffheiofeh");
+            //}
             //if (newBase + evaluateTop(board, currentPlayer) != getPieceValuesNew(board, currentPlayer))
             //{
             //    Console.WriteLine("fhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh");
@@ -202,7 +205,7 @@ public class EvilBot : IChessBot
                 //Console.Write(v + ", ");
             }
 
-            if ((currentPlayer == 1 ? v > bMoveMat : v < bMoveMat) && !board.IsDraw())
+            if ((currentPlayer == 1 ? v >= bMoveMat : v <= bMoveMat) && !board.IsDraw())
             {
                 bR = r;
                 bMove = move;
