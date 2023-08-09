@@ -62,7 +62,7 @@ public class EvilBot : IChessBot
     int usedZobristKeys = 0; //#DEBUG
     // -----------------------------
     Queue<int> foundDrawMovesPerTurn = new();
-    int maxSearchDepth = 4;
+    int maxSearchDepth = 3;
 
     public bool IsEndgame(Board board, bool white) //#DEBUG
     { //#DEBUG
@@ -160,13 +160,13 @@ public class EvilBot : IChessBot
     {
         //Console.WriteLine("----- depth " + depth + " -----");
 
-        Move[] moves = board.GetLegalMoves(depth < 1);
+        Move[] moves = board.GetLegalMoves();
 
         //Console.Write("[");
 
         if (moves.Length == 0)
         {
-            // Console.WriteLine("there where 0 moves so returning early");
+            // Console.WriteLine("there where 0 moves returning early");
             return new(new[] { Move.NullMove }, prevBase + evaluateTop(board, currentPlayer)); //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
         }
         Move bMove = moves[0];
@@ -183,21 +183,15 @@ public class EvilBot : IChessBot
             board.MakeMove(move);
             float newBase = prevBase + evaluateBase(prevBase, move, currentPlayer, board) * currentPlayer;
 
-            //if(newBase != getPieceValues(board, currentPlayer))
+            //if (newBase != getPieceValues(board, currentPlayer))
             //{
-            //    Console.WriteLine("cfheeffheiofeh");
-            //}
-            //if (newBase + evaluateTop(board, currentPlayer) != getPieceValuesNew(board, currentPlayer))
-            //{
-            //    Console.WriteLine("fhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh");
-
-
-
+            //    Console.WriteLine("depth: " + depth + " is captrue: " + move.IsCapture);
             //}
             Tuple<Move[], float> r =
                 (depth > 0 ?
                     miniMax(board, depth - 1, currentPlayer * -1, min, max, newBase) : // use minimax if the depth is bigger than 0
                     new(new[] { move }, newBase + evaluateTop(board, currentPlayer))); // use the stored value or get piece values new
+
 
             float v = r.Item2;
             if (depth < 1)
@@ -263,89 +257,6 @@ public class EvilBot : IChessBot
      int dy = Math.Abs(square1.Rank - square2.Rank);
      return dx + dy;
      } */
-
-    private float getPieceValuesNew(Board board, int currentPlayer)
-    {
-
-        searchedMoves += 1; //#DEBUG
-        float totalPieceValue = 0;
-
-
-
-        if (board.IsInCheckmate())
-        { //#DEBUG
-            foundCheckMates++; //#DEBUG
-            return 1000000000000 * -currentPlayer; // very height number (chose not to use float.MaxValue beacuse it uses more tokens (3 instead of 1)) 
-        } //#DEBUG
-        //totalPieceValue = board.HasKingsideCastleRight(true) ? 22 : 0;
-        //totalPieceValue += board.HasKingsideCastleRight(false) ? -22 : 0;
-        //totalPieceValue = board.HasQueensideCastleRight(true) ? 10 : 0;
-        //totalPieceValue += board.HasQueensideCastleRight(false) ? -10 : 0;
-        //var skipped = board.TrySkipTurn();  // LOOK HERE: this needs to be here so we can if pieces will be atacked in the next round
-
-
-        //if (board.IsDraw()) // seems to be slow
-        //{
-        //    totalPieceValue -= 100 * currentPlayer; // try to avoid a draw
-        //}
-
-        //foreach (Piece p in board.GetAllPieceLists().SelectMany(x => x)) // 49.7  left (3 seconds faster than looping over them all) (depth 6)
-        //{
-
-
-        //    var s = p.Square;
-        //    totalPieceValue += getPieceValue(p.PieceType, s.File, p.IsWhite ? s.Rank : 7 - s.Rank)
-        //        * (p.IsWhite ? 1 : -1);
-
-        //}
-
-
-
-        //for (int x = 0; x <= 7; x++)
-        //    for (int y = 0; y <= 7; y++)
-        //    {
-        //        var s = new Square(x, y);
-        //        var p = board.GetPiece(s); // quite slow
-        //        if (p.IsNull) continue;
-
-        //        totalPieceValue += getPieceValue(p.PieceType, x, p.IsWhite ? 7 - y : y)
-        //        * (p.IsWhite ? 1 : -1);// * (board.SquareIsAttackedByOpponent(s) ? 0 : 1);
-
-        //    }
-
-        //totalPieceValue += board.GetAllPieceLists().SelectMany(x => x).Sum(p =>
-        //{
-        //    var s = p.Square;
-        //    return getPieceValue(p.PieceType, s.Rank, p.IsWhite ? s.File : 7 - s.File) * (p.IsWhite ? 1 : -1);
-        //});
-        //totalPieceValue = 0;
-
-        foreach (PieceList plist in board.GetAllPieceLists()) // seems to be about 100 ms faster than using .SelectMany()
-        {
-            foreach (Piece p in plist)
-            {
-                var s = p.Square;
-                totalPieceValue += getPieceValue(p.PieceType, s, p.IsWhite)
-                    * (p.IsWhite ? 1 : -1);
-            }
-        }
-
-        //        totalPieceValue += getPieceValue(p.PieceType, x, p.IsWhite ? y : 7 - y)
-        //            * (p.IsWhite == weAreWhite ? (board.SquareIsAttackedByOpponent(s) ? 0.1f : 1) : -0.9F);
-        //        //Console.WriteLine(getPieceValue(p.PieceType, p.IsWhite ? x : 7 - x, p.IsWhite ? y : 7 - y)
-        //        //* (p.IsWhite == weAreWhite ? (board.SquareIsAttackedByOpponent(s) ? 0.1f : 1) : -0.9F));
-
-        //    }
-        //}
-        //if (skipped)
-        //{
-        //    board.UndoSkipTurn();
-        //}
-
-        //Console.WriteLine("total piecevalue is:" + totalPieceValue);
-
-        return totalPieceValue;
-    }
     private float getPieceValues(Board board, int currentPlayer)
     {
         //var skipped = board.TrySkipTurn();  // LOOK HERE: this needs to be here so we can if pieces will be atacked in the next round
@@ -429,7 +340,7 @@ public class EvilBot : IChessBot
     float evaluateBase(float prevBase, Move move, int currentPlayer, Board board)
     {
         bool isWhite = currentPlayer > 0; // doesn't matter if it a variable or called each time BBS-wise
-        if(move.IsEnPassant || move.IsCastles)
+        if (move.IsEnPassant || move.IsCastles) // beause it is a "special" move it we return to use the old function
         {
             return (getPieceValues(board, currentPlayer) - prevBase) * currentPlayer;
         }
@@ -450,11 +361,11 @@ public class EvilBot : IChessBot
             foundCheckMates++; //#DEBUG
             return 1000000000000 * -currentPlayer; // very height number (chose not to use float.MaxValue beacuse it uses more tokens (3 instead of 1)) 
         } //#DEBUG
-        //return (board.HasKingsideCastleRight(true) ? 22 : 0)
-        //     + (board.HasKingsideCastleRight(false) ? -22 : 0)
-        //     + (board.HasQueensideCastleRight(true) ? 10 : 0)
-        //     + (board.HasQueensideCastleRight(false) ? -10 : 0);
-        return 0;
+        return ((board.HasKingsideCastleRight(true) ? 22 : 0)
+             + (board.HasKingsideCastleRight(false) ? -22 : 0)
+             + (board.HasQueensideCastleRight(true) ? 10 : 0)
+             + (board.HasQueensideCastleRight(false) ? -10 : 0))
+             * currentPlayer;
 
 
 
@@ -468,11 +379,11 @@ public class EvilBot : IChessBot
     public bool isPieceProtectedAfterMove(Board board, Move move) => !board.SquareIsAttackedByOpponent(move.TargetSquare); //#DEBUG
 
 
-    ulong prevSeed = 0;
-    //ulong smallRandomNumberGenerator(ulong seed = 0, int maxSizeRange = 100)
-    //{
-    //    if (seed == 0) seed = prevSeed;
-    //    prevSeed = (ulong)Abs(Cos(seed * 10) * maxSizeRange);
-    //    return prevSeed;
-    //}
+    /*ulong prevSeed = 0;
+    ulong smallRandomNumberGenerator(ulong seed = 0, int maxSizeRange = 100)
+    {
+        if (seed == 0) seed = prevSeed;
+        prevSeed = (ulong)Abs(Cos(seed * 10) * maxSizeRange);
+        return prevSeed;
+    }*/
 }
