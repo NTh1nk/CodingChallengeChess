@@ -324,13 +324,13 @@ public class MyBot : IChessBot
             foundCheckMates++; //#DEBUG
             return 1000000000000 * -currentPlayer; // very height number (chose not to use float.MaxValue beacuse it uses more tokens (3 instead of 1)) 
         } //#DEBUG
-        totalPieceValue = board.HasKingsideCastleRight(true) ? 22 : 0;
-        totalPieceValue += board.HasKingsideCastleRight(false) ? -22 : 0;
-        totalPieceValue = board.HasQueensideCastleRight(true) ? 10 : 0;
-        totalPieceValue += board.HasQueensideCastleRight(false) ? -10 : 0;
+        //totalPieceValue += board.HasKingsideCastleRight(true) ? 22 : 0;
+        //totalPieceValue += board.HasKingsideCastleRight(false) ? -22 : 0;
+        //totalPieceValue += board.HasQueensideCastleRight(true) ? 10 : 0;
+        //totalPieceValue += board.HasQueensideCastleRight(false) ? -10 : 0;
 
 
-        return totalPieceValue;
+        return 0;
     }
 
     //ulong prevSeed = 0;
