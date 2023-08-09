@@ -60,7 +60,7 @@ public class MyBot : IChessBot
     int usedZobristKeys = 0; //#DEBUG
     // -----------------------------
     Queue<int> foundDrawMovesPerTurn = new();
-    int maxSearchDepth = 7;
+    int maxSearchDepth = 3;
 
     public bool IsEndgame(Board board, bool white) //#DEBUG
     { //#DEBUG
@@ -188,18 +188,18 @@ public class MyBot : IChessBot
             float newBase = prevBase + evaluateBase(prevBase, move, currentPlayer, board) * currentPlayer;
 
             bool isDraw = board.IsDraw();
-            if (boardHashes.ContainsKey(board.ZobristKey)) usedZobristKeys++; //#DEBUG
+            //if (boardHashes.ContainsKey(board.ZobristKey)) usedZobristKeys++; //#DEBUG
             Tuple<Move[], float> r =
                 depth > 0 ? miniMax(board, depth - 1, currentPlayer * -1, min, max, newBase) : // use minimax if the depth is bigger than 0
-                new(new[] { move }, boardHashes.ContainsKey(board.ZobristKey) ? boardHashes[board.ZobristKey] : newBase + evaluateTop(board, currentPlayer)); // use the stored value or get piece values new
+                new(new[] { move }, newBase + evaluateTop(board, currentPlayer)); // use the stored value or get piece values new
             //Console.WriteLine(v);
             float v = r.Item2;
 
-            if (!boardHashes.ContainsKey(board.ZobristKey))
-            {
-                addedZobristKeys++;
-                boardHashes.Add(board.ZobristKey, v); // makes ram usage hight but speeds up a little bit
-            }
+            //if (!boardHashes.ContainsKey(board.ZobristKey))
+            //{
+            //    addedZobristKeys++;
+            //    boardHashes.Add(board.ZobristKey, v); // makes ram usage hight but speeds up a little bit
+            //}
 
             board.UndoMove(move);
 
