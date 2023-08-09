@@ -160,7 +160,7 @@ public class MyBot : IChessBot
     {
         //Console.WriteLine("----- depth " + depth + " -----");
 
-        Move[] moves = board.GetLegalMoves();
+        Move[] moves = board.GetLegalMoves(depth < 1);
 
         //Console.Write("[");
 
@@ -199,7 +199,7 @@ public class MyBot : IChessBot
                 //Console.Write(v + ", ");
             }
 
-            if ((currentPlayer == 1 ? v >= bMoveMat : v <= bMoveMat) && !board.IsRepeatedPosition() || !board.IsFiftyMoveDraw())
+            if ((currentPlayer == 1 ? v >= bMoveMat : v <= bMoveMat) && !board.IsRepeatedPosition() && !board.IsFiftyMoveDraw()) // board.isDraw is way slower
             {
                 bR = r;
                 bMove = move;
