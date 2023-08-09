@@ -184,7 +184,7 @@ public class MyBot : IChessBot
 
             board.MakeMove(move);
 
-            float newBase = prevBase + (move.IsEnPassant || move.IsCastles ? evaluateBase(prevBase, move, currentPlayer, board) : Base) * currentPlayer; // if it is enPassent we recalculate the move
+            float newBase = move.IsEnPassant || move.IsCastles ? getPieceValues(board, currentPlayer) : (prevBase + Base * currentPlayer); // if it is enPassent we recalculate the move
 
             bool isDraw = board.IsRepeatedPosition() || board.IsFiftyMoveDraw();
             //if (boardHashes.ContainsKey(board.ZobristKey)) usedZobristKeys++; //#DEBUG
@@ -292,8 +292,8 @@ public class MyBot : IChessBot
     float evaluateBase(float prevBase, Move move, int currentPlayer, Board board)
     {
         bool isWhite = currentPlayer > 0; // doesn't matter if it a variable or called each time BBS-wise
-        if (move.IsEnPassant || move.IsCastles) // beause it is a "special" move it we return to use the old function
-            return (getPieceValues(board, currentPlayer) - prevBase) * currentPlayer;
+        if (move.IsEnPassant || move.IsCastles) // beause it is a "special" move we just return 0. this is for some reason better than returning below
+            return 0;
 
         return
             -getPieceValue(move.MovePieceType, move.StartSquare, isWhite)  // remove the old piece 
