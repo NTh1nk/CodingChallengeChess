@@ -6,7 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Collections.Specialized;
 
-public class EvilBot : IChessBot
+public class MyBot : IChessBot
 {
     // right now funktions are seperated. before submision, everything will be compacted into the think function if possible.
 
