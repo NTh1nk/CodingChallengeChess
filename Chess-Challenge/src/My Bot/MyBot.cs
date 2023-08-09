@@ -60,7 +60,7 @@ public class MyBot : IChessBot
     int usedZobristKeys = 0; //#DEBUG
     // -----------------------------
     Queue<int> foundDrawMovesPerTurn = new();
-    int maxSearchDepth = 7;
+    int maxSearchDepth = 3;
 
     public bool IsEndgame(Board board, bool white) //#DEBUG
     { //#DEBUG
@@ -186,7 +186,7 @@ public class MyBot : IChessBot
 
             float newBase = prevBase + (move.IsEnPassant || move.IsCastles ? evaluateBase(prevBase, move, currentPlayer, board) : Base) * currentPlayer; // if it is enPassent we recalculate the move
 
-            bool isDraw = board.IsDraw();
+            bool isDraw = board.IsRepeatedPosition() || board.IsFiftyMoveDraw();
             //if (boardHashes.ContainsKey(board.ZobristKey)) usedZobristKeys++; //#DEBUG
             Tuple<Move[], float> r =
                 depth > 0 ? miniMax(board, depth - 1, currentPlayer * -1, min, max, newBase) : // use minimax if the depth is bigger than 0
