@@ -176,6 +176,8 @@ public class EvilBot : IChessBot
             board.MakeMove(move);
 
             float newBase = prevBase + evaluateBase(prevBase, move, currentPlayer, board) * currentPlayer;
+
+            bool isDraw = board.IsDraw();
             if (boardHashes.ContainsKey(board.ZobristKey)) usedZobristKeys++; //#DEBUG
             Tuple<Move[], float> r =
                 depth > 0 ? miniMax(board, depth - 1, currentPlayer * -1, min, max, newBase) : // use minimax if the depth is bigger than 0
@@ -189,11 +191,13 @@ public class EvilBot : IChessBot
                 boardHashes.Add(board.ZobristKey, v); // makes ram usage hight but speeds up a little bit
             }
 
+            board.UndoMove(move);
+
             if (currentPlayer == 1 ? v >= bMoveMat : v <= bMoveMat)
             {
                 //if (!draw_moves.Contains(move))
                 //{
-                if (!board.IsDraw())
+                if (!isDraw)
                 {
                     bR = r;
                     bMove = move;
@@ -201,20 +205,13 @@ public class EvilBot : IChessBot
                     if (currentPlayer > 0)
                     {
                         min = Max(min, v);
-                        if (v > max)
-                        {
-                            board.UndoMove(move);
-                            break;
-                        }
+                        if (v > max) break;
+                        
                     }
                     else
                     {
                         max = Min(max, v);
-                        if (v < min)
-                        {
-                            board.UndoMove(move);
-                            break;
-                        }
+                        if (v < min) break;
                     }
                 }
                 //else printErrorDraw(move); //#DEBUG
@@ -224,7 +221,6 @@ public class EvilBot : IChessBot
                 //foundDublicateDrawMoves++; //#DEBUG
                 //} //#DEBUG
             }
-            board.UndoMove(move);
 
             if (depth == maxSearchDepth) //#DEBUG
             {//#DEBUG
