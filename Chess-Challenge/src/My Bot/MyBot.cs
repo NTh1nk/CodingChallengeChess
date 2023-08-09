@@ -32,7 +32,7 @@ public class MyBot : IChessBot
     //---end---
 
     bool weAreWhite;
-    string pieceSqareValues;
+    int[] pieceSqareValues;
     // how much each piece is worth
     int[] pieceValues = {
         100, // Pawn
@@ -280,10 +280,16 @@ public class MyBot : IChessBot
         //{
         //     //int distanceBonus = 10 * (7 - distanceToEnemyKing); // Adjust the bonus factor as needed
         //}    
-        return pieceValues[pieceTypeIndex] + (int.Parse(pieceSqareValues.Substring(((s.File > 3 ? 7 - s.File : s.File /* this mirrors the table*/) + (IsWhite ? 7 - s.Rank : s.Rank) * 4 + pieceTypeIndex * 32) * 2 + (IsEndgameNoFunction ? 384 : 0), 2)) * 5 - 50) + endGameBonus;
+        return pieceValues[pieceTypeIndex] + pieceSqareValues[
+            (s.File > 3 ? 7 - s.File : s.File ) // this mirrors the table to use less BBS
+            + (IsWhite ? 7 - s.Rank : s.Rank) * 4 + pieceTypeIndex * 32 // flip the table if it is white
+            + (IsEndgameNoFunction ? 192 : 0)] // use endgame values if we are in the endgame
+                * 5 - 50;
     } //#DEBUG
 
-    string toPieceArray(long[] arr) => string.Join("", Array.ConvertAll(arr, element => element.ToString("D16")));
+    int[] toPieceArray(long[] arr) => Array.ConvertAll(arr, element => Enumerable.Range(0, 8).Select(i => int.Parse(element.ToString("D16").Substring(i * 2, 2)))).SelectMany(x => x).ToArray();
+
+        
 
 
     //left in the code for now even tho it's unused might be used in the future
