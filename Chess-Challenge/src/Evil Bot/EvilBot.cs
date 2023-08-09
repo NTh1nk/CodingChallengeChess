@@ -62,7 +62,7 @@ public class EvilBot : IChessBot
     int usedZobristKeys = 0; //#DEBUG
     // -----------------------------
     Queue<int> foundDrawMovesPerTurn = new();
-    int maxSearchDepth = 3;
+    int maxSearchDepth = 4;
 
     public bool IsEndgame(Board board, bool white) //#DEBUG
     { //#DEBUG
@@ -221,13 +221,13 @@ public class EvilBot : IChessBot
             if (currentPlayer > 0)
             {
                 min = Max(min, v);
-                //if (v >= max) break;
+                if (v > max) break;
 
             }
             else
             {
                 max = Min(max, v);
-                //if (v <= min) break;
+                if (v < min) break;
             }
             //if (v > max || v < min) break;
 
