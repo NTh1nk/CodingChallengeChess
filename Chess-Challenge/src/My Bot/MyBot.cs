@@ -182,10 +182,9 @@ public class MyBot : IChessBot
         foreach (var (move, Base) in sortedMoves)
         {
 
-
             board.MakeMove(move);
 
-            float newBase = prevBase + evaluateBase(prevBase, move, currentPlayer, board) * currentPlayer;
+            float newBase = prevBase + (move.IsEnPassant || move.IsCastles ? evaluateBase(prevBase, move, currentPlayer, board) : Base) * currentPlayer; // if it is enPassent we recalculate the move
 
             bool isDraw = board.IsDraw();
             //if (boardHashes.ContainsKey(board.ZobristKey)) usedZobristKeys++; //#DEBUG
