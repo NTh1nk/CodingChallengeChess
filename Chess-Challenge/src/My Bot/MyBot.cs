@@ -177,8 +177,8 @@ public class MyBot : IChessBot
         Move bMove = moves[0];
         float bMoveMat = minFloatValue * currentPlayer; // how good the best move is for the current player
         Tuple<Move[], float> bR = new(new[] { bMove }, bMoveMat);
-        List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(prevBase, m, currentPlayer, board))).ToList();
-        sortedMoves = sortedMoves.OrderByDescending(item => item.Base).ToList();
+        List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(prevBase, m, currentPlayer, board) )).ToList();
+        sortedMoves = sortedMoves.OrderByDescending(item => item.Base - (item.move.IsCapture ? pieceValues[(int)item.move.MovePieceType - 1] / 3 : 0)).ToList(); // if it's a capture it subtracks the attackers value thereby creating MVV-LVA (Most Valuable Victim - Least Valuable Aggressor)
         foreach (var (move, Base) in sortedMoves)
         {
 
@@ -328,7 +328,6 @@ public class MyBot : IChessBot
         totalPieceValue += board.HasKingsideCastleRight(false) ? -22 : 0;
         totalPieceValue = board.HasQueensideCastleRight(true) ? 10 : 0;
         totalPieceValue += board.HasQueensideCastleRight(false) ? -10 : 0;
-        if (board.IsDraw()) return -minFloatValue * currentPlayer;
 
 
         return totalPieceValue;
