@@ -60,7 +60,7 @@ public class MyBot : IChessBot
     int usedZobristKeys = 0; //#DEBUG
     // -----------------------------
     Queue<int> foundDrawMovesPerTurn = new();
-    int maxSearchDepth = 3;
+    int maxSearchDepth = 7;
 
     public bool IsEndgame(Board board, bool white) //#DEBUG
     { //#DEBUG
@@ -304,31 +304,12 @@ public class MyBot : IChessBot
 
     float evaluateTop(Board board, int currentPlayer)
     {
-        //bool isWhite = currentPlayer > 0; // doesn't matter if it a variable or called each time BBS-wise
-        //if (board.IsInCheckmate())
-        //{ //#DEBUG
-        //    foundCheckMates++; //#DEBUG
-        //    return 1000000000000 * -currentPlayer; // very height number (chose not to use float.MaxValue beacuse it uses more tokens (3 instead of 1)) 
-        //} //#DEBUG
-        //return ((board.HasKingsideCastleRight(true) ? 22 : 0)
-        //     + (board.HasKingsideCastleRight(false) ? -22 : 0)
-        //     + (board.HasQueensideCastleRight(true) ? 10 : 0)
-        //     + (board.HasQueensideCastleRight(false) ? -10 : 0))
-        //     ;
-        float totalPieceValue = 0;
-
-
 
         if (board.IsInCheckmate())
         { //#DEBUG
             foundCheckMates++; //#DEBUG
             return 1000000000000 * -currentPlayer; // very height number (chose not to use float.MaxValue beacuse it uses more tokens (3 instead of 1)) 
         } //#DEBUG
-        //totalPieceValue += board.HasKingsideCastleRight(true) ? 22 : 0;
-        //totalPieceValue += board.HasKingsideCastleRight(false) ? -22 : 0;
-        //totalPieceValue += board.HasQueensideCastleRight(true) ? 10 : 0;
-        //totalPieceValue += board.HasQueensideCastleRight(false) ? -10 : 0;
-
 
         return 0;
     }
