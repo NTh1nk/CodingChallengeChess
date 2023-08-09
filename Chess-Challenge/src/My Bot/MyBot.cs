@@ -3,8 +3,6 @@ using System;
 using static System.Math;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Collections.Specialized;
 
 public class MyBot : IChessBot
 {
@@ -44,7 +42,7 @@ public class MyBot : IChessBot
         900, // Queen
         2000 }; // King
 
-    //int[] arrCenterDistanceInt;
+    int[] arrCenterDistanceInt;
     List<Move> draw_moves = new();
 
     public bool IsEndgameNoFunction = false;
@@ -61,7 +59,7 @@ public class MyBot : IChessBot
     int addedZobristKeys = 0; //#DEBUG
     int usedZobristKeys = 0; //#DEBUG
     // -----------------------------
-    //Queue<int> foundDrawMovesPerTurn = new();
+    Queue<int> foundDrawMovesPerTurn = new();
     int maxSearchDepth = 3;
 
     public bool IsEndgame(Board board, bool white) //#DEBUG
@@ -107,10 +105,9 @@ public class MyBot : IChessBot
         //Botton is endgame
         //arrCenterDistanceInt = toPieceArray(arrCenterDistance);                                                                                                                                                                                                                                                                                                                                                                                                                                       
         //Console.WriteLine(pieceSqareValues.Length);
-        Console.WriteLine("cewefefrw " + (getPieceValues(board, -1) + evaluateTop(board, -1)));
         //Console.WriteLine(getPieceValue(PieceType.King, 7, 7));
         //IsEndgameNoFunction = true;
-        //Console.WriteLine(getPieceValue(PieceType.Pawn, 0, 7 - 6));               
+        //Console.WriteLine(getPieceValue(PieceType.Pawn, 0, 7 - 6));
         weAreWhite = board.IsWhiteToMove;
         Console.WriteLine("---calculate new move---" + board.IsWhiteToMove); //#DEBUG
         var bestMove = miniMax(board, timer.MillisecondsRemaining < 20000 ? timer.MillisecondsRemaining < 5000 ? 2 : 3 : maxSearchDepth, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue, getPieceValues(board, weAreWhite ? 1 : -1)).Item1;
@@ -158,72 +155,77 @@ public class MyBot : IChessBot
 
     private Tuple<Move[], float> miniMax(Board board, int depth, int currentPlayer, float min, float max, float prevBase)
     {
-        //Console.WriteLine("----- depth " + depth + " -----");
 
         Move[] moves = board.GetLegalMoves(depth < 1);
 
-        //Console.Write("[");
-
         if (moves.Length == 0)
         {
-            // Console.WriteLine("there where 0 moves returning early");
-            return new(new[] { Move.NullMove }, prevBase + evaluateTop(board, currentPlayer)); //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
+            return new(new[] { Move.NullMove }, getPieceValues(board, currentPlayer) + evaluateTop(board, currentPlayer)); //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
         }
         Move bMove = moves[0];
-        float bMoveMat = minFloatValue * currentPlayer;
+        float bMoveMat = minFloatValue * currentPlayer; // how good the best move is for the current player
         Tuple<Move[], float> bR = new(new[] { bMove }, bMoveMat);
-
         List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(prevBase, m, currentPlayer, board))).ToList();
         sortedMoves = sortedMoves.OrderByDescending(item => item.Base).ToList();
-
         foreach (var (move, Base) in sortedMoves)
         {
 
 
             board.MakeMove(move);
+
             float newBase = prevBase + evaluateBase(prevBase, move, currentPlayer, board) * currentPlayer;
 
-            //if (newBase != getPieceValues(board, currentPlayer))
-            //{
-            //    Console.WriteLine("depth: " + depth + " is captrue: " + move.IsCapture);
-            //}
+            bool isDraw = board.IsDraw();
+            if (boardHashes.ContainsKey(board.ZobristKey)) usedZobristKeys++; //#DEBUG
             Tuple<Move[], float> r =
-                (depth > 0 ?
-                    miniMax(board, depth - 1, currentPlayer * -1, min, max, newBase) : // use minimax if the depth is bigger than 0
-                    new(new[] { move }, newBase + evaluateTop(board, currentPlayer))); // use the stored value or get piece values new
-
-
+                depth > 0 ? miniMax(board, depth - 1, currentPlayer * -1, min, max, newBase) : // use minimax if the depth is bigger than 0
+                new(new[] { move }, boardHashes.ContainsKey(board.ZobristKey) ? boardHashes[board.ZobristKey] : newBase + evaluateTop(board, currentPlayer)); // use the stored value or get piece values new
+            //Console.WriteLine(v);
             float v = r.Item2;
-            if (depth < 1)
-            {
-                //Console.Write(v + ", ");
-            }
 
-            if ((currentPlayer == 1 ? v >= bMoveMat : v <= bMoveMat) && !board.IsRepeatedPosition() && !board.IsFiftyMoveDraw()) // board.isDraw is way slower
+            if (!boardHashes.ContainsKey(board.ZobristKey))
             {
-                bR = r;
-                bMove = move;
-                bMoveMat = v;
+                addedZobristKeys++;
+                boardHashes.Add(board.ZobristKey, v); // makes ram usage hight but speeds up a little bit
             }
-            //if (depth == maxSearchDepth) //#DEBUG
-            //{//#DEBUG
-            // //Console.WriteLine($"{move}: {v}");//#DEBUG
-            //    Console.WriteLine($"{v}");//#DEBUG
-            //}//#DEBUG
 
             board.UndoMove(move);
-            if (currentPlayer > 0)
-            {
-                min = Max(min, v);
-                if (v > max) break;
 
-            }
-            else
+            if (currentPlayer == 1 ? v >= bMoveMat : v <= bMoveMat)
             {
-                max = Min(max, v);
-                if (v < min) break;
+                //if (!draw_moves.Contains(move))
+                //{
+                if (!isDraw)
+                {
+                    bR = r;
+                    bMove = move;
+                    bMoveMat = v;
+                    if (currentPlayer > 0)
+                    {
+                        min = Max(min, v);
+                        if (v > max) break;
+
+                    }
+                    else
+                    {
+                        max = Min(max, v);
+                        if (v < min) break;
+                    }
+                }
+                //else printErrorDraw(move); //#DEBUG
+
+                //else if(board.IsDraw()) //#DEBUG
+                //{ //#DEBUG
+                //foundDublicateDrawMoves++; //#DEBUG
+                //} //#DEBUG
             }
-            //if (v > max || v < min) break;
+
+            if (depth == maxSearchDepth) //#DEBUG
+            {//#DEBUG
+                //Console.WriteLine($"{v}");//#DEBUG
+            }//#DEBUG
+
+
 
 
             //if(depth == 1)
@@ -233,13 +235,6 @@ public class MyBot : IChessBot
 
         }
 
-        //Console.WriteLine("best move was " + bMove);
-        //Console.Write("], ");
-
-        if (depth == maxSearchDepth)
-        {
-            Console.WriteLine("best moves mat was: " + bMoveMat);
-        }
 
 
         return new(bR.Item1.Append(bMove).ToArray(), bR.Item2);
@@ -250,90 +245,89 @@ public class MyBot : IChessBot
         draw_moves.Add(move);
         foundDrawMoves += "\"" + move + "\" "; //#DEBUG
     } //#DEBUG
-    private float getPieceValues(Board board, int currentPlayer)
-    {
-        return board.GetAllPieceLists().SelectMany(x => x).Sum(p =>
-        {
-            return getPieceValue(p.PieceType, p.Square, p.IsWhite) * (p.IsWhite ? 1 : -1);
-        });
-    }
+
+    /* private int ManhattanDistance(Square square1, Square square2)
+     {
+     int dx = Math.Abs(square1.File - square2.File);
+     int dy = Math.Abs(square1.Rank - square2.Rank);
+     return dx + dy;
+     } */
+    private float getPieceValues(Board board, int currentPlayer) =>
+        board.GetAllPieceLists().SelectMany(x => x).Sum(p =>
+            getPieceValue(p.PieceType, p.Square, p.IsWhite) * (p.IsWhite ? 1 : -1));
+
+
 
     //the DEBUGS are in place even tho it's called twice becaus in the end it shouldt be called more than once
     private float getPieceValue(PieceType pieceType, Square s, bool IsWhite) //#DEBUG
     { //#DEBUG
-
         float endGameBonus = 0;
         int pieceTypeIndex = (int)pieceType - 1;
-
         if (pieceTypeIndex < 0) return 0;
         //Console.WriteLine(((x > 3 ? 7 - x : x /* this mirrors the table*/) + y * 4 + pieceTypeIndex * 32) * 2);
         //if(IsEndgameNoFunction && pieceTypeIndex == 6)
         //{
-
-        //    //Square enemyKingSquare = board.GetKingSquare(!weAreWhite);
-        //    int distanceToNearestCorner = Math.Min(x, 7 - x) + Math.Min(y, 7 - y);
-
-
-
-        //    endGameBonus = 10000 * (distanceToNearestCorner);
-        //     //int distanceToEnemyKing = ManhattanDistance(board.GetKingSquare(weAreWhite), board.GetKingSquare(!weAreWhite));
         //     //int distanceBonus = 10 * (7 - distanceToEnemyKing); // Adjust the bonus factor as needed
-
         //}    
         return pieceValues[pieceTypeIndex] + (int.Parse(pieceSqareValues.Substring(((s.File > 3 ? 7 - s.File : s.File /* this mirrors the table*/) + (IsWhite ? 7 - s.Rank : s.Rank) * 4 + pieceTypeIndex * 32) * 2 + (IsEndgameNoFunction ? 384 : 0), 2)) * 5 - 50) + endGameBonus;
     } //#DEBUG
 
-
-
     string toPieceArray(long[] arr) => string.Join("", Array.ConvertAll(arr, element => element.ToString("D16")));
+
+
+    //left in the code for now even tho it's unused might be used in the future
+    public bool isPieceProtectedAfterMove(Board board, Move move) => !board.SquareIsAttackedByOpponent(move.TargetSquare); //#DEBUG
 
     float evaluateBase(float prevBase, Move move, int currentPlayer, Board board)
     {
         bool isWhite = currentPlayer > 0; // doesn't matter if it a variable or called each time BBS-wise
         if (move.IsEnPassant || move.IsCastles) // beause it is a "special" move it we return to use the old function
-        {
             return (getPieceValues(board, currentPlayer) - prevBase) * currentPlayer;
-        }
+
         return
             -getPieceValue(move.MovePieceType, move.StartSquare, isWhite)  // remove the old piece 
             + getPieceValue(move.IsPromotion ? move.PromotionPieceType : move.MovePieceType, move.TargetSquare, isWhite) // add the new piece (move piece type if it is't promotion. if it is use the promotion piece type)
             + getPieceValue(move.CapturePieceType, move.TargetSquare, !isWhite) // remove the captured piece (plus beacuse we capture the oponements piece wich is good for the current player)
             ;
-
     }
 
     float evaluateTop(Board board, int currentPlayer)
     {
         //bool isWhite = currentPlayer > 0; // doesn't matter if it a variable or called each time BBS-wise
+        //if (board.IsInCheckmate())
+        //{ //#DEBUG
+        //    foundCheckMates++; //#DEBUG
+        //    return 1000000000000 * -currentPlayer; // very height number (chose not to use float.MaxValue beacuse it uses more tokens (3 instead of 1)) 
+        //} //#DEBUG
+        //return ((board.HasKingsideCastleRight(true) ? 22 : 0)
+        //     + (board.HasKingsideCastleRight(false) ? -22 : 0)
+        //     + (board.HasQueensideCastleRight(true) ? 10 : 0)
+        //     + (board.HasQueensideCastleRight(false) ? -10 : 0))
+        //     ;
+        float totalPieceValue = 0;
+
+
 
         if (board.IsInCheckmate())
         { //#DEBUG
             foundCheckMates++; //#DEBUG
             return 1000000000000 * -currentPlayer; // very height number (chose not to use float.MaxValue beacuse it uses more tokens (3 instead of 1)) 
         } //#DEBUG
-        return ((board.HasKingsideCastleRight(true) ? 22 : 0)
-             + (board.HasKingsideCastleRight(false) ? -22 : 0)
-             + (board.HasQueensideCastleRight(true) ? 10 : 0)
-             + (board.HasQueensideCastleRight(false) ? -10 : 0))
-             * currentPlayer;
+        totalPieceValue = board.HasKingsideCastleRight(true) ? 22 : 0;
+        totalPieceValue += board.HasKingsideCastleRight(false) ? -22 : 0;
+        totalPieceValue = board.HasQueensideCastleRight(true) ? 10 : 0;
+        totalPieceValue += board.HasQueensideCastleRight(false) ? -10 : 0;
+        if (board.IsDraw()) return -minFloatValue * currentPlayer;
 
 
-
+        return totalPieceValue;
     }
 
-
-
-
-
-    //left in the code for now even tho it's unused might be used in the future
-    public bool isPieceProtectedAfterMove(Board board, Move move) => !board.SquareIsAttackedByOpponent(move.TargetSquare); //#DEBUG
-
-
-    /*ulong prevSeed = 0;
-    ulong smallRandomNumberGenerator(ulong seed = 0, int maxSizeRange = 100)
-    {
-        if (seed == 0) seed = prevSeed;
-        prevSeed = (ulong)Abs(Cos(seed * 10) * maxSizeRange);
-        return prevSeed;
-    }*/
+    //ulong prevSeed = 0;
+    //ulong smallRandomNumberGenerator(ulong seed = 0, int maxSizeRange = 100)
+    //{
+    //    if (seed == 0) seed = prevSeed;
+    //    prevSeed = (ulong)Abs(Cos(seed * 10) * maxSizeRange);
+    //    return prevSeed;
+    //}
 }
