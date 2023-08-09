@@ -188,6 +188,7 @@ public class EvilBot : IChessBot
                 addedZobristKeys++;
                 boardHashes.Add(board.ZobristKey, v); // makes ram usage hight but speeds up a little bit
             }
+
             if (currentPlayer == 1 ? v >= bMoveMat : v <= bMoveMat)
             {
                 //if (!draw_moves.Contains(move))
@@ -197,21 +198,13 @@ public class EvilBot : IChessBot
                     bR = r;
                     bMove = move;
                     bMoveMat = v;
-
-                    if (v > max || v < min)
-                    {
-                        //board.UndoMove(move);
-                        //break;
-                    }
                     if (currentPlayer > 0)
                     {
                         min = Max(min, v);
-
                         if (v > max)
                         {
                             board.UndoMove(move);
                             break;
-
                         }
                     }
                     else
@@ -223,20 +216,21 @@ public class EvilBot : IChessBot
                             break;
                         }
                     }
-                    //}
-                    //else printErrorDraw(move); //#DEBUG
                 }
+                //else printErrorDraw(move); //#DEBUG
+
                 //else if(board.IsDraw()) //#DEBUG
                 //{ //#DEBUG
                 //foundDublicateDrawMoves++; //#DEBUG
                 //} //#DEBUG
             }
+            board.UndoMove(move);
+
             if (depth == maxSearchDepth) //#DEBUG
             {//#DEBUG
                 //Console.WriteLine($"{v}");//#DEBUG
             }//#DEBUG
 
-            board.UndoMove(move);
 
 
 
@@ -294,9 +288,8 @@ public class EvilBot : IChessBot
     {
         bool isWhite = currentPlayer > 0; // doesn't matter if it a variable or called each time BBS-wise
         if (move.IsEnPassant || move.IsCastles) // beause it is a "special" move it we return to use the old function
-        {
             return (getPieceValues(board, currentPlayer) - prevBase) * currentPlayer;
-        }
+        
         return
             -getPieceValue(move.MovePieceType, move.StartSquare, isWhite)  // remove the old piece 
             + getPieceValue(move.IsPromotion ? move.PromotionPieceType : move.MovePieceType, move.TargetSquare, isWhite) // add the new piece (move piece type if it is't promotion. if it is use the promotion piece type)
@@ -330,6 +323,8 @@ public class EvilBot : IChessBot
         totalPieceValue += board.HasKingsideCastleRight(false) ? -22 : 0;
         totalPieceValue = board.HasQueensideCastleRight(true) ? 10 : 0;
         totalPieceValue += board.HasQueensideCastleRight(false) ? -10 : 0;
+        if (board.IsDraw()) return -minFloatValue * currentPlayer;
+
 
         return totalPieceValue;
     }
