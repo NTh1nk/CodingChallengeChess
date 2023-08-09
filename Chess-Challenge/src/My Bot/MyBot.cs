@@ -60,28 +60,15 @@ public class MyBot : IChessBot
     int usedZobristKeys = 0; //#DEBUG
     // -----------------------------
     Queue<int> foundDrawMovesPerTurn = new();
-    int maxSearchDepth = 3;
+    int maxSearchDepth = 7;
 
     public bool IsEndgame(Board board, bool white) //#DEBUG
     { //#DEBUG
 
 
-        float totalPieceValue = 0;
-        for (int x = 0; x <= 7; x++)
+        if (board.GetAllPieceLists().SelectMany(x => x).Sum(p =>
+            p.IsWhite != white ? pieceValues[(int)p.PieceType - 1] : 0) < 2900)
         {
-            for (int y = 0; y <= 7; y++)
-            {
-                var s = new Square(x, y);
-                var p = board.GetPiece(s); // quite slow
-                if (p.IsNull || white != p.IsWhite) continue;
-
-                totalPieceValue += pieceValues[(int)p.PieceType - 1];
-
-            }
-        }
-        if (totalPieceValue < 2900)
-        {
-
             pieceValues = new[] {
                 160, // Pawn
                 320, // Knight
@@ -89,13 +76,38 @@ public class MyBot : IChessBot
                 530, // Rook
                 940, // Queen
                 2000 // King
-                
-            };
+                };
             return true;
-        }
-
-
+        };
         return false;
+        //float totalPieceValue = 0;
+        //for (int x = 0; x <= 7; x++)
+        //{
+        //    for (int y = 0; y <= 7; y++)
+        //    {
+        //        var s = new Square(x, y);
+        //        var p = board.GetPiece(s); // quite slow
+        //        if (p.IsNull || white != p.IsWhite) continue;
+
+        //        totalPieceValue += pieceValues[(int)p.PieceType - 1];
+
+        //    }
+        //}
+        //if (totalPieceValue < 2900)
+        //{
+
+        //    pieceValues = new[] {
+        //        160, // Pawn
+        //        320, // Knight
+        //        345, // Bishop
+        //        530, // Rook
+        //        940, // Queen
+        //        2000 // King
+
+        //    };
+        //    return true;
+        //}
+        //return false;
     } //#DEBUG
     public Move Think(Board board, Timer timer)
     {
@@ -160,7 +172,7 @@ public class MyBot : IChessBot
 
         if (moves.Length == 0)
         {
-            return new(new[] { Move.NullMove }, getPieceValues(board, currentPlayer) + evaluateTop(board, currentPlayer)); //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
+            return new(new[] { Move.NullMove }, prevBase + evaluateTop(board, currentPlayer)); //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
         }
         Move bMove = moves[0];
         float bMoveMat = minFloatValue * currentPlayer; // how good the best move is for the current player
