@@ -61,7 +61,7 @@ public class MyBot : IChessBot
     int addedZobristKeys = 0; //#DEBUG
     int usedZobristKeys = 0; //#DEBUG
     // -----------------------------
-    Queue<int> foundDrawMovesPerTurn = new();
+    //Queue<int> foundDrawMovesPerTurn = new();
     int maxSearchDepth = 3;
 
     public bool IsEndgame(Board board, bool white) //#DEBUG
@@ -199,17 +199,17 @@ public class MyBot : IChessBot
                 //Console.Write(v + ", ");
             }
 
-            if ((currentPlayer == 1 ? v >= bMoveMat : v <= bMoveMat) && !board.IsDraw())
+            if ((currentPlayer == 1 ? v >= bMoveMat : v <= bMoveMat) && !board.IsRepeatedPosition() || !board.IsFiftyMoveDraw())
             {
                 bR = r;
                 bMove = move;
                 bMoveMat = v;
             }
-            if (depth == maxSearchDepth) //#DEBUG
-            {//#DEBUG
-             //Console.WriteLine($"{move}: {v}");//#DEBUG
-                Console.WriteLine($"{v}");//#DEBUG
-            }//#DEBUG
+            //if (depth == maxSearchDepth) //#DEBUG
+            //{//#DEBUG
+            // //Console.WriteLine($"{move}: {v}");//#DEBUG
+            //    Console.WriteLine($"{v}");//#DEBUG
+            //}//#DEBUG
 
             board.UndoMove(move);
             if (currentPlayer > 0)
@@ -250,62 +250,12 @@ public class MyBot : IChessBot
         draw_moves.Add(move);
         foundDrawMoves += "\"" + move + "\" "; //#DEBUG
     } //#DEBUG
-
-    /* private int ManhattanDistance(Square square1, Square square2)
-     {
-     int dx = Math.Abs(square1.File - square2.File);
-     int dy = Math.Abs(square1.Rank - square2.Rank);
-     return dx + dy;
-     } */
     private float getPieceValues(Board board, int currentPlayer)
     {
-        //var skipped = board.TrySkipTurn();  // LOOK HERE: this needs to be here so we can if pieces will be atacked in the next round
-
-
-        //if (board.IsDraw()) // seems to be slow
-        //{
-        //    totalPieceValue -= 100 * currentPlayer; // try to avoid a draw
-        //}
-
-        //foreach (Piece p in board.GetAllPieceLists().SelectMany(x => x)) // 49.7  left (3 seconds faster than looping over them all) (depth 6)
-        //{
-
-
-        //    var s = p.Square;
-        //    totalPieceValue += getPieceValue(p.PieceType, s.File, p.IsWhite ? s.Rank : 7 - s.Rank)
-        //        * (p.IsWhite ? 1 : -1);
-
-        //}
-
         return board.GetAllPieceLists().SelectMany(x => x).Sum(p =>
         {
-            var s = p.Square;
-            return getPieceValue(p.PieceType, s, p.IsWhite) * (p.IsWhite ? 1 : -1);
+            return getPieceValue(p.PieceType, p.Square, p.IsWhite) * (p.IsWhite ? 1 : -1);
         });
-
-        //foreach (PieceList plist in board.GetAllPieceLists()) // seems to be about 100 ms faster than using .SelectMany()
-        //{
-        //    foreach (Piece p in plist)
-        //    {
-        //        var s = p.Square;
-        //        totalPieceValue += getPieceValue(p.PieceType, s.File, p.IsWhite ? s.Rank : 7 - s.Rank)
-        //            * (p.IsWhite ? 1 : -1);
-        //    }
-        //}
-
-        //        totalPieceValue += getPieceValue(p.PieceType, x, p.IsWhite ? y : 7 - y)
-        //            * (p.IsWhite == weAreWhite ? (board.SquareIsAttackedByOpponent(s) ? 0.1f : 1) : -0.9F);
-        //        //Console.WriteLine(getPieceValue(p.PieceType, p.IsWhite ? x : 7 - x, p.IsWhite ? y : 7 - y)
-        //        //* (p.IsWhite == weAreWhite ? (board.SquareIsAttackedByOpponent(s) ? 0.1f : 1) : -0.9F));
-
-        //    }
-        //}
-        //if (skipped)
-        //{
-        //    board.UndoSkipTurn();
-        //}
-
-        //Console.WriteLine("total piecevalue is:" + totalPieceValue);
     }
 
     //the DEBUGS are in place even tho it's called twice becaus in the end it shouldt be called more than once
