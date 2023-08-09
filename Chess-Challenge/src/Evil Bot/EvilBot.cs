@@ -168,7 +168,7 @@ public class EvilBot : IChessBot
         float bMoveMat = minFloatValue * currentPlayer; // how good the best move is for the current player
         Tuple<Move[], float> bR = new(new[] { bMove }, bMoveMat);
         List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(prevBase, m, currentPlayer, board))).ToList();
-
+        sortedMoves = sortedMoves.OrderByDescending(item => item.Base).ToList();
         foreach (var (move, Base) in sortedMoves)
         {
 
@@ -188,7 +188,7 @@ public class EvilBot : IChessBot
                 addedZobristKeys++;
                 boardHashes.Add(board.ZobristKey, v); // makes ram usage hight but speeds up a little bit
             }
-            if (currentPlayer == 1 ? v > bMoveMat : v < bMoveMat)
+            if (currentPlayer == 1 ? v >= bMoveMat : v <= bMoveMat)
             {
                 //if (!draw_moves.Contains(move))
                 //{
