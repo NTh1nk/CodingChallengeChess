@@ -175,11 +175,13 @@ public class MyBot : IChessBot
             return new(new[] { Move.NullMove }, prevBase + evaluateTop(board, currentPlayer)); //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
         }
         Move bMove = moves[0];
-        float bMoveMat = minFloatValue * currentPlayer; // how good the best move is for the current player
+        float bMoveMat = minFloatValue * currentPlayer;
         Tuple<Move[], float> bR = new(new[] { bMove }, bMoveMat);
+
         List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(prevBase, m, currentPlayer) )).ToList();
         sortedMoves = sortedMoves.OrderByDescending(item => item.Base - (item.move.IsCapture ? pieceValues[(int)item.move.MovePieceType - 1] / 3 : 0)).ToList(); // if it's a capture it subtracks the attackers value thereby creating MVV-LVA (Most Valuable Victim - Least Valuable Aggressor)
         
+        // Iterate through sortedMoves and evaluate potential moves
         foreach (var (move, Base) in sortedMoves)
         {
 
