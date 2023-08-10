@@ -177,8 +177,9 @@ public class MyBot : IChessBot
         Move bMove = moves[0];
         float bMoveMat = minFloatValue * currentPlayer; // how good the best move is for the current player
         Tuple<Move[], float> bR = new(new[] { bMove }, bMoveMat);
-        List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(prevBase, m, currentPlayer, board) )).ToList();
+        List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(prevBase, m, currentPlayer) )).ToList();
         sortedMoves = sortedMoves.OrderByDescending(item => item.Base - (item.move.IsCapture ? pieceValues[(int)item.move.MovePieceType - 1] / 3 : 0)).ToList(); // if it's a capture it subtracks the attackers value thereby creating MVV-LVA (Most Valuable Victim - Least Valuable Aggressor)
+        
         foreach (var (move, Base) in sortedMoves)
         {
 
@@ -189,7 +190,7 @@ public class MyBot : IChessBot
             bool isDraw = board.IsRepeatedPosition() || board.IsFiftyMoveDraw();
             //if (boardHashes.ContainsKey(board.ZobristKey)) usedZobristKeys++; //#DEBUG
             Tuple<Move[], float> r =
-                depth > 0 ? miniMax(board, depth - 1, currentPlayer * -1, min, max, newBase) : // use minimax if the depth is bigger than 0
+                depth > 0 ? miniMax(board, depth - 1, -currentPlayer, min, max, newBase) : // use minimax if the depth is bigger than 0
                 new(new[] { move }, newBase + evaluateTop(board, currentPlayer)); // use the stored value or get piece values new
             //Console.WriteLine(v);
             float v = r.Item2;
@@ -211,24 +212,13 @@ public class MyBot : IChessBot
                     bR = r;
                     bMove = move;
                     bMoveMat = v;
-                    //(isMaximizingPlayer ? ref min : ref max) = Max(min * currentPlayer, v * currentPlayer) * currentPlayer; // slower but works
-                    //else max = Min(max, v);
+
+                    // alpha beta
                     if (isMaximizingPlayer) min = Max(min, v);
                     else max = Min(max, v);
                     if (max < min) break;
 
 
-                    ////if (max < min) break;
-                    //if (isMaximizingPlayer)
-                    //{
-                    //    min = Max(min, v);
-                    //    if (v > max) break;
-                    //}
-                    //else
-                    //{
-                    //    max = Min(max, v);
-                    //    if (v < min) break;
-                    //}
 
                 }
                 //else printErrorDraw(move); //#DEBUG
@@ -303,7 +293,7 @@ public class MyBot : IChessBot
     //left in the code for now even tho it's unused might be used in the future
     public bool isPieceProtectedAfterMove(Board board, Move move) => !board.SquareIsAttackedByOpponent(move.TargetSquare); //#DEBUG
 
-    float evaluateBase(float prevBase, Move move, int currentPlayer, Board board)
+    float evaluateBase(float prevBase, Move move, int currentPlayer)
     {
         bool isWhite = currentPlayer > 0; // doesn't matter if it a variable or called each time BBS-wise
         if (move.IsEnPassant || move.IsCastles) // beause it is a "special" move we just return 0. this is for some reason better than returning below
