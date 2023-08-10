@@ -221,12 +221,6 @@ public class MyBot : IChessBot
                 //Console.Write(v + ", ");
             }*/
 
-            if ((currentPlayer == 1 ? v > bMoveMat : v < bMoveMat) && !isDraw) //using isdraw bool instead of board.isdraw as it doesnt check for insufficient material and is considerbly faster
-            {
-                bR = r;
-                bMove = move;
-                bMoveMat = v;
-            }
             if(depth == maxSearchDepth) //#DEBUG
             {//#DEBUG
              //Console.WriteLine($"{move}: {v}");//#DEBUG
