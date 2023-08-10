@@ -210,17 +210,9 @@ public class EvilBot : IChessBot
                 //foundDublicateDrawMoves++; //#DEBUG
                 //} //#DEBUG
             }
-            if (depth == maxSearchDepth) //#DEBUG
-            {//#DEBUG
-                //Console.WriteLine($"{v}");//#DEBUG
-            }//#DEBUG
 
             board.UndoMove(move);
 
-            //if(depth == 1)
-            //{
-            //Console.WriteLine("best move " + move + " with a v of " + v);
-            //}
 
         }
 

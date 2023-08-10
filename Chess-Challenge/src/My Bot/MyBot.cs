@@ -234,18 +234,7 @@ public class MyBot : IChessBot
                 //Console.WriteLine($"{v}");//#DEBUG
             }//#DEBUG
 
-
-
-
-            //if(depth == 1)
-            //{
-            //Console.WriteLine("best move " + move + " with a v of " + v);
-            //}
-
         }
-
-
-
         return new(bR.Item1.Append(bMove).ToArray(), bR.Item2);
     }
 
@@ -268,7 +257,13 @@ public class MyBot : IChessBot
 
 
     //the DEBUGS are in place even tho it's called twice becaus in the end it shouldt be called more than once
-    private float getPieceValue(PieceType pieceType, Square s, bool IsWhite) //#DEBUG
+
+    // getPieceValue
+    // gets the value of one piece depending on its type and its position on the board
+    // pieceType: the type of the piece that should be avaluated
+    // s: the sqare the piece is standing on (only used to calculate piece sqare tables)
+    // isWhite: if the piece is white. used to flip the board if necessary 
+    private float getPieceValue(PieceType pieceType, Square s, bool IsWhite) //#DEBUG 
     { //#DEBUG
         float endGameBonus = 0;
         int pieceTypeIndex = (int)pieceType - 1;
