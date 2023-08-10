@@ -60,7 +60,7 @@ public class MyBot : IChessBot
     int usedZobristKeys = 0; //#DEBUG
     // -----------------------------
     Queue<int> foundDrawMovesPerTurn = new();
-    int maxSearchDepth = 7;
+    int maxSearchDepth = 3;
 
     public bool IsEndgame(Board board, bool white) //#DEBUG
     { //#DEBUG
@@ -167,7 +167,7 @@ public class MyBot : IChessBot
 
     private Tuple<Move[], float> miniMax(Board board, int depth, int currentPlayer, float min, float max, float prevBase)
     {
-
+        bool isMaximizingPlayer = currentPlayer > 0;
         Move[] moves = board.GetLegalMoves(depth < 1);
 
         if (moves.Length == 0)
@@ -202,7 +202,7 @@ public class MyBot : IChessBot
 
             board.UndoMove(move);
 
-            if (currentPlayer == 1 ? v >= bMoveMat : v <= bMoveMat)
+            if (isMaximizingPlayer ? v >= bMoveMat : v <= bMoveMat)
             {
                 //if (!draw_moves.Contains(move))
                 //{
@@ -211,17 +211,25 @@ public class MyBot : IChessBot
                     bR = r;
                     bMove = move;
                     bMoveMat = v;
-                    if (currentPlayer > 0)
-                    {
-                        min = Max(min, v);
-                        if (v > max) break;
+                    //(isMaximizingPlayer ? ref min : ref max) = Max(min * currentPlayer, v * currentPlayer) * currentPlayer; // slower but works
+                    //else max = Min(max, v);
+                    if (isMaximizingPlayer) min = Max(min, v);
+                    else max = Min(max, v);
+                    if (max < min) break;
 
-                    }
-                    else
-                    {
-                        max = Min(max, v);
-                        if (v < min) break;
-                    }
+
+                    ////if (max < min) break;
+                    //if (isMaximizingPlayer)
+                    //{
+                    //    min = Max(min, v);
+                    //    if (v > max) break;
+                    //}
+                    //else
+                    //{
+                    //    max = Min(max, v);
+                    //    if (v < min) break;
+                    //}
+
                 }
                 //else printErrorDraw(move); //#DEBUG
 
