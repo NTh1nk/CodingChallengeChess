@@ -241,12 +241,8 @@ public class MyBot : IChessBot
 
             board.UndoMove(move);
 
-            if (currentPlayer >0 ? v >= bMoveMat : v <= bMoveMat)
+            if ((currentPlayer > 0 ? v >= bMoveMat : v <= bMoveMat) && !isDraw)
             {
-                //if (!draw_moves.Contains(move))
-                //{
-                if (!isDraw)
-                {
                     bR = r;
                     bMove = move;
                     bMoveMat = v;
@@ -261,7 +257,6 @@ public class MyBot : IChessBot
                         max = Min(max, v);
                         if (v < min) break;
                     }
-                }
                 //else printErrorDraw(move); //#DEBUG
 
                 //else if(board.IsDraw()) //#DEBUG
