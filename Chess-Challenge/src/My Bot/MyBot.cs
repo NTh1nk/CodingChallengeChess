@@ -10,7 +10,7 @@ public class MyBot : IChessBot
 
     //---this section is variables designated to zobrist hashing and the transportition table---
     int randomBoardHashCounter = 0;
-    Dictionary<ulong,Tuple<float,int>> boardHashes = new(); //dict <zobrist key, tuple<total_board_value, depth_iteration>>
+    Dictionary<ulong,Tuple<float,int,float>> boardHashes = new(); //dict <zobrist key, tuple<total_board_value, depth_iteration, maxBranchValue>>
 
     //right now this funktion is not needed as it seems board has a funktion to get the zobrist key but it might need to be reintruduced if the api funktion is to slow
     //ulong hashBoard(Board board)
@@ -201,14 +201,16 @@ public class MyBot : IChessBot
             bool isDraw = board.IsRepeatedPosition() || board.IsFiftyMoveDraw();
 
             Tuple<Move[], float> r = 
-                (depth > 0 ? 
-                    miniMax(board, depth - 1, -currentPlayer, min, max, newBase)  : // use minimax if the depth is bigger than 0
-                    new(new[] { move }, total)); // use the stored value or get piece values new
+                (
+                depth > 0 ? 
+                miniMax(board, depth - 1, -currentPlayer, min, max, newBase) : // use minimax if the depth is bigger than 0
+                new(new[] { move }, total) // use the stored value or get piece values new
+                );
             
             if (/*!boardHashes.ContainsKey(zobristKey) &&*/ depth < maxSearchDepth)
             { //#DEBUG
-                bool AB = boardHashes/*.Add /*using tryadd instead of checking if it exist as it seems to be 600-800ms faster?!?!*/.TryAdd(zobristKey, new Tuple<float, int>(total, randomBoardHashCounter+(maxSearchDepth-depth)));
-                if(AB) addedZobristKeys++;
+                bool AB = boardHashes.TryAdd(zobristKey, new Tuple<float, int, float>(total, randomBoardHashCounter+(maxSearchDepth-depth),0.0f)); ///using tryadd instead of checking if it exist and using add as it seems to be 600-800ms faster.
+                if (AB) addedZobristKeys++;
             } //#DEBUG
 
             //if (boardHashes.ContainsKey(board.ZobristKey)) usedZobristKeys++; //#DEBUG
