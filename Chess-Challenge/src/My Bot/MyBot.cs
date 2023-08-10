@@ -192,12 +192,14 @@ public class MyBot : IChessBot
             ulong zobristKey = board.ZobristKey;
 
             bool t = boardHashes.TryGetValue(zobristKey, out var StoredTable);
+            if(t) usedZobristKeys++; //#DEBUG
             
             float newBase = move.IsEnPassant || move.IsCastles ? getPieceValues(board, currentPlayer) : (prevBase + Base * currentPlayer); // if it is enPassent we recalculate the move
 
             float total = t ? StoredTable.Item1 : newBase + evaluateTop(board, currentPlayer);
 
             bool isDraw = board.IsRepeatedPosition() || board.IsFiftyMoveDraw();
+
             Tuple<Move[], float> r = 
                 (depth > 0 ? 
                     miniMax(board, depth - 1, -currentPlayer, min, max, newBase)  : // use minimax if the depth is bigger than 0
@@ -207,7 +209,6 @@ public class MyBot : IChessBot
             { //#DEBUG
                 addedZobristKeys = boardHashes/*.Add /*using tryadd instead of checking if it exist as it seems to be 600-800ms faster?!?!*/.TryAdd(zobristKey, new Tuple<float, int>(total, randomBoardHashCounter+(maxSearchDepth-depth))) ? addedZobristKeys++ : addedZobristKeys;
             } //#DEBUG
-            if(t) usedZobristKeys++; //#DEBUG
 
             //if (boardHashes.ContainsKey(board.ZobristKey)) usedZobristKeys++; //#DEBUG
             //Console.WriteLine(v);
@@ -217,7 +218,7 @@ public class MyBot : IChessBot
                 //Console.Write(v + ", ");
             }*/
 
-            if ((currentPlayer == 1 ? v > bMoveMat : v < bMoveMat) && !board.IsDraw())
+            if ((currentPlayer == 1 ? v > bMoveMat : v < bMoveMat) && !isDraw) //using isdraw bool instead of board.isdraw as it doesnt check for insufficient material and is considerbly faster
             {
                 bR = r;
                 bMove = move;
@@ -302,7 +303,7 @@ public class MyBot : IChessBot
      int dy = Math.Abs(square1.Rank - square2.Rank);
      return dx + dy;
      } */
-    private float getPieceValues(Board board, int currentPlayer) =>
+                private float getPieceValues(Board board, int currentPlayer) =>
         board.GetAllPieceLists().SelectMany(x => x).Sum(p =>
             getPieceValue(p.PieceType, p.Square, p.IsWhite) * (p.IsWhite ? 1 : -1));
 
