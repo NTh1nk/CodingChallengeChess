@@ -241,7 +241,7 @@ public class MyBot : IChessBot
 
             board.UndoMove(move);
 
-            if (currentPlayer == 1 ? v >= bMoveMat : v <= bMoveMat)
+            if (currentPlayer >0 ? v >= bMoveMat : v <= bMoveMat)
             {
                 //if (!draw_moves.Contains(move))
                 //{
