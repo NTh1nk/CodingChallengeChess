@@ -201,12 +201,11 @@ public class MyBot : IChessBot
                     miniMax(board, depth - 1, -currentPlayer, min, max, newBase)  : // use minimax if the depth is bigger than 0
                     new(new[] { move }, total)); // use the stored value or get piece values new
             
-            if (!boardHashes.ContainsKey(zobristKey) && depth < maxSearchDepth)
+            if (/*!boardHashes.ContainsKey(zobristKey) &&*/ depth < maxSearchDepth)
             { //#DEBUG
-                boardHashes.Add(zobristKey, new Tuple<float, int>(total, randomBoardHashCounter+(maxSearchDepth-depth)));
-                addedZobristKeys++; //#DEBUG
+                addedZobristKeys = boardHashes/*.Add /*using tryadd instead of checking if it exist as it seems to be 600-800ms faster?!?!*/.TryAdd(zobristKey, new Tuple<float, int>(total, randomBoardHashCounter+(maxSearchDepth-depth))) ? addedZobristKeys++ : addedZobristKeys;
             } //#DEBUG
-            if (t) usedZobristKeys++; //#DEBUG
+            if(t) usedZobristKeys++; //#DEBUG
 
             //if (boardHashes.ContainsKey(board.ZobristKey)) usedZobristKeys++; //#DEBUG
             //Console.WriteLine(v);
