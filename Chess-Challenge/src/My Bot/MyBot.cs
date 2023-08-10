@@ -60,7 +60,7 @@ public class MyBot : IChessBot
     int usedZobristKeys = 0; //#DEBUG
     // -----------------------------
     //Queue<int> foundDrawMovesPerTurn = new();
-    int maxSearchDepth = 8;
+    int maxSearchDepth = 7;
 
     public bool IsEndgame(Board board, bool white) //#DEBUG
     { //#DEBUG
@@ -315,7 +315,7 @@ public class MyBot : IChessBot
     //the DEBUGS are in place even tho it's called twice becaus in the end it shouldt be called more than once
     private float getPieceValue(PieceType pieceType, Square s, bool IsWhite) //#DEBUG
     { //#DEBUG
-        float endGameBonus = 0;
+        //float endGameBonus = 0; //commenting out the endgame bonus for now as it is unused
         int pieceTypeIndex = (int)pieceType - 1;
         if (pieceTypeIndex < 0) return 0;
         //Console.WriteLine(((x > 3 ? 7 - x : x /* this mirrors the table*/) + y * 4 + pieceTypeIndex * 32) * 2);
