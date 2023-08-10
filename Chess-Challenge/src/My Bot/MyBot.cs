@@ -59,7 +59,7 @@ public class MyBot : IChessBot
     int addedZobristKeys = 0; //#DEBUG
     int usedZobristKeys = 0; //#DEBUG
     // -----------------------------
-    Queue<int> foundDrawMovesPerTurn = new();
+    //Queue<int> foundDrawMovesPerTurn = new();
     int maxSearchDepth = 7;
 
     public bool IsEndgame(Board board, bool white) //#DEBUG
@@ -195,6 +195,7 @@ public class MyBot : IChessBot
 
             float total = t ? boardHashes[zobristKey].Item1 : newBase + evaluateTop(board, currentPlayer);
 
+            bool isDraw = board.IsRepeatedPosition() || board.IsFiftyMoveDraw();
             Tuple<Move[], float> r = 
                 (depth > 0 ? 
                     miniMax(board, depth - 1, -currentPlayer, min, max, newBase)  : // use minimax if the depth is bigger than 0
@@ -207,11 +208,7 @@ public class MyBot : IChessBot
             } //#DEBUG
             if (t) usedZobristKeys++; //#DEBUG
 
-            bool isDraw = board.IsRepeatedPosition() || board.IsFiftyMoveDraw();
             //if (boardHashes.ContainsKey(board.ZobristKey)) usedZobristKeys++; //#DEBUG
-            Tuple<Move[], float> r =
-                depth > 0 ? miniMax(board, depth - 1, currentPlayer * -1, min, max, newBase) : // use minimax if the depth is bigger than 0
-                new(new[] { move }, newBase + evaluateTop(board, currentPlayer)); // use the stored value or get piece values new
             //Console.WriteLine(v);
             float v = r.Item2;
             /*if(depth < 1)
