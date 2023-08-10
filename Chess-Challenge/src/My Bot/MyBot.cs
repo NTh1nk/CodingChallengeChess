@@ -60,7 +60,7 @@ public class MyBot : IChessBot
     int usedZobristKeys = 0; //#DEBUG
     // -----------------------------
     //Queue<int> foundDrawMovesPerTurn = new();
-    int maxSearchDepth = 7;
+    int maxSearchDepth = 8;
 
     public bool IsEndgame(Board board, bool white) //#DEBUG
     { //#DEBUG
@@ -207,7 +207,8 @@ public class MyBot : IChessBot
             
             if (/*!boardHashes.ContainsKey(zobristKey) &&*/ depth < maxSearchDepth)
             { //#DEBUG
-                addedZobristKeys = boardHashes/*.Add /*using tryadd instead of checking if it exist as it seems to be 600-800ms faster?!?!*/.TryAdd(zobristKey, new Tuple<float, int>(total, randomBoardHashCounter+(maxSearchDepth-depth))) ? addedZobristKeys++ : addedZobristKeys;
+                bool AB = boardHashes/*.Add /*using tryadd instead of checking if it exist as it seems to be 600-800ms faster?!?!*/.TryAdd(zobristKey, new Tuple<float, int>(total, randomBoardHashCounter+(maxSearchDepth-depth)));
+                if(AB) addedZobristKeys++;
             } //#DEBUG
 
             //if (boardHashes.ContainsKey(board.ZobristKey)) usedZobristKeys++; //#DEBUG
