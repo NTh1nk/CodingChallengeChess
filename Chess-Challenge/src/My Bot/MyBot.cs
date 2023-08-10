@@ -189,11 +189,11 @@ public class MyBot : IChessBot
 
             ulong zobristKey = board.ZobristKey;
 
+            bool t = boardHashes.TryGetValue(zobristKey, out var StoredTable);
+            
             float newBase = move.IsEnPassant || move.IsCastles ? getPieceValues(board, currentPlayer) : (prevBase + Base * currentPlayer); // if it is enPassent we recalculate the move
 
-            bool t = boardHashes.ContainsKey(zobristKey);
-
-            float total = t ? boardHashes[zobristKey].Item1 : newBase + evaluateTop(board, currentPlayer);
+            float total = t ? StoredTable.Item1 : newBase + evaluateTop(board, currentPlayer);
 
             bool isDraw = board.IsRepeatedPosition() || board.IsFiftyMoveDraw();
             Tuple<Move[], float> r = 
