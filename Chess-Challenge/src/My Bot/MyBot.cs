@@ -69,6 +69,8 @@ public class MyBot : IChessBot
         if (board.GetAllPieceLists().SelectMany(x => x).Sum(p =>
             p.IsWhite != white ? pieceValues[(int)p.PieceType - 1] : 0) < 2900)
         {
+
+            // change values to endgame values, to change strategi
             pieceValues = new[] {
                 160, // Pawn
                 320, // Knight
@@ -80,35 +82,7 @@ public class MyBot : IChessBot
             return true;
         };
         return false;
-        //float totalPieceValue = 0;
-        //for (int x = 0; x <= 7; x++)
-        //{
-        //    for (int y = 0; y <= 7; y++)
-        //    {
-        //        var s = new Square(x, y);
-        //        var p = board.GetPiece(s); // quite slow
-        //        if (p.IsNull || white != p.IsWhite) continue;
-
-        //        totalPieceValue += pieceValues[(int)p.PieceType - 1];
-
-        //    }
-        //}
-        //if (totalPieceValue < 2900)
-        //{
-
-        //    pieceValues = new[] {
-        //        160, // Pawn
-        //        320, // Knight
-        //        345, // Bishop
-        //        530, // Rook
-        //        940, // Queen
-        //        2000 // King
-
-        //    };
-        //    return true;
-        //}
-        //return false;
-    } //#DEBUG
+    } 
     public Move Think(Board board, Timer timer)
     {
 
@@ -170,7 +144,7 @@ public class MyBot : IChessBot
 
     private Tuple<Move[], float> miniMax(Board board, int depth, int currentPlayer, float min, float max, float prevBase)
     {
-        bool isMaximizingPlayer = currentPlayer > 0;
+        bool isMaximizingPlayer = currentPlayer > 0; // could also be called isWhite
         Move[] moves = board.GetLegalMoves(depth < 1);
 
         if (moves.Length == 0)
@@ -181,7 +155,7 @@ public class MyBot : IChessBot
         float bMoveMat = minFloatValue * currentPlayer;
         Tuple<Move[], float> bR = new(new[] { bMove }, bMoveMat);
 
-        List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(prevBase, m, currentPlayer) )).ToList();
+        List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(m, isMaximizingPlayer) )).ToList();
         sortedMoves = sortedMoves.OrderByDescending(item => item.Base - (item.move.IsCapture ? pieceValues[(int)item.move.MovePieceType - 1] / 3 : 0)).ToList(); // if it's a capture it subtracks the attackers value thereby creating MVV-LVA (Most Valuable Victim - Least Valuable Aggressor)
         
         // Iterate through sortedMoves and evaluate potential moves
@@ -240,7 +214,7 @@ public class MyBot : IChessBot
 
             board.UndoMove(move);
 
-            if (isMaximizingPlayer ? v >= bMoveMat : v <= bMoveMat)
+            if (!isDraw && isMaximizingPlayer ? v >= bMoveMat : v <= bMoveMat)
             {
                 bR = r;
                 bMove = move;
@@ -307,13 +281,25 @@ public class MyBot : IChessBot
         //float endGameBonus = 0; //commenting out the endgame bonus for now as it is unused
         int pieceTypeIndex = (int)pieceType - 1;
         if (pieceTypeIndex < 0) return 0;
+
+        //int x = s.File, y = s.Rank;
+        ////Console.WriteLine(((x > 3 ? 7 - x : x /* this mirrors the table*/) + y * 4 + pieceTypeIndex * 32) * 2);
+        ////if(IsEndgameNoFunction && pieceTypeIndex == 6)
+        ////{
+        ////     //int distanceBonus = 10 * (7 - distanceToEnemyKing); // Adjust the bonus factor as needed
+        ////}    
+        //return pieceValues[pieceTypeIndex] + pieceSqareValues[
+        //    (x > 3 ? 7 - x : x) // this mirrors the table to use less BBS
+        //    + (IsWhite ? 7 - y : y) * 4 + pieceTypeIndex * 32 // flip the table if it is white
+        //    + (IsEndgameNoFunction ? 192 : 0)] // use endgame values if we are in the endgame
+        //        * 5 - 50;
         //Console.WriteLine(((x > 3 ? 7 - x : x /* this mirrors the table*/) + y * 4 + pieceTypeIndex * 32) * 2);
         //if(IsEndgameNoFunction && pieceTypeIndex == 6)
         //{
         //     //int distanceBonus = 10 * (7 - distanceToEnemyKing); // Adjust the bonus factor as needed
         //}    
         return pieceValues[pieceTypeIndex] + pieceSqareValues[
-            (s.File > 3 ? 7 - s.File : s.File ) // this mirrors the table to use less BBS
+            (s.File > 3 ? 7 - s.File : s.File) // this mirrors the table to use less BBS
             + (IsWhite ? 7 - s.Rank : s.Rank) * 4 + pieceTypeIndex * 32 // flip the table if it is white
             + (IsEndgameNoFunction ? 192 : 0)] // use endgame values if we are in the endgame
                 * 5 - 50;
@@ -327,17 +313,16 @@ public class MyBot : IChessBot
     //left in the code for now even tho it's unused might be used in the future
     public bool isPieceProtectedAfterMove(Board board, Move move) => !board.SquareIsAttackedByOpponent(move.TargetSquare); //#DEBUG
 
-    float evaluateBase(float prevBase, Move move, int currentPlayer)
+    float evaluateBase(Move move, bool isWhite)
     {
-        bool isWhite = currentPlayer > 0; // doesn't matter if it a variable or called each time BBS-wise
         if (move.IsEnPassant || move.IsCastles) // beause it is a "special" move we just return 0. this is for some reason better than returning below
             return 0;
 
         return
             -getPieceValue(move.MovePieceType, move.StartSquare, isWhite)  // remove the old piece 
             + getPieceValue(move.IsPromotion ? move.PromotionPieceType : move.MovePieceType, move.TargetSquare, isWhite) // add the new piece (move piece type if it is't promotion. if it is use the promotion piece type)
-            + getPieceValue(move.CapturePieceType, move.TargetSquare, !isWhite) // remove the captured piece (plus beacuse we capture the oponements piece wich is good for the current player)
-            ;
+            + getPieceValue(move.CapturePieceType, move.TargetSquare, !isWhite); // remove the captured piece (plus beacuse we capture the oponements piece wich is good for the current player)
+            
     }
 
     float evaluateTop(Board board, int currentPlayer)
