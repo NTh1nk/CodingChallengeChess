@@ -205,24 +205,18 @@ public class MyBot : IChessBot
 
             board.UndoMove(move);
 
-            if (isMaximizingPlayer ? v >= bMoveMat : v <= bMoveMat)
+            if (!isDraw && isMaximizingPlayer ? v >= bMoveMat : v <= bMoveMat)
             {
                 //if (!draw_moves.Contains(move))
                 //{
-                if (!isDraw)
-                {
-                    bR = r;
-                    bMove = move;
-                    bMoveMat = v;
+                bR = r;
+                bMove = move;
+                bMoveMat = v;
 
-                    // alpha beta
-                    if (isMaximizingPlayer) min = Max(min, v);
-                    else max = Min(max, v);
-                    if (max < min) break;
-
-
-
-                }
+                // alpha beta
+                if (isMaximizingPlayer) min = Max(min, v);
+                else max = Min(max, v);
+                if (max < min) break;
                 //else printErrorDraw(move); //#DEBUG
 
                 //else if(board.IsDraw()) //#DEBUG
