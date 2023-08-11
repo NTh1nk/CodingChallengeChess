@@ -170,7 +170,7 @@ public class MyBot : IChessBot
 
     private Tuple<Move[], float> miniMax(Board board, int depth, int currentPlayer, float min, float max, float prevBase)
     {
-
+        bool isMaximizingPlayer = currentPlayer > 0;
         Move[] moves = board.GetLegalMoves(depth < 1);
 
         if (moves.Length == 0)
@@ -178,12 +178,13 @@ public class MyBot : IChessBot
             return new(new[] { Move.NullMove }, prevBase + evaluateTop(board, currentPlayer)); //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
         }
         Move bMove = moves[0];
-        float bMoveMat = minFloatValue * currentPlayer; // how good the best move is for the current player
+        float bMoveMat = minFloatValue * currentPlayer;
         Tuple<Move[], float> bR = new(new[] { bMove }, bMoveMat);
 
-        List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(prevBase, m, currentPlayer, board) )).ToList();
+        List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(prevBase, m, currentPlayer) )).ToList();
         sortedMoves = sortedMoves.OrderByDescending(item => item.Base - (item.move.IsCapture ? pieceValues[(int)item.move.MovePieceType - 1] / 3 : 0)).ToList(); // if it's a capture it subtracks the attackers value thereby creating MVV-LVA (Most Valuable Victim - Least Valuable Aggressor)
         
+        // Iterate through sortedMoves and evaluate potential moves
         foreach (var (move, Base) in sortedMoves)
         {
 
@@ -235,22 +236,19 @@ public class MyBot : IChessBot
 
             board.UndoMove(move);
 
-            bool CurrentPlayerIsPositive = currentPlayer > 0;
-            if (!isDraw && CurrentPlayerIsPositive ? v >= bMoveMat : v <= bMoveMat)
+            if (isMaximizingPlayer ? v >= bMoveMat : v <= bMoveMat)
             {
                 bR = r;
                 bMove = move;
                 bMoveMat = v;
-                if(CurrentPlayerIsPositive)
-                {
-                    min = Max(min, v);
-                    if (v > max) break;
-                }
-                else
-                {
-                    max = Min(max, v);
-                    if (v < min) break;
-                }
+
+                // alpha beta
+                if (isMaximizingPlayer) min = Max(min, v);
+                else max = Min(max, v);
+                if (max < min) break;
+
+
+
                 //else printErrorDraw(move); //#DEBUG
 
                 //else if(board.IsDraw()) //#DEBUG
@@ -263,14 +261,6 @@ public class MyBot : IChessBot
             {//#DEBUG
                 //Console.WriteLine($"{v}");//#DEBUG
             }//#DEBUG
-
-
-
-
-            //if(depth == 1)
-            //{
-            //Console.WriteLine("best move " + move + " with a v of " + v);
-            //}
 
         }
 
@@ -302,7 +292,13 @@ public class MyBot : IChessBot
 
 
     //the DEBUGS are in place even tho it's called twice becaus in the end it shouldt be called more than once
-    private float getPieceValue(PieceType pieceType, Square s, bool IsWhite) //#DEBUG
+
+    // getPieceValue
+    // gets the value of one piece depending on its type and its position on the board
+    // pieceType: the type of the piece that should be avaluated
+    // s: the sqare the piece is standing on (only used to calculate piece sqare tables)
+    // isWhite: if the piece is white. used to flip the board if necessary 
+    private float getPieceValue(PieceType pieceType, Square s, bool IsWhite) //#DEBUG 
     { //#DEBUG
         //float endGameBonus = 0; //commenting out the endgame bonus for now as it is unused
         int pieceTypeIndex = (int)pieceType - 1;
@@ -327,7 +323,7 @@ public class MyBot : IChessBot
     //left in the code for now even tho it's unused might be used in the future
     public bool isPieceProtectedAfterMove(Board board, Move move) => !board.SquareIsAttackedByOpponent(move.TargetSquare); //#DEBUG
 
-    float evaluateBase(float prevBase, Move move, int currentPlayer, Board board)
+    float evaluateBase(float prevBase, Move move, int currentPlayer)
     {
         bool isWhite = currentPlayer > 0; // doesn't matter if it a variable or called each time BBS-wise
         if (move.IsEnPassant || move.IsCastles) // beause it is a "special" move we just return 0. this is for some reason better than returning below
