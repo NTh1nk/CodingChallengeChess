@@ -184,10 +184,10 @@ public class MyBot : IChessBot
                 );
 
             if(t) usedZobristKeys++; //#DEBUG
-            
+
             if (/*!boardHashes.ContainsKey(zobristKey) &&*/ depth < 1) //using depth < 1 to only safe board values when they have been calculated in repect to the funktion above
             { //#DEBUG
-                bool AB = boardHashes.TryAdd(zobristKey, new Tuple<float, int, float>(total, randomBoardHashCounter+(maxSearchDepth-depth),0.0f)); ///using tryadd instead of checking if it exist and using add as it seems to be 600-800ms faster.
+                bool AB = boardHashes.TryAdd(zobristKey, new (total, randomBoardHashCounter+(maxSearchDepth-depth),0.0f)); ///using tryadd instead of checking if it exist and using add as it seems to be 600-800ms faster.
                 if (AB) addedZobristKeys++; //#DEBUG
             } //#DEBUG
 
