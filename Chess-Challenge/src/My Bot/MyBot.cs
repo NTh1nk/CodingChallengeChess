@@ -235,25 +235,28 @@ public class MyBot : IChessBot
 
             board.UndoMove(move);
 
-            bR = r;
-            bMove = move;
-            bMoveMat = v;
-
-            if (currentPlayer > 0 && v >= bMoveMat && !isDraw)
+            bool CurrentPlayerIsPositive = currentPlayer > 0;
+            if (!isDraw && CurrentPlayerIsPositive ? v >= bMoveMat : v <= bMoveMat)
             {
+                bR = r;
+                bMove = move;
+                bMoveMat = v;
+                if(CurrentPlayerIsPositive)
+                {
                     min = Max(min, v);
                     if (v > max) break;
+                }
+                else
+                {
+                    max = Min(max, v);
+                    if (v < min) break;
+                }
                 //else printErrorDraw(move); //#DEBUG
 
                 //else if(board.IsDraw()) //#DEBUG
                 //{ //#DEBUG
                 //foundDublicateDrawMoves++; //#DEBUG
                 //} //#DEBUG
-            }
-            else if(v <= bMoveMat && !isDraw)
-            {
-                max = Min(max, v);
-                if (v < min) break;
             }
 
             if (depth == maxSearchDepth) //#DEBUG
