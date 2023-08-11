@@ -144,7 +144,7 @@ public class MyBot : IChessBot
         bool isMaximizingPlayer = currentPlayer > 0; // could also be called isWhite
         Move[] moves = board.GetLegalMoves(depth < 1);
 
-        if (moves.Length == 0)
+        if (moves.Length < 1)
         {
             return new(new[] { Move.NullMove }, prevBase + evaluateTop(board, currentPlayer)); //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
         }
@@ -170,7 +170,7 @@ public class MyBot : IChessBot
                 new(new[] { move }, newBase + evaluateTop(board, currentPlayer)); // use the stored value or get piece values new
             //Console.WriteLine(v);
             float v = r.Item2;
-
+            
             //if (!boardHashes.ContainsKey(board.ZobristKey))
             //{
             //    addedZobristKeys++;
@@ -272,9 +272,9 @@ public class MyBot : IChessBot
 
     float evaluateBase(Move move, bool isWhite)
     {
+        
         if (move.IsEnPassant || move.IsCastles) // beause it is a "special" move we just return 0. this is for some reason better than returning below
             return 0;
-
         return
             -getPieceValue(move.MovePieceType, move.StartSquare, isWhite)  // remove the old piece 
             + getPieceValue(move.IsPromotion ? move.PromotionPieceType : move.MovePieceType, move.TargetSquare, isWhite) // add the new piece (move piece type if it is't promotion. if it is use the promotion piece type)
