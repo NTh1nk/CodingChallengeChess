@@ -235,8 +235,8 @@ public class MyBot : IChessBot
 
             if(depth == maxSearchDepth) //#DEBUG
             {//#DEBUG
-             //Console.WriteLine($"{move}: {v}");//#DEBUG
-                Console.WriteLine($"{v}");//#DEBUG
+                //Console.WriteLine($"{move}: {v}");//#DEBUG
+                //Console.WriteLine($"{v}");//#DEBUG
             }//#DEBUG
 
             board.UndoMove(move);
