@@ -210,7 +210,7 @@ public class MyBot : IChessBot
                 new(new[] { move }, total = t ? StoredTable.Item1 : newBase + evaluateTop(board, currentPlayer)) // use the stored value or get piece values new
                 );
             
-            if (/*!boardHashes.ContainsKey(zobristKey) &&*/ depth < 1)
+            if (/*!boardHashes.ContainsKey(zobristKey) &&*/ depth < 1) //using depth < 1 to only safe board values when they have been calculated in repect to the funktion above
             { //#DEBUG
                 bool AB = boardHashes.TryAdd(zobristKey, new Tuple<float, int, float>(total, randomBoardHashCounter+(maxSearchDepth-depth),0.0f)); ///using tryadd instead of checking if it exist and using add as it seems to be 600-800ms faster.
                 if (AB) addedZobristKeys++; //#DEBUG
