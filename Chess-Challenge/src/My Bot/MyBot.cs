@@ -200,15 +200,16 @@ public class MyBot : IChessBot
             float total = 0;
 
             ulong zobristKey = board.ZobristKey;
-            bool t = boardHashes.TryGetValue(zobristKey, out var StoredTable);
-            if(t) usedZobristKeys++; //#DEBUG
+            bool t = true;
             //bool t = boardHashes.TryGetValue(zobristKey, out var StoredTable);
             Tuple<Move[], float> r =
                 (
-                depth > 0 ? 
+                depth > 0 ?
                 miniMax(board, depth - 1, -currentPlayer, min, max, newBase) : // use minimax if the depth is bigger than 0
-                new(new[] { move }, total = t ? StoredTable.Item1 : newBase + evaluateTop(board, currentPlayer)) // use the stored value or get piece values new
+                new(new[] { move }, total = (t = boardHashes.TryGetValue(zobristKey, out var StoredTable)) ? StoredTable.Item1 : newBase + evaluateTop(board, currentPlayer)) // use the stored value or get piece values new
                 );
+
+            if(t) usedZobristKeys++; //#DEBUG
             
             if (/*!boardHashes.ContainsKey(zobristKey) &&*/ depth < 1) //using depth < 1 to only safe board values when they have been calculated in repect to the funktion above
             { //#DEBUG
