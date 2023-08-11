@@ -60,7 +60,7 @@ public class MyBot : IChessBot
     int usedZobristKeys = 0; //#DEBUG
     // -----------------------------
     Queue<int> foundDrawMovesPerTurn = new();
-    int maxSearchDepth = 3;
+    int maxSearchDepth = 7;
 
     public bool IsEndgame(Board board, bool white) //#DEBUG
     { //#DEBUG
@@ -69,6 +69,8 @@ public class MyBot : IChessBot
         if (board.GetAllPieceLists().SelectMany(x => x).Sum(p =>
             p.IsWhite != white ? pieceValues[(int)p.PieceType - 1] : 0) < 2900)
         {
+
+            // change values to endgame values, to change strategi
             pieceValues = new[] {
                 160, // Pawn
                 320, // Knight
@@ -80,35 +82,7 @@ public class MyBot : IChessBot
             return true;
         };
         return false;
-        //float totalPieceValue = 0;
-        //for (int x = 0; x <= 7; x++)
-        //{
-        //    for (int y = 0; y <= 7; y++)
-        //    {
-        //        var s = new Square(x, y);
-        //        var p = board.GetPiece(s); // quite slow
-        //        if (p.IsNull || white != p.IsWhite) continue;
-
-        //        totalPieceValue += pieceValues[(int)p.PieceType - 1];
-
-        //    }
-        //}
-        //if (totalPieceValue < 2900)
-        //{
-
-        //    pieceValues = new[] {
-        //        160, // Pawn
-        //        320, // Knight
-        //        345, // Bishop
-        //        530, // Rook
-        //        940, // Queen
-        //        2000 // King
-
-        //    };
-        //    return true;
-        //}
-        //return false;
-    } //#DEBUG
+    } 
     public Move Think(Board board, Timer timer)
     {
 
@@ -270,13 +244,25 @@ public class MyBot : IChessBot
         float endGameBonus = 0;
         int pieceTypeIndex = (int)pieceType - 1;
         if (pieceTypeIndex < 0) return 0;
+
+        //int x = s.File, y = s.Rank;
+        ////Console.WriteLine(((x > 3 ? 7 - x : x /* this mirrors the table*/) + y * 4 + pieceTypeIndex * 32) * 2);
+        ////if(IsEndgameNoFunction && pieceTypeIndex == 6)
+        ////{
+        ////     //int distanceBonus = 10 * (7 - distanceToEnemyKing); // Adjust the bonus factor as needed
+        ////}    
+        //return pieceValues[pieceTypeIndex] + pieceSqareValues[
+        //    (x > 3 ? 7 - x : x) // this mirrors the table to use less BBS
+        //    + (IsWhite ? 7 - y : y) * 4 + pieceTypeIndex * 32 // flip the table if it is white
+        //    + (IsEndgameNoFunction ? 192 : 0)] // use endgame values if we are in the endgame
+        //        * 5 - 50;
         //Console.WriteLine(((x > 3 ? 7 - x : x /* this mirrors the table*/) + y * 4 + pieceTypeIndex * 32) * 2);
         //if(IsEndgameNoFunction && pieceTypeIndex == 6)
         //{
         //     //int distanceBonus = 10 * (7 - distanceToEnemyKing); // Adjust the bonus factor as needed
         //}    
         return pieceValues[pieceTypeIndex] + pieceSqareValues[
-            (s.File > 3 ? 7 - s.File : s.File ) // this mirrors the table to use less BBS
+            (s.File > 3 ? 7 - s.File : s.File) // this mirrors the table to use less BBS
             + (IsWhite ? 7 - s.Rank : s.Rank) * 4 + pieceTypeIndex * 32 // flip the table if it is white
             + (IsEndgameNoFunction ? 192 : 0)] // use endgame values if we are in the endgame
                 * 5 - 50;
