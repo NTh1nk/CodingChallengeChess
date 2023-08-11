@@ -197,18 +197,20 @@ public class MyBot : IChessBot
             
             float newBase = move.IsEnPassant || move.IsCastles ? getPieceValues(board, currentPlayer) : (prevBase + Base * currentPlayer); // if it is enPassent we recalculate the move
 
-            float total = t ? StoredTable.Item1 : newBase + evaluateTop(board, currentPlayer);
+            //float total = t ? StoredTable.Item1 : newBase + evaluateTop(board, currentPlayer);
 
             bool isDraw = board.IsRepeatedPosition() || board.IsFiftyMoveDraw();
+
+            float total = 0;
 
             Tuple<Move[], float> r = 
                 (
                 depth > 0 ? 
                 miniMax(board, depth - 1, -currentPlayer, min, max, newBase) : // use minimax if the depth is bigger than 0
-                new(new[] { move }, total) // use the stored value or get piece values new
+                new(new[] { move }, total = t ? StoredTable.Item1 : newBase + evaluateTop(board, currentPlayer)) // use the stored value or get piece values new
                 );
             
-            if (/*!boardHashes.ContainsKey(zobristKey) &&*/ depth < maxSearchDepth)
+            if (/*!boardHashes.ContainsKey(zobristKey) &&*/ depth < 1)
             { //#DEBUG
                 bool AB = boardHashes.TryAdd(zobristKey, new Tuple<float, int, float>(total, randomBoardHashCounter+(maxSearchDepth-depth),0.0f)); ///using tryadd instead of checking if it exist and using add as it seems to be 600-800ms faster.
                 if (AB) addedZobristKeys++; //#DEBUG
@@ -216,23 +218,24 @@ public class MyBot : IChessBot
 
             //if (boardHashes.ContainsKey(board.ZobristKey)) usedZobristKeys++; //#DEBUG
             //Console.WriteLine(v);
-            float v = r.Item2;
             /*if(depth < 1)
             {
                 //Console.Write(v + ", ");
             }*/
 
-            if(depth == maxSearchDepth) //#DEBUG
-            {//#DEBUG
-             //Console.WriteLine($"{move}: {v}");//#DEBUG
-                Console.WriteLine($"{v}");//#DEBUG
-            }//#DEBUG
 
             //if (!boardHashes.ContainsKey(board.ZobristKey))
             //{
             //    addedZobristKeys++;
             //    boardHashes.Add(board.ZobristKey, v); // makes ram usage hight but speeds up a little bit
             //}
+            float v = r.Item2;
+
+            if(depth == maxSearchDepth) //#DEBUG
+            {//#DEBUG
+             //Console.WriteLine($"{move}: {v}");//#DEBUG
+                Console.WriteLine($"{v}");//#DEBUG
+            }//#DEBUG
 
             board.UndoMove(move);
 
