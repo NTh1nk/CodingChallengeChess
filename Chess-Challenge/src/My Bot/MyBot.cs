@@ -60,7 +60,7 @@ public class MyBot : IChessBot
     int usedZobristKeys = 0; //#DEBUG
     // -----------------------------
     //Queue<int> foundDrawMovesPerTurn = new();
-    int maxSearchDepth = 7;
+    int maxSearchDepth = 8;
 
     public bool IsEndgame(Board board, bool white) //#DEBUG
     { //#DEBUG
@@ -96,7 +96,7 @@ public class MyBot : IChessBot
         //Console.WriteLine(getPieceValue(PieceType.Pawn, 0, 7 - 6));
         weAreWhite = board.IsWhiteToMove;
         Console.WriteLine("---calculate new move---" + board.IsWhiteToMove); //#DEBUG
-        var bestMove = miniMax(board, timer.MillisecondsRemaining < 20000 ? timer.MillisecondsRemaining < 5000 ? 2 : 3 : maxSearchDepth, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue, getPieceValues(board, weAreWhite ? 1 : -1)).Item1;
+        var bestMove = miniMax(board, timer.MillisecondsRemaining < 45000 ? timer.MillisecondsRemaining < 5000 ? 3 : 5 : maxSearchDepth, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue, getPieceValues(board, weAreWhite ? 1 : -1)).Item1;
         bestMove.ToList().ForEach(move => { Console.WriteLine("predicted move: " + move); });
         if (IsEndgame(board, !weAreWhite))
         {
