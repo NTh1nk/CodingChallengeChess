@@ -67,7 +67,7 @@ public class MyBot : IChessBot
 
 
         if (board.GetAllPieceLists().SelectMany(x => x).Sum(p =>
-            p.IsWhite != white ? pieceValues[(int)p.PieceType - 1] : 0) < 2900)
+            p.IsWhite != white ? pieceValues[(int)p.PieceType - 1] : 0) < 3000)
         {
 
             // change values to endgame values, to change strategi
