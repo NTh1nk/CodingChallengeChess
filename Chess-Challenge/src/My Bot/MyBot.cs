@@ -7,10 +7,9 @@ using System.Linq;
 public class MyBot : IChessBot
 {
     // right now funktions are seperated. before submision, everything will be compacted into the think function if possible.
-
     //---this section is variables designated to zobrist hashing and the transportition table---
     int boardHashCounter = 0;
-    Dictionary<ulong,Tuple<float,int,float>> boardHashes = new(); //dict <zobrist key, tuple<total_board_value, depth_iteration, maxBranchValue>>
+    Dictionary<ulong,(float boardVal,int depth,Move bestMove)> boardHashes = new(); //dict <zobrist key, tuple<total_board_value, depth_iteration, bestMove>>
 
     //right now this funktion is not needed as it seems board has a funktion to get the zobrist key but it might need to be reintruduced if the api funktion is to slow
     //ulong hashBoard(Board board)
@@ -180,14 +179,14 @@ public class MyBot : IChessBot
                 (
                 depth > 0 ?
                 miniMax(board, depth - 1, -currentPlayer, min, max, newBase) : // use minimax if the depth is bigger than 0
-                new(new[] { move }, total = (t = boardHashes.TryGetValue(zobristKey, out var StoredTable)) ? StoredTable.Item1 : newBase + evaluateTop(board, currentPlayer)) // use the stored value or get piece values new
+                new(new[] { move }, total = (t = boardHashes.TryGetValue(zobristKey, out var StoredTable)) ? StoredTable.boardVal : newBase + evaluateTop(board, currentPlayer)) // use the stored value or get piece values new
                 );
 
             if(t) usedZobristKeys++; //#DEBUG
 
             if (/*!boardHashes.ContainsKey(zobristKey) &&*/ depth < 1) //using depth < 1 to only safe board values when they have been calculated in repect to the funktion above
             { //#DEBUG
-                bool AB = boardHashes.TryAdd(zobristKey, new (total, boardHashCounter+(maxSearchDepth-depth),0.0f)); ///using tryadd instead of checking if it exist and using add as it seems to be 600-800ms faster.
+                bool AB = boardHashes.TryAdd(zobristKey,(total, boardHashCounter+(maxSearchDepth-depth), Move.NullMove)); ///using tryadd instead of checking if it exist and using add as it seems to be 600-800ms faster.
                 if (AB) addedZobristKeys++; //#DEBUG
             } //#DEBUG
 
