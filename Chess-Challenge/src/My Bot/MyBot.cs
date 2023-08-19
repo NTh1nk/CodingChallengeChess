@@ -96,12 +96,11 @@ public class MyBot : IChessBot
         //Console.WriteLine(getPieceValue(PieceType.Pawn, 0, 7 - 6));
         weAreWhite = board.IsWhiteToMove;
         Console.WriteLine("---calculate new move---" + board.IsWhiteToMove); //#DEBUG
-        Move[] bestMove = { Move.NullMove };
         //for (int depth = 1; depth <= maxSearchDepth; depth++)
         //{
         //    Console.WriteLine("searched for depth: " + depth);
         //}
-        bestMove = miniMax(board, maxSearchDepth, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue, getPieceValues(board, weAreWhite ? 1 : -1)).Item1;
+        var bestMove = miniMax(board, timer.MillisecondsRemaining < 15000 ? timer.MillisecondsRemaining < 5000 ? 4 : 5 : maxSearchDepth, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue, getPieceValues(board, weAreWhite ? 1 : -1)).Item1;
         bestMove.ToList().ForEach(move => { Console.WriteLine("predicted move: " + move); });
         if (IsEndgame(board, !weAreWhite))
         {
