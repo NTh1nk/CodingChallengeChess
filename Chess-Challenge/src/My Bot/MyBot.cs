@@ -3,6 +3,7 @@ using System;
 using static System.Math;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 
 public class MyBot : IChessBot
 {
@@ -96,10 +97,10 @@ public class MyBot : IChessBot
         weAreWhite = board.IsWhiteToMove;
         Console.WriteLine("---calculate new move---" + board.IsWhiteToMove); //#DEBUG
         Move[] bestMove = { Move.NullMove };
-        for (int depth = 1; depth <= maxSearchDepth; depth++)
-        {
-            bestMove = miniMax(board, depth, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue, getPieceValues(board, weAreWhite ? 1 : -1)).Item1;
-        }
+        //for (int depth = 1; depth <= maxSearchDepth; depth++)
+        //{
+        //}
+        bestMove = miniMax(board, maxSearchDepth, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue, getPieceValues(board, weAreWhite ? 1 : -1)).Item1;
         bestMove.ToList().ForEach(move => { Console.WriteLine("predicted move: " + move); });
         if (IsEndgame(board, !weAreWhite))
         {
@@ -253,7 +254,8 @@ public class MyBot : IChessBot
         }
         if(depth < maxSearchDepth)
         {
-            boardHashes[key] = (prevBase, depth, bMove); ///using tryadd instead of checking if it exist and using add as it seems to be 600-800ms faster.
+
+            if (a ? depth > result.depth : true) boardHashes[key] = (prevBase, depth, bMove); ///using tryadd instead of checking if it exist and using add as it seems to be 600-800ms faster.
             //if (AB) addedZobristKeys++; //#DEBUG
         }
 
