@@ -133,7 +133,7 @@ public class MyBot : IChessBot
 
         Console.WriteLine("dececion took: "+timer.MillisecondsElapsedThisTurn+" ms this turn"); //#DEBUG
         
-        boardHashCounter=+maxSearchDepth;
+        boardHashCounter=+1;
         foreach (ulong i in boardHashes.Keys) if (boardHashes[i].Item2 < boardHashCounter - maxSearchDepth) boardHashes.Remove(i); 
 
         return bestMove[bestMove.Length - 1];
