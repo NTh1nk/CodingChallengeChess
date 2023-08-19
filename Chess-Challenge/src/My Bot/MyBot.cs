@@ -153,9 +153,11 @@ public class MyBot : IChessBot
         Move bMove = moves[0];
         float bMoveMat = minFloatValue * currentPlayer;
         Tuple<Move[], float> bR = new(new[] { bMove }, bMoveMat);
-
+        ulong key = board.ZobristKey;
+        (float boardVal, int depth, Move bestMove) result;
+        var a = boardHashes.TryGetValue(key, out result);
         List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(m, isMaximizingPlayer) )).ToList();
-        sortedMoves = sortedMoves.OrderByDescending(item => item.Base - (item.move.IsCapture ? pieceValues[(int)item.move.MovePieceType - 1] / 3 : 0)).ToList(); // if it's a capture it subtracks the attackers value thereby creating MVV-LVA (Most Valuable Victim - Least Valuable Aggressor)
+        sortedMoves = sortedMoves.OrderByDescending(item => a && result.bestMove == item.move ? 1000000000 : item.Base - (item.move.IsCapture ? pieceValues[(int)item.move.MovePieceType - 1] / 3 : 0)).ToList(); // if it's a capture it subtracks the attackers value thereby creating MVV-LVA (Most Valuable Victim - Least Valuable Aggressor)
         
         // Iterate through sortedMoves and evaluate potential moves
         foreach (var (move, Base) in sortedMoves)
@@ -247,7 +249,7 @@ public class MyBot : IChessBot
         }
         if(depth < maxSearchDepth)
         {
-            bool AB = boardHashes.TryAdd(board.ZobristKey, (prevBase, boardHashCounter + (maxSearchDepth - depth), bMove)); ///using tryadd instead of checking if it exist and using add as it seems to be 600-800ms faster.
+            bool AB = boardHashes.TryAdd(key, (prevBase, boardHashCounter + (maxSearchDepth - depth), bMove)); ///using tryadd instead of checking if it exist and using add as it seems to be 600-800ms faster.
             if (AB) addedZobristKeys++; //#DEBUG
         }
 
