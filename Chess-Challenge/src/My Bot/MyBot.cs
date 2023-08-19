@@ -67,7 +67,7 @@ public class MyBot : IChessBot
 
 
         if (board.GetAllPieceLists().SelectMany(x => x).Sum(p =>
-            p.IsWhite != white ? pieceValues[(int)p.PieceType - 1] : 0) < 2900)
+            p.IsWhite != white ? pieceValues[(int)p.PieceType - 1] : 0) < 3000)
         {
 
             // change values to endgame values, to change strategi
@@ -87,7 +87,7 @@ public class MyBot : IChessBot
     {
 
         pieceSqareValues = toPieceArray(new[] { 1010101018181818, 1212141611111215, 1010101411090810, 1112120610101010, 0002040402061010, 0410121304111314, 0410131404111213, 0206101100020404, 0608080808101010, 0810111208111112, 0810121208121212, 0811101006080808, 1010101011121212, 0910101009101010, 0910101009101010, 0910101010101011, 0608080908101010, 0810111109101111, 1010111108111111, 0810111006080809, 0402020004020200, 0402020004020200, 0604040208060606, 1414060630341207,
-                                                1010101036303230, 2015181412121413, 1212121211111111, 0909090910101010, 0002040402061010, 0410121304111314, 0410131404111213, 0206101100020404, 0608080808101010, 0810111208111112, 0810121208121212, 0811101006080808, 1010101011121212, 0910101009101010, 0910101009101010, 0910101010101011, 0608080908101010, 0810111109101111, 1010111108111111, 0810111006080809, 0402020004020200, 0402020004020200, 0604040208060606, 1414060630341207 }); // use https://onlinestringtools.com/split-string to split into 16 long parts
+                                                1010101036303230, 2015181412121413, 1212121211111111, 0909090910101010, 0002040402061010, 0410121304111314, 0410131404111213, 0206101100020404, 0608080808101010, 0810111208111112, 0810121208121212, 0811101006080808, 1010101011121212, 0910101009101010, 0910101009101010, 0910101010101011, 0608080908101010, 0810111109101111, 1010111108111111, 0810111006080809, 0002040604060810, 0408141604081618, 0408161804081416, 0404101000040404 }); // use https://onlinestringtools.com/split-string to split into 16 long parts
         //Botton is endgame
         //arrCenterDistanceInt = toPieceArray(arrCenterDistance);                                                                                                                                                                                                                                                                                                                                                                                                                                       
         //Console.WriteLine(pieceSqareValues.Length);
@@ -147,7 +147,7 @@ public class MyBot : IChessBot
         bool isMaximizingPlayer = currentPlayer > 0; // could also be called isWhite
         Move[] moves = board.GetLegalMoves(depth < 1);
 
-        if (moves.Length == 0)
+        if (moves.Length < 1)
         {
             return new(new[] { Move.NullMove }, prevBase + evaluateTop(board, currentPlayer)); //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
         }
@@ -315,9 +315,9 @@ public class MyBot : IChessBot
 
     float evaluateBase(Move move, bool isWhite)
     {
+        
         if (move.IsEnPassant || move.IsCastles) // beause it is a "special" move we just return 0. this is for some reason better than returning below
             return 0;
-
         return
             -getPieceValue(move.MovePieceType, move.StartSquare, isWhite)  // remove the old piece 
             + getPieceValue(move.IsPromotion ? move.PromotionPieceType : move.MovePieceType, move.TargetSquare, isWhite) // add the new piece (move piece type if it is't promotion. if it is use the promotion piece type)
