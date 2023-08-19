@@ -153,7 +153,7 @@ public class MyBot : IChessBot
 
         if (moves.Length < 1)
         {
-            return new(new[] { Move.NullMove }, prevBase + (board.IsInCheckmate() ? (100000000 + depth) * -currentPlayer : 0)); //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
+            return new(new[] { Move.NullMove }, prevBase + (board.IsInCheckmate() ? (1000000000 + depth * 901) * -currentPlayer : 0)); //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
         }
         Move bMove = moves[0];
         float bMoveMat = minFloatValue * currentPlayer;
@@ -186,7 +186,7 @@ public class MyBot : IChessBot
                 (
                 depth > 0 ?
                 miniMax(board, depth - 1, -currentPlayer, min, max, newBase) : // use minimax if the depth is bigger than 0
-                new(new[] { move }, newBase + (board.IsInCheckmate() ? (100000000 + depth) * currentPlayer : 0)) // use the stored value or get piece values new
+                new(new[] { move }, newBase + (board.IsInCheckmate() ? (1000000000 + depth * 901) * currentPlayer : 0)) // use the stored value or get piece values new
                 );
 
             if(t) usedZobristKeys++; //#DEBUG
