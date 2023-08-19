@@ -99,6 +99,7 @@ public class MyBot : IChessBot
         Move[] bestMove = { Move.NullMove };
         //for (int depth = 1; depth <= maxSearchDepth; depth++)
         //{
+        //    Console.WriteLine("searched for depth: " + depth);
         //}
         bestMove = miniMax(board, maxSearchDepth, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue, getPieceValues(board, weAreWhite ? 1 : -1)).Item1;
         bestMove.ToList().ForEach(move => { Console.WriteLine("predicted move: " + move); });
@@ -182,11 +183,11 @@ public class MyBot : IChessBot
             ulong zobristKey = board.ZobristKey;
             bool t = true;
             //bool t = boardHashes.TryGetValue(zobristKey, out var StoredTable);
-            Tuple<Move[], float> r =
+            Tuple<Move[], float> r = 
                 (
                 depth > 0 ?
                 miniMax(board, depth - 1, -currentPlayer, min, max, newBase) : // use minimax if the depth is bigger than 0
-                new(new[] { move }, total = (t = boardHashes.TryGetValue(zobristKey, out var StoredTable)) ? StoredTable.boardVal : newBase + evaluateTop(board, currentPlayer)) // use the stored value or get piece values new
+                new(new[] { move }, newBase + evaluateTop(board, currentPlayer)) // use the stored value or get piece values new
                 );
 
             if(t) usedZobristKeys++; //#DEBUG
