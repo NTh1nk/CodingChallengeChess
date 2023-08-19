@@ -153,7 +153,7 @@ public class MyBot : IChessBot
 
         if (moves.Length < 1)
         {
-            return new(new[] { Move.NullMove }, prevBase + (board.IsInCheckmate() ? (100000000 + depth( * -currentPlayer : 0)); //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
+            return new(new[] { Move.NullMove }, prevBase + (board.IsInCheckmate() ? (100000000 + depth) * -currentPlayer : 0)); //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
         }
         Move bMove = moves[0];
         float bMoveMat = minFloatValue * currentPlayer;
