@@ -153,7 +153,7 @@ public class MyBot : IChessBot
 
         if (moves.Length < 1)
         {
-            return new(new[] { Move.NullMove }, prevBase + evaluateTop(board, -currentPlayer)); //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
+            return new(new[] { Move.NullMove }, prevBase + (board.IsInCheckmate() ? 100000000 * -currentPlayer - depth : 0)); //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
         }
         Move bMove = moves[0];
         float bMoveMat = minFloatValue * currentPlayer;
@@ -186,7 +186,7 @@ public class MyBot : IChessBot
                 (
                 depth > 0 ?
                 miniMax(board, depth - 1, -currentPlayer, min, max, newBase) : // use minimax if the depth is bigger than 0
-                new(new[] { move }, newBase + evaluateTop(board, currentPlayer)) // use the stored value or get piece values new
+                new(new[] { move }, newBase + (board.IsInCheckmate() ? 100000000 * currentPlayer - depth : 0)) // use the stored value or get piece values new
                 );
 
             if(t) usedZobristKeys++; //#DEBUG
@@ -336,17 +336,7 @@ public class MyBot : IChessBot
             
     }
 
-    float evaluateTop(Board board, int currentPlayer)
-    {
-
-        if (board.IsInCheckmate())
-        { //#DEBUG
-            foundCheckMates++; //#DEBUG
-            return 1000000000000 * currentPlayer; // very height number (chose not to use float.MaxValue beacuse it uses more tokens (3 instead of 1)) 
-        } //#DEBUG
-
-        return 0;
-    }
+    float evaluateTop(Board board, int currentPlayer) => board.IsInCheckmate() ? 1000000000000 * currentPlayer* maxSearchDepth : 0;
 
     //ulong prevSeed = 0;
     //ulong smallRandomNumberGenerator(ulong seed = 0, int maxSizeRange = 100)
