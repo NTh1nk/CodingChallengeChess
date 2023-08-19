@@ -184,11 +184,11 @@ public class MyBot : IChessBot
 
             if(t) usedZobristKeys++; //#DEBUG
 
-            if (/*!boardHashes.ContainsKey(zobristKey) &&*/ depth < 1) //using depth < 1 to only safe board values when they have been calculated in repect to the funktion above
-            { //#DEBUG
-                bool AB = boardHashes.TryAdd(zobristKey,(total, boardHashCounter+(maxSearchDepth-depth), Move.NullMove)); ///using tryadd instead of checking if it exist and using add as it seems to be 600-800ms faster.
-                if (AB) addedZobristKeys++; //#DEBUG
-            } //#DEBUG
+            //if (/*!boardHashes.ContainsKey(zobristKey) &&*/ depth < 1) //using depth < 1 to only safe board values when they have been calculated in repect to the funktion above
+            //{ //#DEBUG
+            //    bool AB = boardHashes.TryAdd(zobristKey,(total, boardHashCounter+(maxSearchDepth-depth), Move.NullMove)); ///using tryadd instead of checking if it exist and using add as it seems to be 600-800ms faster.
+            //    if (AB) addedZobristKeys++; //#DEBUG
+            //} //#DEBUG
 
             //if (boardHashes.ContainsKey(board.ZobristKey)) usedZobristKeys++; //#DEBUG
             //Console.WriteLine(v);
@@ -245,7 +245,11 @@ public class MyBot : IChessBot
         {
             Console.WriteLine("best moves mat was: " + bMoveMat);
         }
-
+        if(depth < maxSearchDepth)
+        {
+            bool AB = boardHashes.TryAdd(board.ZobristKey, (prevBase, boardHashCounter + (maxSearchDepth - depth), bMove)); ///using tryadd instead of checking if it exist and using add as it seems to be 600-800ms faster.
+            if (AB) addedZobristKeys++; //#DEBUG
+        }
 
         return new(bR.Item1.Append(bMove).ToArray(), bR.Item2);
     }
