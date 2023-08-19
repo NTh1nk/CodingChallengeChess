@@ -95,7 +95,11 @@ public class MyBot : IChessBot
         //Console.WriteLine(getPieceValue(PieceType.Pawn, 0, 7 - 6));
         weAreWhite = board.IsWhiteToMove;
         Console.WriteLine("---calculate new move---" + board.IsWhiteToMove); //#DEBUG
-        var bestMove = miniMax(board, timer.MillisecondsRemaining < 45000 ? timer.MillisecondsRemaining < 5000 ? 3 : 5 : maxSearchDepth, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue, getPieceValues(board, weAreWhite ? 1 : -1)).Item1;
+        Move[] bestMove = { Move.NullMove };
+        for (int depth = 1; depth <= maxSearchDepth; depth++)
+        {
+            bestMove = miniMax(board, depth, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue, getPieceValues(board, weAreWhite ? 1 : -1)).Item1;
+        }
         bestMove.ToList().ForEach(move => { Console.WriteLine("predicted move: " + move); });
         if (IsEndgame(board, !weAreWhite))
         {
@@ -134,7 +138,7 @@ public class MyBot : IChessBot
         Console.WriteLine("dececion took: "+timer.MillisecondsElapsedThisTurn+" ms this turn"); //#DEBUG
         
         boardHashCounter=+1;
-        foreach (ulong i in boardHashes.Keys) if (boardHashes[i].Item2 < boardHashCounter - maxSearchDepth) boardHashes.Remove(i); 
+        //foreach (ulong i in boardHashes.Keys) if (boardHashes[i].Item2 < boardHashCounter - maxSearchDepth) boardHashes.Remove(i); 
 
         return bestMove[bestMove.Length - 1];
         //Console.WriteLine(isPieceProtectedAfterMove(board, moves[0]));
@@ -157,7 +161,7 @@ public class MyBot : IChessBot
         (float boardVal, int depth, Move bestMove) result;
         var a = boardHashes.TryGetValue(key, out result);
         List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(m, isMaximizingPlayer) )).ToList();
-        sortedMoves = sortedMoves.OrderByDescending(item => a && result.bestMove == item.move ? 1000000000 : item.Base - (item.move.IsCapture ? pieceValues[(int)item.move.MovePieceType - 1] / 3 : 0)).ToList(); // if it's a capture it subtracks the attackers value thereby creating MVV-LVA (Most Valuable Victim - Least Valuable Aggressor)
+        sortedMoves = sortedMoves.OrderByDescending(item => a && result.bestMove == item.move && result.depth > 0 ? 1000000 : item.Base - (item.move.IsCapture ? pieceValues[(int)item.move.MovePieceType - 1] / 3 : 0)).ToList(); // if it's a capture it subtracks the attackers value thereby creating MVV-LVA (Most Valuable Victim - Least Valuable Aggressor)
         
         // Iterate through sortedMoves and evaluate potential moves
         foreach (var (move, Base) in sortedMoves)
@@ -249,8 +253,8 @@ public class MyBot : IChessBot
         }
         if(depth < maxSearchDepth)
         {
-            bool AB = boardHashes.TryAdd(key, (prevBase, boardHashCounter + (maxSearchDepth - depth), bMove)); ///using tryadd instead of checking if it exist and using add as it seems to be 600-800ms faster.
-            if (AB) addedZobristKeys++; //#DEBUG
+            boardHashes[key] = (prevBase, depth, bMove); ///using tryadd instead of checking if it exist and using add as it seems to be 600-800ms faster.
+            //if (AB) addedZobristKeys++; //#DEBUG
         }
 
         return new(bR.Item1.Append(bMove).ToArray(), bR.Item2);
