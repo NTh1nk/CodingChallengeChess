@@ -60,7 +60,7 @@ public class MyBot : IChessBot
     int usedZobristKeys = 0; //#DEBUG
     // -----------------------------
     //Queue<int> foundDrawMovesPerTurn = new();
-    int maxSearchDepth = 8;
+    int maxSearchDepth = 6;
 
     public bool IsEndgame(Board board, bool white) //#DEBUG
     { //#DEBUG
@@ -154,7 +154,7 @@ public class MyBot : IChessBot
 
         if (moves.Length < 1)
         {
-            return new(new[] { Move.NullMove }, prevBase + evaluateTop(board, currentPlayer)); //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
+            return new(new[] { Move.NullMove }, prevBase + evaluateTop(board, -currentPlayer)); //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
         }
         Move bMove = moves[0];
         float bMoveMat = minFloatValue * currentPlayer;
@@ -343,7 +343,7 @@ public class MyBot : IChessBot
         if (board.IsInCheckmate())
         { //#DEBUG
             foundCheckMates++; //#DEBUG
-            return 1000000000000 * -currentPlayer; // very height number (chose not to use float.MaxValue beacuse it uses more tokens (3 instead of 1)) 
+            return 1000000000000 * currentPlayer; // very height number (chose not to use float.MaxValue beacuse it uses more tokens (3 instead of 1)) 
         } //#DEBUG
 
         return 0;
