@@ -9,7 +9,7 @@ public class MyBot : IChessBot
     // right now funktions are seperated. before submision, everything will be compacted into the think function if possible.
 
     //---this section is variables designated to zobrist hashing and the transportition table---
-    int randomBoardHashCounter = 0;
+    int boardHashCounter = 0;
     Dictionary<ulong,Tuple<float,int,float>> boardHashes = new(); //dict <zobrist key, tuple<total_board_value, depth_iteration, maxBranchValue>>
 
     //right now this funktion is not needed as it seems board has a funktion to get the zobrist key but it might need to be reintruduced if the api funktion is to slow
@@ -134,8 +134,8 @@ public class MyBot : IChessBot
 
         Console.WriteLine("dececion took: "+timer.MillisecondsElapsedThisTurn+" ms this turn"); //#DEBUG
         
-        randomBoardHashCounter=+maxSearchDepth;
-        foreach (ulong i in boardHashes.Keys) if (boardHashes[i].Item2 < randomBoardHashCounter - maxSearchDepth) boardHashes.Remove(i); 
+        boardHashCounter=+maxSearchDepth;
+        foreach (ulong i in boardHashes.Keys) if (boardHashes[i].Item2 < boardHashCounter - maxSearchDepth) boardHashes.Remove(i); 
 
         return bestMove[bestMove.Length - 1];
         //Console.WriteLine(isPieceProtectedAfterMove(board, moves[0]));
@@ -187,7 +187,7 @@ public class MyBot : IChessBot
 
             if (/*!boardHashes.ContainsKey(zobristKey) &&*/ depth < 1) //using depth < 1 to only safe board values when they have been calculated in repect to the funktion above
             { //#DEBUG
-                bool AB = boardHashes.TryAdd(zobristKey, new (total, randomBoardHashCounter+(maxSearchDepth-depth),0.0f)); ///using tryadd instead of checking if it exist and using add as it seems to be 600-800ms faster.
+                bool AB = boardHashes.TryAdd(zobristKey, new (total, boardHashCounter+(maxSearchDepth-depth),0.0f)); ///using tryadd instead of checking if it exist and using add as it seems to be 600-800ms faster.
                 if (AB) addedZobristKeys++; //#DEBUG
             } //#DEBUG
 
