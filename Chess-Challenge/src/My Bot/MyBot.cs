@@ -153,7 +153,7 @@ public class MyBot : IChessBot
 
         if (moves.Length < 1)
         {
-            return new(new[] { Move.NullMove }, prevBase + (board.IsInCheckmate() ? 100000000 * -currentPlayer - depth : 0)); //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
+            return new(new[] { Move.NullMove }, prevBase + (board.IsInCheckmate() ? (100000000 - depth( * -currentPlayer : 0)); //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
         }
         Move bMove = moves[0];
         float bMoveMat = minFloatValue * currentPlayer;
@@ -162,7 +162,7 @@ public class MyBot : IChessBot
         (float boardVal, int depth, Move bestMove) result;
         var a = boardHashes.TryGetValue(key, out result);
         List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(m, isMaximizingPlayer) )).ToList();
-        sortedMoves = sortedMoves.OrderByDescending(item => a && result.bestMove == item.move && result.depth > 0 ? 1000000 : item.Base - (item.move.IsCapture ? pieceValues[(int)item.move.MovePieceType - 1] / 3 : 0)).ToList(); // if it's a capture it subtracks the attackers value thereby creating MVV-LVA (Most Valuable Victim - Least Valuable Aggressor)
+        sortedMoves = sortedMoves.OrderByDescending(item => a && result.bestMove == item.move && result.depth > 0 ? 100000 : item.Base - (item.move.IsCapture ? pieceValues[(int)item.move.MovePieceType - 1] / 3 : 0)).ToList(); // if it's a capture it subtracks the attackers value thereby creating MVV-LVA (Most Valuable Victim - Least Valuable Aggressor)
         
         // Iterate through sortedMoves and evaluate potential moves
         foreach (var (move, Base) in sortedMoves)
@@ -186,7 +186,7 @@ public class MyBot : IChessBot
                 (
                 depth > 0 ?
                 miniMax(board, depth - 1, -currentPlayer, min, max, newBase) : // use minimax if the depth is bigger than 0
-                new(new[] { move }, newBase + (board.IsInCheckmate() ? 100000000 * currentPlayer - depth : 0)) // use the stored value or get piece values new
+                new(new[] { move }, newBase + (board.IsInCheckmate() ? (100000000 - depth) * currentPlayer : 0)) // use the stored value or get piece values new
                 );
 
             if(t) usedZobristKeys++; //#DEBUG
