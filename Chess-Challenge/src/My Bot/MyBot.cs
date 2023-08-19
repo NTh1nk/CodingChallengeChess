@@ -101,7 +101,7 @@ public class MyBot : IChessBot
         for (int depth = 1; depth <= maxSearchDepth; depth++)
         {
             bestMoves = miniMax(board, depth, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue, getPieceValues(board, weAreWhite ? 1 : -1)).Item1;
-            Console.WriteLine("searched for depth: " + depth);
+            Console.WriteLine("searched for depth: " + depth); //#DEBUG
         }
         bestMoves.ToList().ForEach(move => { Console.WriteLine("predicted move: " + move); });
         if (IsEndgame(board, !weAreWhite))
