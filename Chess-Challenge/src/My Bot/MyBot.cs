@@ -97,7 +97,7 @@ public class MyBot : IChessBot
         //Console.WriteLine(getPieceValue(PieceType.Pawn, 0, 7 - 6));
         weAreWhite = board.IsWhiteToMove;
         Console.WriteLine("---calculate new move---" + board.IsWhiteToMove); //#DEBUG
-        Move[] bestMoves = {};
+        Move[] bestMoves = { };
         for (int depth = 1; depth <= maxSearchDepth; depth++)
         {
             bestMoves = miniMax(board, depth, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue, getPieceValues(board, weAreWhite ? 1 : -1)).Item1;
@@ -231,19 +231,13 @@ public class MyBot : IChessBot
         return new(bR.Item1.Append(bMove).ToArray(), bR.Item2);
     }
 
-    void printErrorDraw(Move move) //#DEBUG
-    {  //#DEBUG
-        draw_moves.Add(move);
-        foundDrawMoves += "\"" + move + "\" "; //#DEBUG
-    } //#DEBUG
-
     /* private int ManhattanDistance(Square square1, Square square2)
      {
      int dx = Math.Abs(square1.File - square2.File);
      int dy = Math.Abs(square1.Rank - square2.Rank);
      return dx + dy;
      } */
-                private float getPieceValues(Board board, int currentPlayer) =>
+     float getPieceValues(Board board, int currentPlayer) =>
         board.GetAllPieceLists().SelectMany(x => x).Sum(p =>
             getPieceValue(p.PieceType, p.Square, p.IsWhite) * (p.IsWhite ? 1 : -1));
 
@@ -305,7 +299,7 @@ public class MyBot : IChessBot
             
     }
 
-    float evaluateTop(Board board, int currentPlayer) => board.IsInCheckmate() ? 1000000000000 * currentPlayer* maxSearchDepth : 0;
+    //float evaluateTop(Board board, int currentPlayer) => board.IsInCheckmate() ? 1000000000000 * currentPlayer* maxSearchDepth : 0;
 
     //ulong prevSeed = 0;
     //ulong smallRandomNumberGenerator(ulong seed = 0, int maxSizeRange = 100)
