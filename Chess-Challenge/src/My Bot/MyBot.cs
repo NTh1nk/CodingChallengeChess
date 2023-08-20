@@ -11,7 +11,7 @@ public class MyBot : IChessBot
     // right now funktions are seperated. before submision, everything will be compacted into the think function if possible.
     //---this section is variables designated to zobrist hashing and the transportition table---
     int boardHashCounter = 0;
-    Dictionary<ulong,(float boardVal,int depth,Move bestMove)> boardHashes = new(); //dict <zobrist key, tuple<total_board_value, depth_iteration, bestMove>>
+    Dictionary<ulong,(float boardVal,int depth,Move bestMove, int ply)> boardHashes = new(); //dict <zobrist key, tuple<total_board_value, depth_iteration, bestMove>>
 
     //right now this funktion is not needed as it seems board has a funktion to get the zobrist key but it might need to be reintruduced if the api funktion is to slow
     //ulong hashBoard(Board board)
@@ -97,13 +97,15 @@ public class MyBot : IChessBot
         //Console.WriteLine(getPieceValue(PieceType.Pawn, 0, 7 - 6));
         weAreWhite = board.IsWhiteToMove;
         Console.WriteLine("---calculate new move---" + board.IsWhiteToMove); //#DEBUG
-        Move[] bestMoves = { };
-        for (int depth = 1; depth <= maxSearchDepth; depth++)
+        Move bestMove = Move.NullMove;
+        for (int depth = 1; depth <= 30; depth++)
         {
-            bestMoves = miniMax(board, depth, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue, getPieceValues(board, weAreWhite ? 1 : -1)).Item1;
+            bestMove = miniMax(board, depth, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue, getPieceValues(board, weAreWhite ? 1 : -1), 0).Item1;
             Console.WriteLine("searched for depth: " + depth); //#DEBUG
+            if (timer.MillisecondsElapsedThisTurn > timer.MillisecondsRemaining / 60)
+                break;
         }
-        bestMoves.ToList().ForEach(move => { Console.WriteLine("predicted move: " + move); });
+        //bestMoves.ToList().ForEach(move => { Console.WriteLine("predicted move: " + move); });
         if (IsEndgame(board, !weAreWhite))
         {
             IsEndgameNoFunction = true;
@@ -141,56 +143,75 @@ public class MyBot : IChessBot
         Console.WriteLine("dececion took: "+timer.MillisecondsElapsedThisTurn+" ms this turn"); //#DEBUG
         
         boardHashCounter=+1;
-        //foreach (ulong i in boardHashes.Keys) if (boardHashes[i].Item2 < boardHashCounter - maxSearchDepth) boardHashes.Remove(i); 
+        //foreach (var i in boardHashes)
+        //    if (i.Value.ply < 1) // if its root
+        //        boardHashes.Remove(i.Key); // we throw it out
+        //boardHashes.Clear();
 
-        return bestMoves[bestMoves.Length - 1];
+        return bestMove;
         //Console.WriteLine(isPieceProtectedAfterMove(board, moves[0]));
 
     }
 
-    private Tuple<Move[], float> miniMax(Board board, int depth, int currentPlayer, float min, float max, float prevBase)
+    private Tuple<Move, float> miniMax(Board board, int depth, int currentPlayer, float min, float max, float prevBase, int ply)
     {
         bool isMaximizingPlayer = currentPlayer > 0; // could also be called isWhite
         Move[] moves = board.GetLegalMoves(depth < 1);
-
+        
         if (moves.Length < 1) 
-            return new(new[] { Move.NullMove }, prevBase + (board.IsInCheckmate() ? (1000000000 + depth * 901) * -currentPlayer : 0)); //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
+            return new(Move.NullMove, prevBase + (board.IsInCheckmate() ? (1000000000 + depth * 901) * -currentPlayer : 0)); //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
         
         Move bMove = moves[0];
         float bMoveMat = minFloatValue * currentPlayer;
         Tuple<Move[], float> bR = new(new[] { bMove }, bMoveMat);
         ulong key = board.ZobristKey;
-        (float boardVal, int depth, Move bestMove) result;
-        var a = boardHashes.TryGetValue(key, out result);
+        //(float boardVal, int depth, Move bestMove) result;
+        var a = boardHashes.TryGetValue(key, out var result);
 
         if(a && result.depth >= depth) 
-            return new(new[] { result.bestMove }, result.boardVal);
-        
+            return new(result.bestMove, result.boardVal);
+
+        //if(depth < 1)
+        //{
+        //    var eval = prevBase * currentPlayer;
+        //    bMoveMat = eval;
+        //    // alpha-beta is not needet here beacuse we only do one layer of capture search
+        //}
+
         List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(m, isMaximizingPlayer) )).ToList();
-        sortedMoves = sortedMoves.OrderByDescending(item => a && result.bestMove == item.move && result.depth > 0 ? 10000000 : item.Base - (item.move.IsCapture ? pieceValues[(int)item.move.MovePieceType - 1] / 3 : 0)).ToList(); // if it's a capture it subtracks the attackers value thereby creating MVV-LVA (Most Valuable Victim - Least Valuable Aggressor)
-        
+        sortedMoves = sortedMoves.OrderByDescending( // use OrderByDescending to get the highest first
+            item => 
+                a && result.bestMove == item.move && result.depth > 0 ? 10000000 : // else
+                item.Base - (item.move.IsCapture ? pieceValues[(int)item.move.MovePieceType - 1] / 3 : 0)).ToList(); // if it's a capture it subtracks the attackers value thereby creating MVV-LVA (Most Valuable Victim - Least Valuable Aggressor)
+        if(depth < 1) sortedMoves.Add((Move.NullMove, prevBase));
         // Iterate through sortedMoves and evaluate potential moves
         foreach (var (move, Base) in sortedMoves)
         {
+            float v = 0;
+            bool isDraw = false;
+            if (!move.IsNull)
+            {
 
-            board.MakeMove(move);
-            
-            float newBase = move.IsEnPassant || move.IsCastles ? getPieceValues(board, currentPlayer) : (prevBase + Base * currentPlayer); // if it is enPassent we recalculate the move
+                board.MakeMove(move);
 
-            //float total = t ? StoredTable.Item1 : newBase + evaluateTop(board, currentPlayer);
+                float newBase = move.IsEnPassant || move.IsCastles ? getPieceValues(board, currentPlayer) : (prevBase + Base * currentPlayer); // if it is enPassent we recalculate the move
 
-            bool isDraw = board.IsRepeatedPosition() || board.IsFiftyMoveDraw();
+                //float total = t ? StoredTable.Item1 : newBase + evaluateTop(board, currentPlayer);
 
-            //bool t = true;
-            //bool t = boardHashes.TryGetValue(zobristKey, out var StoredTable);
-            Tuple<Move[], float> r = 
-                (
-                depth > 0 ?
-                miniMax(board, depth - 1, -currentPlayer, min, max, newBase) : // use minimax if the depth is bigger than 0
-                new(new[] { move }, newBase + (board.IsInCheckmate() ? (1000000000 + depth * 901) * currentPlayer : 0)) // use the stored value or get piece values new
-                );
+                isDraw = board.IsRepeatedPosition() || board.IsFiftyMoveDraw();
 
-            float v = r.Item2;
+                //bool t = true;
+                //bool t = boardHashes.TryGetValue(zobristKey, out var StoredTable);
+                (_, v) =
+                    (
+                    depth > 0 ?
+                    miniMax(board, depth - 1, -currentPlayer, min, max, newBase, ply + 1) : // use minimax if the depth is bigger than 0
+                    new(move, newBase + (board.IsInCheckmate() ? (1000000000 + depth * 901) * currentPlayer : 0)) // use the stored value or get piece values new
+                    );
+
+                
+            }
+            else v = Base;
 
             if(depth == maxSearchDepth) //#DEBUG
             {//#DEBUG
@@ -200,9 +221,9 @@ public class MyBot : IChessBot
 
             board.UndoMove(move);
 
-            if (!isDraw && isMaximizingPlayer ? v >= bMoveMat : v <= bMoveMat)
+            if (!isDraw && isMaximizingPlayer ? v >= bMoveMat : v <= bMoveMat) // move is better
             {
-                bR = r;
+                //bR = r;
                 bMove = move;
                 bMoveMat = v;
 
@@ -210,25 +231,16 @@ public class MyBot : IChessBot
                 if (isMaximizingPlayer) min = Max(min, v);
                 else max = Min(max, v);
                 if (max < min) break;
-
-
-
-                //else printErrorDraw(move); //#DEBUG
-
-                //else if(board.IsDraw()) //#DEBUG
-                //{ //#DEBUG
-                //foundDublicateDrawMoves++; //#DEBUG
-                //} //#DEBUG
             }
 
         }
      
 
-        if (a ? depth > result.depth : true) boardHashes[key] = (bMoveMat, depth, bMove); ///old comment: using tryadd instead of checking if it exist and using add as it seems to be 600-800ms faster.
+        if (a ? depth > result.depth : true) boardHashes[key] = (bMoveMat, depth, bMove, ply); ///old comment: using tryadd instead of checking if it exist and using add as it seems to be 600-800ms faster.
             //if (AB) addedZobristKeys++; //#DEBUG
         
 
-        return new(bR.Item1.Append(bMove).ToArray(), bR.Item2);
+        return new(bMove, bR.Item2);
     }
 
     /* private int ManhattanDistance(Square square1, Square square2)
