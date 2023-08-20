@@ -163,7 +163,7 @@ public class MyBot : IChessBot
         
         Move bMove = moves[0];
         float bMoveMat = minFloatValue * currentPlayer;
-        Tuple<Move[], float> bR = new(new[] { bMove }, bMoveMat);
+        //Tuple<Move[], float> bR = new(new[] { bMove }, bMoveMat);
         ulong key = board.ZobristKey;
         //(float boardVal, int depth, Move bestMove) result;
         var a = boardHashes.TryGetValue(key, out var result);
@@ -187,43 +187,42 @@ public class MyBot : IChessBot
         // Iterate through sortedMoves and evaluate potential moves
         foreach (var (move, Base) in sortedMoves)
         {
-            float v = 0;
-            bool isDraw = false;
-            if (!move.IsNull)
-            {
+            //float v = 0;
+             //isDraw = false;
+            //if (!move.IsNull)
+            //{
 
-                board.MakeMove(move);
+            board.MakeMove(move);
 
-                float newBase = move.IsEnPassant || move.IsCastles ? getPieceValues(board, currentPlayer) : (prevBase + Base * currentPlayer); // if it is enPassent we recalculate the move
+            float newBase = move.IsEnPassant || move.IsCastles ? getPieceValues(board, currentPlayer) : (prevBase + Base * currentPlayer); // if it is enPassent we recalculate the move
 
-                //float total = t ? StoredTable.Item1 : newBase + evaluateTop(board, currentPlayer);
+            //float total = t ? StoredTable.Item1 : newBase + evaluateTop(board, currentPlayer);
 
-                isDraw = board.IsRepeatedPosition() || board.IsFiftyMoveDraw();
+            bool isDraw = board.IsRepeatedPosition() || board.IsFiftyMoveDraw();
 
                 //bool t = true;
                 //bool t = boardHashes.TryGetValue(zobristKey, out var StoredTable);
-                (_, v) =
-                    (
-                    depth > 0 ?
-                    miniMax(board, depth - 1, -currentPlayer, min, max, newBase, ply + 1) : // use minimax if the depth is bigger than 0
-                    new(move, newBase + (board.IsInCheckmate() ? (1000000000 + depth * 901) * currentPlayer : 0)) // use the stored value or get piece values new
-                    );
+            float v =
+                (
+                depth > 0 ?
+                miniMax(board, depth - 1, -currentPlayer, min, max, newBase, ply + 1).Item2 : // use minimax if the depth is bigger than 0
+                newBase + (board.IsInCheckmate() ? (1000000000 + depth * 901) * currentPlayer : 0) // use the stored value or get piece values new
+                );
 
                 
-            }
-            else v = Base;
+            //}
+            //else v = Base;
 
-            if(depth == maxSearchDepth) //#DEBUG
-            {//#DEBUG
-                //Console.WriteLine($"{move}: {v}");//#DEBUG
-                //Console.WriteLine($"{v}");//#DEBUG
-            }//#DEBUG
+            //if(depth == maxSearchDepth) //#DEBUG
+            //{//#DEBUG
+            //    //Console.WriteLine($"{move}: {v}");//#DEBUG
+            //    //Console.WriteLine($"{v}");//#DEBUG
+            //}//#DEBUG
 
             board.UndoMove(move);
 
             if (!isDraw && isMaximizingPlayer ? v >= bMoveMat : v <= bMoveMat) // move is better
             {
-                //bR = r;
                 bMove = move;
                 bMoveMat = v;
 
@@ -240,7 +239,7 @@ public class MyBot : IChessBot
             //if (AB) addedZobristKeys++; //#DEBUG
         
 
-        return new(bMove, bR.Item2);
+        return new(bMove, bMoveMat);
     }
 
     /* private int ManhattanDistance(Square square1, Square square2)
