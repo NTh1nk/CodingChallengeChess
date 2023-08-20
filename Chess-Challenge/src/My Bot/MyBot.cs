@@ -102,7 +102,7 @@ public class MyBot : IChessBot
         {
             bestMove = miniMax(board, depth, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue, getPieceValues(board, weAreWhite ? 1 : -1), 0).Item1;
             Console.WriteLine("searched for depth: " + depth); //#DEBUG
-            if (timer.MillisecondsElapsedThisTurn > timer.MillisecondsRemaining / 60)
+            if (timer.MillisecondsElapsedThisTurn > timer.MillisecondsRemaining / 45)
                 break;
         }
         //bestMoves.ToList().ForEach(move => { Console.WriteLine("predicted move: " + move); });
@@ -143,9 +143,9 @@ public class MyBot : IChessBot
         Console.WriteLine("dececion took: "+timer.MillisecondsElapsedThisTurn+" ms this turn"); //#DEBUG
         
         boardHashCounter=+1;
-        //foreach (var i in boardHashes)
-        //    if (i.Value.ply < 1) // if its root
-        //        boardHashes.Remove(i.Key); // we throw it out
+        foreach (var i in boardHashes)
+            if (i.Value.ply < 1) // if its root
+                boardHashes.Remove(i.Key); // we throw it out
         //boardHashes.Clear();
 
         return bestMove;
@@ -187,31 +187,31 @@ public class MyBot : IChessBot
         // Iterate through sortedMoves and evaluate potential moves
         foreach (var (move, Base) in sortedMoves)
         {
-            //float v = 0;
-             //isDraw = false;
-            //if (!move.IsNull)
-            //{
+            float v = 0;
+            bool isDraw = false;
+            if (!move.IsNull)
+            {
 
-            board.MakeMove(move);
+                board.MakeMove(move);
 
-            float newBase = move.IsEnPassant || move.IsCastles ? getPieceValues(board, currentPlayer) : (prevBase + Base * currentPlayer); // if it is enPassent we recalculate the move
+                float newBase = move.IsEnPassant || move.IsCastles ? getPieceValues(board, currentPlayer) : (prevBase + Base * currentPlayer); // if it is enPassent we recalculate the move
 
-            //float total = t ? StoredTable.Item1 : newBase + evaluateTop(board, currentPlayer);
+                //float total = t ? StoredTable.Item1 : newBase + evaluateTop(board, currentPlayer);
 
-            bool isDraw = board.IsRepeatedPosition() || board.IsFiftyMoveDraw();
+                isDraw = board.IsRepeatedPosition() || board.IsFiftyMoveDraw();
 
                 //bool t = true;
                 //bool t = boardHashes.TryGetValue(zobristKey, out var StoredTable);
-            float v =
-                (
-                depth > 0 ?
-                miniMax(board, depth - 1, -currentPlayer, min, max, newBase, ply + 1).Item2 : // use minimax if the depth is bigger than 0
-                newBase + (board.IsInCheckmate() ? (1000000000 + depth * 901) * currentPlayer : 0) // use the stored value or get piece values new
-                );
+                v =
+                    (
+                    depth > -3 ?
+                    miniMax(board, depth - 1, -currentPlayer, min, max, newBase, ply + 1).Item2 : // use minimax if the depth is bigger than 0
+                    newBase + (board.IsInCheckmate() ? (1000000000 + depth * 901) * currentPlayer : 0) // use the stored value or get piece values new
+                    );
 
-                
-            //}
-            //else v = Base;
+
+            }
+            else v = Base;
 
             //if(depth == maxSearchDepth) //#DEBUG
             //{//#DEBUG
