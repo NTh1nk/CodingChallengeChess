@@ -98,8 +98,15 @@ public class MyBot : IChessBot
         weAreWhite = board.IsWhiteToMove;
         Console.WriteLine("---calculate new move---" + board.IsWhiteToMove); //#DEBUG
         Move bestMove = Move.NullMove;
+        Console.WriteLine(board.ZobristKey);
+        Console.WriteLine(boardHashes.Count);
+        if(boardHashes.TryGetValue(16966494597275234120, out var r))
+        {
+            Console.WriteLine(r.depth);
+        }
         for (int depth = 1; depth <= 30; depth++)
         {
+            
             bestMove = miniMax(board, depth, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue, getPieceValues(board, weAreWhite ? 1 : -1), 0).Item1;
             Console.WriteLine("searched for depth: " + depth); //#DEBUG
             if (timer.MillisecondsElapsedThisTurn > timer.MillisecondsRemaining / 45)
@@ -112,11 +119,11 @@ public class MyBot : IChessBot
             Console.WriteLine("We are in the endgame"); //#DEBUG
         }
 
-        if (boardHashes.Count > 9500)
-        { //#DEBUG
-            Console.WriteLine("flushing bordhashes buffer"); //#DEBUG
-            boardHashes.Clear();
-        } //#DEBUG
+        //if (boardHashes.Count > 9500)
+        //{ //#DEBUG
+        //    Console.WriteLine("flushing bordhashes buffer"); //#DEBUG
+        //    boardHashes.Clear();
+        //} //#DEBUG
         if (draw_moves.Count > 125)
         { //#DEBUG
             Console.WriteLine("flushing draw move bufffer"); //#DEBUG
@@ -141,12 +148,14 @@ public class MyBot : IChessBot
         usedZobristKeys = 0; //#DEBUG
 
         Console.WriteLine("dececion took: "+timer.MillisecondsElapsedThisTurn+" ms this turn"); //#DEBUG
-        
-        boardHashCounter=+1;
+        Console.WriteLine(boardHashes.Count);
+
+        boardHashCounter = +1;
         foreach (var i in boardHashes)
             if (i.Value.ply < 1) // if its root
                 boardHashes.Remove(i.Key); // we throw it out
         //boardHashes.Clear();
+        Console.WriteLine("dececion took: "+timer.MillisecondsElapsedThisTurn+" ms this turn"); //#DEBUG
 
         return bestMove;
         //Console.WriteLine(isPieceProtectedAfterMove(board, moves[0]));
@@ -168,22 +177,15 @@ public class MyBot : IChessBot
         //(float boardVal, int depth, Move bestMove) result;
         var a = boardHashes.TryGetValue(key, out var result);
 
-        if(a && result.depth >= depth) 
+        if(a && result.depth >= depth)
             return new(result.bestMove, result.boardVal);
 
-        //if(depth < 1)
-        //{
-        //    var eval = prevBase * currentPlayer;
-        //    bMoveMat = eval;
-        //    // alpha-beta is not needet here beacuse we only do one layer of capture search
-        //}
-
         List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(m, isMaximizingPlayer) )).ToList();
+        if(depth < 1) sortedMoves.Add((Move.NullMove, prevBase));
         sortedMoves = sortedMoves.OrderByDescending( // use OrderByDescending to get the highest first
             item => 
                 a && result.bestMove == item.move && result.depth > 0 ? 10000000 : // else
                 item.Base - (item.move.IsCapture ? pieceValues[(int)item.move.MovePieceType - 1] / 3 : 0)).ToList(); // if it's a capture it subtracks the attackers value thereby creating MVV-LVA (Most Valuable Victim - Least Valuable Aggressor)
-        if(depth < 1) sortedMoves.Add((Move.NullMove, prevBase));
         // Iterate through sortedMoves and evaluate potential moves
         foreach (var (move, Base) in sortedMoves)
         {
@@ -233,9 +235,10 @@ public class MyBot : IChessBot
             }
 
         }
-     
 
-        if (a ? depth > result.depth : true) boardHashes[key] = (bMoveMat, depth, bMove, ply); ///old comment: using tryadd instead of checking if it exist and using add as it seems to be 600-800ms faster.
+
+        //if (!a || depth > result.depth)
+            boardHashes[key] = (bMoveMat, depth, bMove, ply); ///old comment: using tryadd instead of checking if it exist and using add as it seems to be 600-800ms faster.
             //if (AB) addedZobristKeys++; //#DEBUG
         
 
