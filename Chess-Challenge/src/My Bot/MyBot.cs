@@ -98,12 +98,6 @@ public class MyBot : IChessBot
         weAreWhite = board.IsWhiteToMove;
         Console.WriteLine("---calculate new move---" + board.IsWhiteToMove); //#DEBUG
         Move bestMove = Move.NullMove;
-        Console.WriteLine(board.ZobristKey);
-        Console.WriteLine(boardHashes.Count);
-        if(boardHashes.TryGetValue(16966494597275234120, out var r))
-        {
-            Console.WriteLine(r.depth);
-        }
         for (int depth = 1; depth <= 30; depth++)
         {
             
