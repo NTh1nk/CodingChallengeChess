@@ -166,19 +166,18 @@ public class MyBot : IChessBot
         
         Move bMove = moves[0];
         float bMoveMat = minFloatValue * currentPlayer;
-        //Tuple<Move[], float> bR = new(new[] { bMove }, bMoveMat);
         ulong key = board.ZobristKey;
-        //(float boardVal, int depth, Move bestMove) result;
-        var a = boardHashes.TryGetValue(key, out var result);
+        
+        var foundTable = boardHashes.TryGetValue(key, out var result);
 
-        if(a && result.depth >= depth)
+        if(foundTable && result.depth >= depth)
             return new(result.bestMove, result.boardVal);
 
         List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(m, isMaximizingPlayer) )).ToList();
         if(depth < 1) sortedMoves.Add((Move.NullMove, prevBase));
         sortedMoves = sortedMoves.OrderByDescending( // use OrderByDescending to get the highest first
             item => 
-                a && result.bestMove == item.move && result.depth > 0 ? 10000000 : // else
+                foundTable && result.bestMove == item.move && result.depth > 0 ? 10000000 : // if we found the table and this is the best move we want to give it a big score else:
                 item.Base - (item.move.IsCapture ? pieceValues[(int)item.move.MovePieceType - 1] / 3 : 0)).ToList(); // if it's a capture it subtracks the attackers value thereby creating MVV-LVA (Most Valuable Victim - Least Valuable Aggressor)
         // Iterate through sortedMoves and evaluate potential moves
         foreach (var (move, Base) in sortedMoves)
@@ -200,7 +199,7 @@ public class MyBot : IChessBot
                 //bool t = boardHashes.TryGetValue(zobristKey, out var StoredTable);
                 v =
                     (
-                    depth > 0 ?
+                    depth > -3 ?
                     miniMax(board, depth - 1, -currentPlayer, min, max, newBase, ply + 1).Item2 : // use minimax if the depth is bigger than 0
                     newBase + (board.IsInCheckmate() ? (1000000000 + depth * 901) * currentPlayer : 0) // use the stored value or get piece values new
                     );
@@ -230,11 +229,7 @@ public class MyBot : IChessBot
 
         }
 
-
-        //if (!a || depth > result.depth)
-            boardHashes[key] = (bMoveMat, depth, bMove, ply+boardHashCounter); ///old comment: using tryadd instead of checking if it exist and using add as it seems to be 600-800ms faster.
-            //if (AB) addedZobristKeys++; //#DEBUG
-        
+        boardHashes[key] = (bMoveMat, depth, bMove, ply+boardHashCounter); ///old comment: using tryadd instead of checking if it exist and using add as it seems to be 600-800ms faster.
 
         return new(bMove, bMoveMat);
     }
