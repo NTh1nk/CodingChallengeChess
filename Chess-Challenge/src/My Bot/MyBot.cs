@@ -189,14 +189,11 @@ public class MyBot : IChessBot
 
                 board.MakeMove(move);
 
-                float newBase = move.IsEnPassant || move.IsCastles ? getPieceValues(board, currentPlayer) : (prevBase + Base * currentPlayer); // if it is enPassent we recalculate the move
-
-                //float total = t ? StoredTable.Item1 : newBase + evaluateTop(board, currentPlayer);
+                float newBase = move.IsEnPassant || move.IsCastles ? // is it special move?
+                    getPieceValues(board, currentPlayer) : // then use we use the old function
+                    (prevBase + Base * currentPlayer); 
 
                 isDraw = board.IsRepeatedPosition() || board.IsFiftyMoveDraw();
-
-                //bool t = true;
-                //bool t = boardHashes.TryGetValue(zobristKey, out var StoredTable);
                 v =
                     (
                     depth > -3 ?
@@ -303,12 +300,4 @@ public class MyBot : IChessBot
     }
 
     //float evaluateTop(Board board, int currentPlayer) => board.IsInCheckmate() ? 1000000000000 * currentPlayer* maxSearchDepth : 0;
-
-    //ulong prevSeed = 0;
-    //ulong smallRandomNumberGenerator(ulong seed = 0, int maxSizeRange = 100)
-    //{
-    //    if (seed == 0) seed = prevSeed;
-    //    prevSeed = (ulong)Abs(Cos(seed * 10) * maxSizeRange);
-    //    return prevSeed;
-    //}
 }
