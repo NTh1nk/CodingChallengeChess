@@ -103,7 +103,7 @@ public class MyBot : IChessBot
             
             bestMove = miniMax(board, depth, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue, getPieceValues(board, weAreWhite ? 1 : -1), 0).Item1;
             Console.WriteLine("searched for depth: " + depth); //#DEBUG
-            if (timer.MillisecondsElapsedThisTurn > timer.MillisecondsRemaining / 45)
+            if (timer.MillisecondsElapsedThisTurn > timer.MillisecondsRemaining / 60)
                 break;
         }
         //bestMoves.ToList().ForEach(move => { Console.WriteLine("predicted move: " + move); });
@@ -144,9 +144,9 @@ public class MyBot : IChessBot
         Console.WriteLine("dececion took: "+timer.MillisecondsElapsedThisTurn+" ms this turn"); //#DEBUG
         Console.WriteLine(boardHashes.Count);
 
-        boardHashCounter = +1;
+        boardHashCounter = +2;
         foreach (var i in boardHashes)
-            if (i.Value.ply < 1) // if its root
+            if (i.Value.ply < boardHashCounter) // if its root
                 boardHashes.Remove(i.Key); // we throw it out
         //boardHashes.Clear();
         Console.WriteLine("dececion took: "+timer.MillisecondsElapsedThisTurn+" ms this turn"); //#DEBUG
@@ -200,7 +200,7 @@ public class MyBot : IChessBot
                 //bool t = boardHashes.TryGetValue(zobristKey, out var StoredTable);
                 v =
                     (
-                    depth > -3 ?
+                    depth > 0 ?
                     miniMax(board, depth - 1, -currentPlayer, min, max, newBase, ply + 1).Item2 : // use minimax if the depth is bigger than 0
                     newBase + (board.IsInCheckmate() ? (1000000000 + depth * 901) * currentPlayer : 0) // use the stored value or get piece values new
                     );
@@ -232,7 +232,7 @@ public class MyBot : IChessBot
 
 
         //if (!a || depth > result.depth)
-            boardHashes[key] = (bMoveMat, depth, bMove, ply); ///old comment: using tryadd instead of checking if it exist and using add as it seems to be 600-800ms faster.
+            boardHashes[key] = (bMoveMat, depth, bMove, ply+boardHashCounter); ///old comment: using tryadd instead of checking if it exist and using add as it seems to be 600-800ms faster.
             //if (AB) addedZobristKeys++; //#DEBUG
         
 
