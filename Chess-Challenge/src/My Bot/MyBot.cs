@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Xml.XPath;
+using Microsoft.CodeAnalysis;
 
 public class MyBot : IChessBot
 {
@@ -61,6 +62,7 @@ public class MyBot : IChessBot
 
     Move bestMove = Move.NullMove;
 
+    int qsearches = 3;
     public bool IsEndgame(Board board, bool white) //#DEBUG
     { //#DEBUG
 
@@ -98,6 +100,8 @@ public class MyBot : IChessBot
         bestMove = board.GetLegalMoves()[0];
         for (int depth = 1; depth <= 30; depth++)
         {
+            //qsearches = Min(3, timer.MillisecondsRemaining / 3000);
+            //Console.WriteLine("qsearches: " + qsearches);
             miniMax(board, depth, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue, getPieceValues(board, weAreWhite ? 1 : -1), 0);
             Console.WriteLine("searched for depth: " + depth); //#DEBUG
             if (timer.MillisecondsElapsedThisTurn > timer.MillisecondsRemaining / 60)
@@ -130,12 +134,13 @@ public class MyBot : IChessBot
         Console.WriteLine("dececion took: "+timer.MillisecondsElapsedThisTurn+" ms this turn"); //#DEBUG
         Console.WriteLine(boardHashes.Count);
 
-        boardHashCounter = +2;
-        foreach (var i in boardHashes)
-            if (i.Value.ply < boardHashCounter) // if its root
-                boardHashes.Remove(i.Key); // we throw it out
+        boardHashes.Clear();
+        //boardHashCounter = +2;
+        //foreach (var i in boardHashes)
+        //    if (i.Value.ply < boardHashCounter) // if its root
+        //        boardHashes.Remove(i.Key); // we throw it out
         //boardHashes.Clear();
-        Console.WriteLine("dececion took: "+timer.MillisecondsElapsedThisTurn+" ms this turn"); //#DEBUG
+        //Console.WriteLine("dececion took: "+timer.MillisecondsElapsedThisTurn+" ms this turn"); //#DEBUG
 
         return bestMove;
         //Console.WriteLine(isPieceProtectedAfterMove(board, moves[0]));
@@ -148,7 +153,7 @@ public class MyBot : IChessBot
         Move[] moves = board.GetLegalMoves(depth < 1);
         
         if (moves.Length < 1) 
-            return prevBase + (board.IsInCheckmate() ? (1000000000 + depth * 901) * -currentPlayer : 0); //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
+            return prevBase + evaluateTop(board, depth, currentPlayer); //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
         
         Move bMove = moves[0];
         float bMoveMat = minFloatValue * currentPlayer;
@@ -159,8 +164,14 @@ public class MyBot : IChessBot
         if(foundTable && result.depth >= depth)
             return result.boardVal;
         var bestStoredMove = result.bestMove.RawValue;
+
+        //if(depth < 1)
+        //{
+        //    bMove = Move.NullMove;
+        //    bMoveMat = prevBase;
+        //}
         List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(m, isMaximizingPlayer) )).ToList();
-        if(depth < 1) sortedMoves.Add((Move.NullMove, prevBase));
+        //if(depth < 1) sortedMoves.Add((Move.NullMove, -90000));
         sortedMoves = sortedMoves.OrderByDescending( // use OrderByDescending to get the highest first
             item => 
                 foundTable && bestStoredMove == item.move.RawValue && result.depth > 0 ? 10000000 : // if we found the table and this is the best move we want to give it a big score else:
@@ -168,28 +179,33 @@ public class MyBot : IChessBot
         // Iterate through sortedMoves and evaluate potential moves
         foreach (var (move, Base) in sortedMoves)
         {
-            float v = 0;
-            bool isDraw = false;
-            if (!move.IsNull)
-            {
+            //float v = 0;
+            //bool isDraw = false;
+            //if (Base != -90000)
+            //{
 
                 board.MakeMove(move);
 
                 float newBase = move.IsEnPassant || move.IsCastles ? // is it special move?
                     getPieceValues(board, currentPlayer) : // then use we use the old function
-                    (prevBase + Base * currentPlayer); 
+                    (prevBase + Base * currentPlayer);
 
-                isDraw = board.IsRepeatedPosition() || board.IsFiftyMoveDraw();
-                v =
-                    (
-                    depth > -3 ?
-                    miniMax(board, depth - 1, -currentPlayer, min, max, newBase, ply + 1) : // use minimax if the depth is bigger than 0
-                    newBase + (board.IsInCheckmate() ? (1000000000 + depth * 901) * currentPlayer : 0) // use the stored value or get piece values new
-                    );
+                bool isDraw = board.IsRepeatedPosition() || board.IsFiftyMoveDraw();
+                float v =
+                   (
+                   depth > 0 ?
+                   miniMax(board, depth - 1, -currentPlayer, min, max, newBase, ply + 1) : // use minimax if the depth is bigger than 0
+                   newBase + evaluateTop(board, depth, currentPlayer) // use the stored value or get piece values new
+                   );
+
+                board.UndoMove(move);
 
 
-            }
-            else v = Base;
+            //}
+            //else v = prevBase;
+
+            
+
 
             //if(depth == maxSearchDepth) //#DEBUG
             //{//#DEBUG
@@ -197,7 +213,6 @@ public class MyBot : IChessBot
             //    //Console.WriteLine($"{v}");//#DEBUG
             //}//#DEBUG
 
-            board.UndoMove(move);
 
             if (!isDraw && isMaximizingPlayer ? v >= bMoveMat : v <= bMoveMat) // move is better
             {
@@ -268,7 +283,7 @@ public class MyBot : IChessBot
     int[] toPieceArray(long[] arr) => Array.ConvertAll(arr, element => Enumerable.Range(0, 8).Select(i => int.Parse(element.ToString("D16").Substring(i * 2, 2)))).SelectMany(x => x).ToArray();
 
         
-
+    
 
     //left in the code for now even tho it's unused might be used in the future
     public bool isPieceProtectedAfterMove(Board board, Move move) => !board.SquareIsAttackedByOpponent(move.TargetSquare); //#DEBUG
@@ -284,6 +299,10 @@ public class MyBot : IChessBot
             + getPieceValue(move.CapturePieceType, move.TargetSquare, !isWhite); // remove the captured piece (plus beacuse we capture the oponements piece wich is good for the current player)
             
     }
+
+    float evaluateTop(Board board, int depth, int currentPlayer) =>
+       board.IsInCheckmate() ? (1000000000 + depth * 901) * currentPlayer : 0;
+    
 
     //float evaluateTop(Board board, int currentPlayer) => board.IsInCheckmate() ? 1000000000000 * currentPlayer* maxSearchDepth : 0;
 }
