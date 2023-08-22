@@ -44,7 +44,6 @@ public class MyBot : IChessBot
         2000 }; // King
 
     int[] arrCenterDistanceInt;
-    List<Move> draw_moves = new();
 
     public bool IsEndgameNoFunction = false;
 
@@ -113,17 +112,6 @@ public class MyBot : IChessBot
             Console.WriteLine("We are in the endgame"); //#DEBUG
         }
 
-        //if (boardHashes.Count > 9500)
-        //{ //#DEBUG
-        //    Console.WriteLine("flushing bordhashes buffer"); //#DEBUG
-        //    boardHashes.Clear();
-        //} //#DEBUG
-        if (draw_moves.Count > 125)
-        { //#DEBUG
-            Console.WriteLine("flushing draw move bufffer"); //#DEBUG
-            draw_moves.Clear();
-        } //#DEBUG
-
         Console.WriteLine("found checkmate: " + foundCheckMates + " times this turn"); //#DEBUG
         foundCheckMates = 0; //#DEBUG
 
@@ -172,12 +160,12 @@ public class MyBot : IChessBot
 
         if(foundTable && result.depth >= depth)
             return new(result.bestMove, result.boardVal);
-
+        var bestStoredMove = result.bestMove.RawValue;
         List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(m, isMaximizingPlayer) )).ToList();
         if(depth < 1) sortedMoves.Add((Move.NullMove, prevBase));
         sortedMoves = sortedMoves.OrderByDescending( // use OrderByDescending to get the highest first
             item => 
-                foundTable && result.bestMove == item.move && result.depth > 0 ? 10000000 : // if we found the table and this is the best move we want to give it a big score else:
+                foundTable && bestStoredMove == item.move.RawValue && result.depth > 0 ? 10000000 : // if we found the table and this is the best move we want to give it a big score else:
                 item.Base - (item.move.IsCapture ? pieceValues[(int)item.move.MovePieceType - 1] / 3 : 0)).ToList(); // if it's a capture it subtracks the attackers value thereby creating MVV-LVA (Most Valuable Victim - Least Valuable Aggressor)
         // Iterate through sortedMoves and evaluate potential moves
         foreach (var (move, Base) in sortedMoves)
