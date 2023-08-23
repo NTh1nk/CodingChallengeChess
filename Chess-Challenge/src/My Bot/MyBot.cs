@@ -44,7 +44,6 @@ public class MyBot : IChessBot
         2000 }; // King
 
     int[] arrCenterDistanceInt;
-    List<Move> draw_moves = new();
 
     public bool IsEndgameNoFunction = false;
 
@@ -115,11 +114,6 @@ public class MyBot : IChessBot
         { //#DEBUG
             Console.WriteLine("flushing bordhashes buffer"); //#DEBUG
             boardHashes.Clear();
-        } //#DEBUG
-        if (draw_moves.Count > 125)
-        { //#DEBUG
-            Console.WriteLine("flushing draw move bufffer"); //#DEBUG
-            draw_moves.Clear();
         } //#DEBUG
 
         Console.WriteLine("found checkmate: " + foundCheckMates + " times this turn"); //#DEBUG
