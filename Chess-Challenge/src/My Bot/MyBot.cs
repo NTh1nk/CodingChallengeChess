@@ -128,13 +128,13 @@ public class MyBot : IChessBot
 
     }
 
-    private Tuple<Move, float> miniMax(Board board, int depth, int currentPlayer, float min, float max, float prevBase, int ply)
+    private float miniMax(Board board, int depth, int currentPlayer, float min, float max, float prevBase, int ply)
     {
         bool isMaximizingPlayer = currentPlayer > 0; // could also be called isWhite
         Move[] moves = board.GetLegalMoves(depth < 1);
 
         if (moves.Length < 1)
-            return new(Move.NullMove, prevBase + (board.IsInCheckmate() ? (1000000000 + depth * 901) * -currentPlayer : 0)); //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
+            return prevBase + (board.IsInCheckmate() ? (1000000000 + depth * 901) * -currentPlayer : 0); //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
 
         Move bMove = moves[0];
         float bMoveMat = minFloatValue * currentPlayer;
@@ -144,7 +144,7 @@ public class MyBot : IChessBot
         var a = boardHashes.TryGetValue(key, out result);
 
         if (a && result.depth >= depth)
-            return new(result.bestMove, result.boardVal);
+            return result.boardVal;
 
         List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(m, isMaximizingPlayer))).ToList();
         sortedMoves = sortedMoves.OrderByDescending(item => a && result.bestMove == item.move && result.depth > 0 ? 10000000 : item.Base - (item.move.IsCapture ? pieceValues[(int)item.move.MovePieceType - 1] / 3 : 0)).ToList(); // if it's a capture it subtracks the attackers value thereby creating MVV-LVA (Most Valuable Victim - Least Valuable Aggressor)
@@ -166,7 +166,7 @@ public class MyBot : IChessBot
             var v =
                 (
                 depth > 0 ?
-                miniMax(board, depth - 1, -currentPlayer, min, max, newBase, ply +1).Item2 : // use minimax if the depth is bigger than 0
+                miniMax(board, depth - 1, -currentPlayer, min, max, newBase, ply +1) : // use minimax if the depth is bigger than 0
                 newBase + (board.IsInCheckmate() ? (1000000000 + depth * 901) * currentPlayer : 0) // use the stored value or get piece values new
                 );
 
@@ -191,7 +191,7 @@ public class MyBot : IChessBot
 
 
         if (ply < 1) bestMove = bMove; // if it's root we want to asign global best move to local best move
-        return new(bMove, bMoveMat);
+        return bMoveMat;
     }
 
     /* private int ManhattanDistance(Square square1, Square square2)
