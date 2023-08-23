@@ -134,7 +134,7 @@ public class MyBot : IChessBot
         Move[] moves = board.GetLegalMoves(depth < 1);
 
         if (moves.Length < 1)
-            return board.IsInCheckmate() ? (1000000000 + ply * 901) * currentPlayer : prevBase; //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
+            return board.IsInCheckmate() ? (-1000000000 + ply * 901) * currentPlayer : prevBase; //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
 
         Move bMove = moves[0];
         float bMoveMat = minFloatValue * currentPlayer;
@@ -166,7 +166,7 @@ public class MyBot : IChessBot
                     -150 * currentPlayer : //else
                     ( 
                     depth > 0 ? //if
-                        miniMax(board, depth - 1, -currentPlayer, min, max, newBase, ply +1) : //if the depth is bigger than 0 use minimax
+                        miniMax(board, depth - 1, -currentPlayer, min, max, newBase, ply + 1) : //if the depth is bigger than 0 use minimax
                         board.IsInCheckmate() ? (1000000000 + ply * 901) * currentPlayer : newBase 
                     );
 
