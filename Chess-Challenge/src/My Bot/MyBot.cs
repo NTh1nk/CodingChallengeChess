@@ -101,11 +101,11 @@ public class MyBot : IChessBot
             Console.WriteLine("We are in the endgame"); //#DEBUG
         }
 
-        if (boardHashes.Count > 9500)
-        { //#DEBUG
-            Console.WriteLine("flushing bordhashes buffer"); //#DEBUG
+        //if (boardHashes.Count > 9500)
+        //{ //#DEBUG
+        //    Console.WriteLine("flushing bordhashes buffer"); //#DEBUG
+        //} //#DEBUG
             boardHashes.Clear();
-        } //#DEBUG
 
         Console.WriteLine("found checkmate: " + foundCheckMates + " times this turn"); //#DEBUG
         foundCheckMates = 0; //#DEBUG
