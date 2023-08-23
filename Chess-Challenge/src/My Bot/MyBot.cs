@@ -56,6 +56,7 @@ public class MyBot : IChessBot
     int usedZobristKeys = 0; //#DEBUG
     // -----------------------------
 
+    Move bestMove;
     public bool IsEndgame(Board board, bool white) //#DEBUG
     { //#DEBUG
 
@@ -85,10 +86,10 @@ public class MyBot : IChessBot
 
         weAreWhite = board.IsWhiteToMove;
         Console.WriteLine("---calculate new move---" + board.IsWhiteToMove); //#DEBUG
-        Move bestMove = Move.NullMove;
+        bestMove = Move.NullMove;
         for (int depth = 1; depth <= 30; depth++)
         {
-            bestMove = miniMax(board, depth, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue, getPieceValues(board, weAreWhite ? 1 : -1)).Item1;
+            miniMax(board, depth, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue, getPieceValues(board, weAreWhite ? 1 : -1), 0);
             Console.WriteLine("searched for depth: " + depth); //#DEBUG
             if (timer.MillisecondsElapsedThisTurn > timer.MillisecondsRemaining / 60)
                 break;
@@ -127,7 +128,7 @@ public class MyBot : IChessBot
 
     }
 
-    private Tuple<Move, float> miniMax(Board board, int depth, int currentPlayer, float min, float max, float prevBase)
+    private Tuple<Move, float> miniMax(Board board, int depth, int currentPlayer, float min, float max, float prevBase, int ply)
     {
         bool isMaximizingPlayer = currentPlayer > 0; // could also be called isWhite
         Move[] moves = board.GetLegalMoves(depth < 1);
@@ -165,7 +166,7 @@ public class MyBot : IChessBot
             var v =
                 (
                 depth > 0 ?
-                miniMax(board, depth - 1, -currentPlayer, min, max, newBase).Item2 : // use minimax if the depth is bigger than 0
+                miniMax(board, depth - 1, -currentPlayer, min, max, newBase, ply +1).Item2 : // use minimax if the depth is bigger than 0
                 newBase + (board.IsInCheckmate() ? (1000000000 + depth * 901) * currentPlayer : 0) // use the stored value or get piece values new
                 );
 
@@ -187,9 +188,9 @@ public class MyBot : IChessBot
 
 
         boardHashes[key] = (bMoveMat, depth, bMove); ///old comment: using tryadd instead of checking if it exist and using add as it seems to be 600-800ms faster.
-   
 
 
+        if (ply < 1) bestMove = bMove; // if it's root we want to asign global best move to local best move
         return new(bMove, bMoveMat);
     }
 
