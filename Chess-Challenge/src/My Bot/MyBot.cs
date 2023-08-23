@@ -214,7 +214,7 @@ public class MyBot : IChessBot
             //}//#DEBUG
 
 
-            if (!isDraw && isMaximizingPlayer ? v >= bMoveMat : v <= bMoveMat) // move is better
+            if (!isDraw && (isMaximizingPlayer ? v >= bMoveMat : v <= bMoveMat)) // move is better
             {
                 bMove = move;
                 bMoveMat = v;
