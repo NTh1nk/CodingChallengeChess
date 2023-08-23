@@ -97,7 +97,7 @@ public class MyBotslowidk : IChessBot
         //Console.WriteLine(getPieceValue(PieceType.Pawn, 0, 7 - 6));
         weAreWhite = board.IsWhiteToMove;
         Console.WriteLine("---calculate new move---" + board.IsWhiteToMove); //#DEBUG
-        bestMove = board.GetLegalMoves()[0];
+        bestMove = Move.NullMove;
         for (int depth = 1; depth <= 30; depth++)
         {
             //qsearches = Min(3, timer.MillisecondsRemaining / 3000);

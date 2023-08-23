@@ -54,12 +54,9 @@ public class MyBot : IChessBot
     // debug variables (variables only used for debuging)
     int searchedMoves = 0; //#DEBUG
     int foundCheckMates = 0; //#DEBUG
-    int foundDublicateDrawMoves = 0; //#DEBUG
-    string foundDrawMoves; //#DEBUG
     int addedZobristKeys = 0; //#DEBUG
     int usedZobristKeys = 0; //#DEBUG
     // -----------------------------
-    //Queue<int> foundDrawMovesPerTurn = new();
 
     public bool IsEndgame(Board board, bool white) //#DEBUG
     { //#DEBUG
@@ -118,12 +115,6 @@ public class MyBot : IChessBot
 
         Console.WriteLine("found checkmate: " + foundCheckMates + " times this turn"); //#DEBUG
         foundCheckMates = 0; //#DEBUG
-
-        Console.WriteLine("found: " + foundDublicateDrawMoves + " dublicate draw moves this turn"); //#DEBUG
-        foundDublicateDrawMoves = 0; //#DEBUG
-
-        Console.WriteLine("found these draw moves: " + foundDrawMoves + " this turn"); //#DEBUG
-        foundDrawMoves = ""; //#DEBUG
 
         Console.WriteLine(searchedMoves + " Searched moves"); //#DEBUG
 
@@ -197,22 +188,13 @@ public class MyBot : IChessBot
                 if (isMaximizingPlayer) min = Max(min, v);
                 else max = Min(max, v);
                 if (max < min) break;
-
-
-
-                //else printErrorDraw(move); //#DEBUG
-
-                //else if(board.IsDraw()) //#DEBUG
-                //{ //#DEBUG
-                //foundDublicateDrawMoves++; //#DEBUG
-                //} //#DEBUG
             }
 
         }
 
 
-        if (a ? depth > result.depth : true) boardHashes[key] = (bMoveMat, depth, bMove); ///old comment: using tryadd instead of checking if it exist and using add as it seems to be 600-800ms faster.
-        //if (AB) addedZobristKeys++; //#DEBUG
+        boardHashes[key] = (bMoveMat, depth, bMove); ///old comment: using tryadd instead of checking if it exist and using add as it seems to be 600-800ms faster.
+   
 
 
         return new(bMove, bMoveMat);
