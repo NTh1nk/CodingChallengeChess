@@ -61,7 +61,6 @@ public class MyBot : IChessBot
     int usedZobristKeys = 0; //#DEBUG
     // -----------------------------
     //Queue<int> foundDrawMovesPerTurn = new();
-    int maxSearchDepth = 8;
 
     public bool IsEndgame(Board board, bool white) //#DEBUG
     { //#DEBUG
@@ -191,14 +190,6 @@ public class MyBot : IChessBot
                 miniMax(board, depth - 1, -currentPlayer, min, max, newBase).Item2 : // use minimax if the depth is bigger than 0
                 newBase + (board.IsInCheckmate() ? (1000000000 + depth * 901) * currentPlayer : 0) // use the stored value or get piece values new
                 );
-
-
-
-            if (depth == maxSearchDepth) //#DEBUG
-            {//#DEBUG
-                //Console.WriteLine($"{move}: {v}");//#DEBUG
-                //Console.WriteLine($"{v}");//#DEBUG
-            }//#DEBUG
 
             board.UndoMove(move);
 
