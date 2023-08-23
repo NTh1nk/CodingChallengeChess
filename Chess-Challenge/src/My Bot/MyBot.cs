@@ -167,7 +167,7 @@ public class MyBot : IChessBot
                     ( 
                     depth > 0 ? //if
                         miniMax(board, depth - 1, -currentPlayer, min, max, newBase, ply +1) : //if the depth is bigger than 0 use minimax
-                        newBase + (board.IsInCheckmate() ? (1000000000 + depth * 901) * currentPlayer : 0) // use the stored value or get piece values new
+                        board.IsInCheckmate() ? (1000000000 + depth * 901) * currentPlayer : newBase 
                     );
 
             board.UndoMove(move);
