@@ -146,7 +146,7 @@ public class MyBot : IChessBot
         if (a && result.depth >= depth)
             return result.boardVal;
 
-        var storedBestMove = result.bestMove.RawValue;
+        var storedBestMove = result.bestMove.RawValue; // this automaticly happens when we do move == otherMove, but it's slighty faster to only calculate it once. can be removed if needed
         List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(m, isMaximizingPlayer))).ToList();
         sortedMoves = sortedMoves.OrderByDescending(item => a && storedBestMove == item.move.RawValue && result.depth > 0 ? 10000000 : item.Base - (item.move.IsCapture ? pieceValues[(int)item.move.MovePieceType - 1] / 3 : 0)).ToList(); // if it's a capture it subtracks the attackers value thereby creating MVV-LVA (Most Valuable Victim - Least Valuable Aggressor)
 
