@@ -158,22 +158,23 @@ public class MyBot : IChessBot
 
             float newBase = move.IsEnPassant || move.IsCastles ? getPieceValues(board, currentPlayer) : (prevBase + Base * currentPlayer); // if it is enPassent we recalculate the move
 
-            //float total = t ? StoredTable.Item1 : newBase + evaluateTop(board, currentPlayer);
 
             bool isDraw = board.IsRepeatedPosition() || board.IsFiftyMoveDraw();
 
-            //bool t = true;
-            //bool t = boardHashes.TryGetValue(zobristKey, out var StoredTable);
-            var v =
-                (
-                depth > 0 ?
-                miniMax(board, depth - 1, -currentPlayer, min, max, newBase, ply +1) : // use minimax if the depth is bigger than 0
-                newBase + (board.IsInCheckmate() ? (1000000000 + depth * 901) * currentPlayer : 0) // use the stored value or get piece values new
-                );
+            var v = 
+                isDraw ? //if it is a draw 
+                    -150 * currentPlayer : //else
+                    ( 
+                    depth > 0 ? //if
+                        miniMax(board, depth - 1, -currentPlayer, min, max, newBase, ply +1) : //if the depth is bigger than 0 use minimax
+                        newBase + (board.IsInCheckmate() ? (1000000000 + depth * 901) * currentPlayer : 0) // use the stored value or get piece values new
+                    );
 
             board.UndoMove(move);
 
-            if (!isDraw && isMaximizingPlayer ? v >= bMoveMat : v <= bMoveMat)
+            
+
+            if (isMaximizingPlayer ? v >= bMoveMat : v <= bMoveMat)
             {
 
                 bMove = move;
