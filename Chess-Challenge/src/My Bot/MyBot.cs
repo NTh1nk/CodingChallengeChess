@@ -94,7 +94,7 @@ public class MyBot : IChessBot
             if (timer.MillisecondsElapsedThisTurn > timer.MillisecondsRemaining / 60)
                 break;
         }
-        
+
         if (IsEndgame(board, !weAreWhite))
         {
             IsEndgameNoFunction = true;
@@ -105,7 +105,7 @@ public class MyBot : IChessBot
         //{ //#DEBUG
         //    Console.WriteLine("flushing bordhashes buffer"); //#DEBUG
         //} //#DEBUG
-            boardHashes.Clear();
+        boardHashes.Clear();
 
         Console.WriteLine("found checkmate: " + foundCheckMates + " times this turn"); //#DEBUG
         foundCheckMates = 0; //#DEBUG
@@ -148,31 +148,36 @@ public class MyBot : IChessBot
 
         var storedBestMove = result.bestMove.RawValue; // this automaticly happens when we do move == otherMove, but it's slighty faster to only calculate it once. can be removed if needed
         List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(m, isMaximizingPlayer))).ToList();
-        sortedMoves = sortedMoves.OrderByDescending(item => a && storedBestMove == item.move.RawValue && result.depth > 0 ? 10000000 : item.Base - (item.move.IsCapture ? pieceValues[(int)item.move.MovePieceType - 1] / 3 : 0)).ToList(); // if it's a capture it subtracks the attackers value thereby creating MVV-LVA (Most Valuable Victim - Least Valuable Aggressor)
+        if(depth < 0) sortedMoves.Add(new (Move.NullMove, prevBase));
+        sortedMoves = sortedMoves.OrderByDescending(item => a && storedBestMove == item.move.RawValue && result.depth > -2 ? 10000000 : item.Base - (item.move.IsCapture ? pieceValues[(int)item.move.MovePieceType - 1] / 3 : 0)).ToList(); // if it's a capture it subtracks the attackers value thereby creating MVV-LVA (Most Valuable Victim - Least Valuable Aggressor)
 
         // Iterate through sortedMoves and evaluate potential moves
         foreach (var (move, Base) in sortedMoves)
         {
+            float v = 0;
+            if (move.IsNull) v = prevBase;
+            else
+            {
+                board.MakeMove(move);
 
-            board.MakeMove(move);
-
-            float newBase = move.IsEnPassant || move.IsCastles ? getPieceValues(board, currentPlayer) : (prevBase + Base * currentPlayer); // if it is enPassent we recalculate the move
+                float newBase = move.IsEnPassant || move.IsCastles ? getPieceValues(board, currentPlayer) : (prevBase + Base * currentPlayer); // if it is enPassent we recalculate the move
 
 
-            bool isDraw = board.IsRepeatedPosition() || board.IsFiftyMoveDraw();
+                bool isDraw = board.IsRepeatedPosition() || board.IsFiftyMoveDraw();
 
-            var v = 
-                isDraw ? //if it is a draw 
-                    -150 * currentPlayer : //else
-                    ( 
-                    depth > 0 ? //if
-                        miniMax(board, depth - 1, -currentPlayer, min, max, newBase, ply + 1) : //if the depth is bigger than 0 use minimax
-                        board.IsInCheckmate() ? (1000000000 + ply * 901) * currentPlayer : newBase 
-                    );
+                v =
+                    isDraw ? //if it is a draw 
+                        -150 * currentPlayer : //else
+                        (
+                        depth > -3 ? //if
+                            miniMax(board, depth - 1, -currentPlayer, min, max, newBase, ply + 1) : //if the depth is bigger than 0 use minimax
+                            board.IsInCheckmate() ? (1000000000 + ply * 901) * currentPlayer : newBase
+                        );
 
-            board.UndoMove(move);
+                board.UndoMove(move);
+            }
 
-            
+
 
             if (isMaximizingPlayer ? v >= bMoveMat : v <= bMoveMat)
             {

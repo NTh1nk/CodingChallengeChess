@@ -43,9 +43,6 @@ public class EvilBot : IChessBot
         900, // Queen
         2000 }; // King
 
-    int[] arrCenterDistanceInt;
-    List<Move> draw_moves = new();
-
     public bool IsEndgameNoFunction = false;
 
     //using a variable instead of float.minvalue for BBC saving
@@ -55,14 +52,11 @@ public class EvilBot : IChessBot
     // debug variables (variables only used for debuging)
     int searchedMoves = 0; //#DEBUG
     int foundCheckMates = 0; //#DEBUG
-    int foundDublicateDrawMoves = 0; //#DEBUG
-    string foundDrawMoves; //#DEBUG
     int addedZobristKeys = 0; //#DEBUG
     int usedZobristKeys = 0; //#DEBUG
     // -----------------------------
-    //Queue<int> foundDrawMovesPerTurn = new();
-    int maxSearchDepth = 8;
 
+    Move bestMove;
     public bool IsEndgame(Board board, bool white) //#DEBUG
     { //#DEBUG
 
@@ -89,48 +83,32 @@ public class EvilBot : IChessBot
 
         pieceSqareValues = toPieceArray(new[] { 1010101018181818, 1212141611111215, 1010101411090810, 1112120610101010, 0002040402061010, 0410121304111314, 0410131404111213, 0206101100020404, 0608080808101010, 0810111208111112, 0810121208121212, 0811101006080808, 1010101011121212, 0910101009101010, 0910101009101010, 0910101010101011, 0608080908101010, 0810111109101111, 1010111108111111, 0810111006080809, 0402020004020200, 0402020004020200, 0604040208060606, 1414060630341207,
                                                 1010101036303230, 2015181412121413, 1212121211111111, 0909090910101010, 0002040402061010, 0410121304111314, 0410131404111213, 0206101100020404, 0608080808101010, 0810111208111112, 0810121208121212, 0811101006080808, 1010101011121212, 0910101009101010, 0910101009101010, 0910101010101011, 0608080908101010, 0810111109101111, 1010111108111111, 0810111006080809, 0002040604060810, 0408141604081618, 0408161804081416, 0404101000040404 }); // use https://onlinestringtools.com/split-string to split into 16 long parts
-        //Botton is endgame
-        //arrCenterDistanceInt = toPieceArray(arrCenterDistance);                                                                                                                                                                                                                                                                                                                                                                                                                                       
-        //Console.WriteLine(pieceSqareValues.Length);
-        //Console.WriteLine(getPieceValue(PieceType.King, 7, 7));
-        //IsEndgameNoFunction = true;
-        //Console.WriteLine(getPieceValue(PieceType.Pawn, 0, 7 - 6));
+
         weAreWhite = board.IsWhiteToMove;
         Console.WriteLine("---calculate new move---" + board.IsWhiteToMove); //#DEBUG
-        Move bestMove = Move.NullMove;
+        bestMove = Move.NullMove;
         for (int depth = 1; depth <= 30; depth++)
         {
-            bestMove = miniMax(board, depth, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue, getPieceValues(board, weAreWhite ? 1 : -1)).Item1;
+            miniMax(board, depth, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue, getPieceValues(board, weAreWhite ? 1 : -1), 0);
             Console.WriteLine("searched for depth: " + depth); //#DEBUG
             if (timer.MillisecondsElapsedThisTurn > timer.MillisecondsRemaining / 60)
                 break;
         }
-        //bestMoves.ToList().ForEach(move => { Console.WriteLine("predicted move: " + move); });
+
         if (IsEndgame(board, !weAreWhite))
         {
             IsEndgameNoFunction = true;
             Console.WriteLine("We are in the endgame"); //#DEBUG
         }
 
-        if (boardHashes.Count > 9500)
-        { //#DEBUG
-            Console.WriteLine("flushing bordhashes buffer"); //#DEBUG
-            boardHashes.Clear();
-        } //#DEBUG
-        if (draw_moves.Count > 125)
-        { //#DEBUG
-            Console.WriteLine("flushing draw move bufffer"); //#DEBUG
-            draw_moves.Clear();
-        } //#DEBUG
+        //if (boardHashes.Count > 9500)
+        //{ //#DEBUG
+        //    Console.WriteLine("flushing bordhashes buffer"); //#DEBUG
+        //} //#DEBUG
+        boardHashes.Clear();
 
         Console.WriteLine("found checkmate: " + foundCheckMates + " times this turn"); //#DEBUG
         foundCheckMates = 0; //#DEBUG
-
-        Console.WriteLine("found: " + foundDublicateDrawMoves + " dublicate draw moves this turn"); //#DEBUG
-        foundDublicateDrawMoves = 0; //#DEBUG
-
-        Console.WriteLine("found these draw moves: " + foundDrawMoves + " this turn"); //#DEBUG
-        foundDrawMoves = ""; //#DEBUG
 
         Console.WriteLine(searchedMoves + " Searched moves"); //#DEBUG
 
@@ -150,13 +128,13 @@ public class EvilBot : IChessBot
 
     }
 
-    private Tuple<Move, float> miniMax(Board board, int depth, int currentPlayer, float min, float max, float prevBase)
+    private float miniMax(Board board, int depth, int currentPlayer, float min, float max, float prevBase, int ply)
     {
         bool isMaximizingPlayer = currentPlayer > 0; // could also be called isWhite
         Move[] moves = board.GetLegalMoves(depth < 1);
 
         if (moves.Length < 1)
-            return new(Move.NullMove, prevBase + (board.IsInCheckmate() ? (1000000000 + depth * 901) * -currentPlayer : 0)); //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
+            return board.IsInCheckmate() ? (-1000000000 + ply * 901) * currentPlayer : prevBase; //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
 
         Move bMove = moves[0];
         float bMoveMat = minFloatValue * currentPlayer;
@@ -166,10 +144,11 @@ public class EvilBot : IChessBot
         var a = boardHashes.TryGetValue(key, out result);
 
         if (a && result.depth >= depth)
-            return new(result.bestMove, result.boardVal);
+            return result.boardVal;
 
+        var storedBestMove = result.bestMove.RawValue; // this automaticly happens when we do move == otherMove, but it's slighty faster to only calculate it once. can be removed if needed
         List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(m, isMaximizingPlayer))).ToList();
-        sortedMoves = sortedMoves.OrderByDescending(item => a && result.bestMove == item.move && result.depth > 0 ? 10000000 : item.Base - (item.move.IsCapture ? pieceValues[(int)item.move.MovePieceType - 1] / 3 : 0)).ToList(); // if it's a capture it subtracks the attackers value thereby creating MVV-LVA (Most Valuable Victim - Least Valuable Aggressor)
+        sortedMoves = sortedMoves.OrderByDescending(item => a && storedBestMove == item.move.RawValue && result.depth > 0 ? 10000000 : item.Base - (item.move.IsCapture ? pieceValues[(int)item.move.MovePieceType - 1] / 3 : 0)).ToList(); // if it's a capture it subtracks the attackers value thereby creating MVV-LVA (Most Valuable Victim - Least Valuable Aggressor)
 
         // Iterate through sortedMoves and evaluate potential moves
         foreach (var (move, Base) in sortedMoves)
@@ -179,30 +158,23 @@ public class EvilBot : IChessBot
 
             float newBase = move.IsEnPassant || move.IsCastles ? getPieceValues(board, currentPlayer) : (prevBase + Base * currentPlayer); // if it is enPassent we recalculate the move
 
-            //float total = t ? StoredTable.Item1 : newBase + evaluateTop(board, currentPlayer);
 
             bool isDraw = board.IsRepeatedPosition() || board.IsFiftyMoveDraw();
 
-            //bool t = true;
-            //bool t = boardHashes.TryGetValue(zobristKey, out var StoredTable);
             var v =
-                (
-                depth > 0 ?
-                miniMax(board, depth - 1, -currentPlayer, min, max, newBase).Item2 : // use minimax if the depth is bigger than 0
-                newBase + (board.IsInCheckmate() ? (1000000000 + depth * 901) * currentPlayer : 0) // use the stored value or get piece values new
-                );
-
-
-
-            if (depth == maxSearchDepth) //#DEBUG
-            {//#DEBUG
-                //Console.WriteLine($"{move}: {v}");//#DEBUG
-                //Console.WriteLine($"{v}");//#DEBUG
-            }//#DEBUG
+                isDraw ? //if it is a draw 
+                    -150 * currentPlayer : //else
+                    (
+                    depth > 0 ? //if
+                        miniMax(board, depth - 1, -currentPlayer, min, max, newBase, ply + 1) : //if the depth is bigger than 0 use minimax
+                        board.IsInCheckmate() ? (1000000000 + ply * 901) * currentPlayer : newBase
+                    );
 
             board.UndoMove(move);
 
-            if (!isDraw && isMaximizingPlayer ? v >= bMoveMat : v <= bMoveMat)
+
+
+            if (isMaximizingPlayer ? v >= bMoveMat : v <= bMoveMat)
             {
 
                 bMove = move;
@@ -212,25 +184,16 @@ public class EvilBot : IChessBot
                 if (isMaximizingPlayer) min = Max(min, v);
                 else max = Min(max, v);
                 if (max < min) break;
-
-
-
-                //else printErrorDraw(move); //#DEBUG
-
-                //else if(board.IsDraw()) //#DEBUG
-                //{ //#DEBUG
-                //foundDublicateDrawMoves++; //#DEBUG
-                //} //#DEBUG
             }
 
         }
 
 
-        if (a ? depth > result.depth : true) boardHashes[key] = (bMoveMat, depth, bMove); ///old comment: using tryadd instead of checking if it exist and using add as it seems to be 600-800ms faster.
-        //if (AB) addedZobristKeys++; //#DEBUG
+        boardHashes[key] = (bMoveMat, depth, bMove); ///old comment: using tryadd instead of checking if it exist and using add as it seems to be 600-800ms faster.
 
 
-        return new(bMove, bMoveMat);
+        if (ply < 1) bestMove = bMove; // if it's root we want to asign global best move to local best move
+        return bMoveMat;
     }
 
     /* private int ManhattanDistance(Square square1, Square square2)
