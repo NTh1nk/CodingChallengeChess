@@ -171,7 +171,7 @@
 
                     v =
                         isDraw ? //if it is a draw 
-                            -150 * currentPlayer : //else
+                            -50 * currentPlayer : //else
                             (
                             depth > -3 ? //if
                                 miniMax(board, depth - 1, -currentPlayer, min, max, newBase, ply + 1) : //if the depth is bigger than 0 use minimax
