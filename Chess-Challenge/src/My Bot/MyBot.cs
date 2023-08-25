@@ -91,7 +91,7 @@
             {
                 miniMax(board, depth, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue, getPieceValues(board, weAreWhite ? 1 : -1), 0);
                 Console.WriteLine("searched for depth: " + depth); //#DEBUG
-                if (timer.MillisecondsElapsedThisTurn > timer.MillisecondsRemaining / 60)
+                if (timer.MillisecondsElapsedThisTurn > timer.MillisecondsRemaining / 75)
                     break;
             }
 
