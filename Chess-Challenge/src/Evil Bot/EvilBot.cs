@@ -94,7 +94,7 @@ public class EvilBot : IChessBot
             if (timer.MillisecondsElapsedThisTurn > timer.MillisecondsRemaining / 60)
                 break;
         }
-
+        
         if (IsEndgame(board, !weAreWhite))
         {
             IsEndgameNoFunction = true;
@@ -105,7 +105,7 @@ public class EvilBot : IChessBot
         //{ //#DEBUG
         //    Console.WriteLine("flushing bordhashes buffer"); //#DEBUG
         //} //#DEBUG
-        boardHashes.Clear();
+            boardHashes.Clear();
 
         Console.WriteLine("found checkmate: " + foundCheckMates + " times this turn"); //#DEBUG
         foundCheckMates = 0; //#DEBUG
@@ -134,7 +134,7 @@ public class EvilBot : IChessBot
         Move[] moves = board.GetLegalMoves(depth < 1);
 
         if (moves.Length < 1)
-            return board.IsInCheckmate() ? (-1000000000 + ply * 901) * currentPlayer : prevBase; //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
+            return prevBase + (board.IsInCheckmate() ? (1000000000 + depth * 901) * -currentPlayer : 0); //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
 
         Move bMove = moves[0];
         float bMoveMat = minFloatValue * currentPlayer;
@@ -161,18 +161,18 @@ public class EvilBot : IChessBot
 
             bool isDraw = board.IsRepeatedPosition() || board.IsFiftyMoveDraw();
 
-            var v =
+            var v = 
                 isDraw ? //if it is a draw 
                     -150 * currentPlayer : //else
-                    (
+                    ( 
                     depth > 0 ? //if
-                        miniMax(board, depth - 1, -currentPlayer, min, max, newBase, ply + 1) : //if the depth is bigger than 0 use minimax
-                        board.IsInCheckmate() ? (1000000000 + ply * 901) * currentPlayer : newBase
+                        miniMax(board, depth - 1, -currentPlayer, min, max, newBase, ply +1) : //if the depth is bigger than 0 use minimax
+                        newBase + (board.IsInCheckmate() ? (1000000000 + depth * 901) * currentPlayer : 0) // use the stored value or get piece values new
                     );
 
             board.UndoMove(move);
 
-
+            
 
             if (isMaximizingPlayer ? v >= bMoveMat : v <= bMoveMat)
             {
