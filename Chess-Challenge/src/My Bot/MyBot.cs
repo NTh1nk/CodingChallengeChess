@@ -91,7 +91,7 @@ public class MyBot : IChessBot
         bestMove = Move.NullMove;
         for (int depth = 1; depth <= 30; depth++)
         {
-            miniMax(board, depth, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue, getPieceValues(board, weAreWhite ? 1 : -1), 0);
+            miniMax(board, depth, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue, getPieceValues(board) * (weAreWhite ? 1 : -1), 0);
             Console.WriteLine("searched for depth: " + depth); //#DEBUG
             if (timer.MillisecondsElapsedThisTurn > timer.MillisecondsRemaining / 60)
                 break;
@@ -134,14 +134,16 @@ public class MyBot : IChessBot
 
     private float miniMax(Board board, int depth, int currentPlayer, float min, float max, float prevBase, int ply)
     {
-        bool isMaximizingPlayer = currentPlayer > 0; // could also be called isWhite
+        //bool isMaximizingPlayer = currentPlayer > 0; // could also be called isWhite
         Move[] moves = board.GetLegalMoves(depth < 1);
 
-        if (moves.Length < 1)
-            return board.IsInCheckmate() ? (-1000000000 + ply * 901) * currentPlayer : prevBase; //if possible removing the getpieceValue would be preferable, but for now it's better with it kept there
+        if (moves.Length < 1) // if there are no legal moves we can do
+            return board.IsInCheckmate() ? // if we are in checkmate 
+                (-1000000000 + ply * 901) // we give it a low score (we cant be doing the checkmate because we don't have any legal moves)
+                : prevBase; // if not checkmate we just return the prevBase, because nothing can have changed
 
         Move bMove = moves[0];
-        float bMoveMat = minFloatValue * currentPlayer;
+        float bMoveMat = minFloatValue;
         ulong key = board.ZobristKey;
         var foundTable = boardHashes.TryGetValue(key, out var result);
 
@@ -152,11 +154,10 @@ public class MyBot : IChessBot
             bMove = Move.NullMove;
             bMoveMat = prevBase;
 
-            if (isMaximizingPlayer) min = Max(min, prevBase);
-            else max = Min(max, prevBase);
+            min = Max(min, prevBase);
         }
-        var storedBestMove = result.bestMove.RawValue; // this automaticly happens when we do move == otherMove, but it's slighty faster to only calculate it once. can be removed if needed
-        List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(m, isMaximizingPlayer))).ToList();
+        var storedBestMove = result.bestMove.RawValue; // this automaticly happens when we do move == otherMove, but it's slighty faster do to only calculating it once. can be removed if needed, token wise
+        List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(m, currentPlayer > 0))).ToList();
         // if(depth < 1) sortedMoves.Add(new (Move.NullMove, prevBase));
         sortedMoves = sortedMoves.OrderByDescending(item => foundTable && storedBestMove == item.move.RawValue && result.depth > qd ? 10000000 : item.Base - (item.move.IsCapture ? pieceValues[(int)item.move.MovePieceType - 1] / 3 : 0)).ToList(); // if it's a capture it subtracks the attackers value thereby creating MVV-LVA (Most Valuable Victim - Least Valuable Aggressor)
 
@@ -169,18 +170,18 @@ public class MyBot : IChessBot
             {
                 board.MakeMove(move);
 
-                float newBase = move.IsEnPassant || move.IsCastles ? getPieceValues(board, currentPlayer) : (prevBase + Base * currentPlayer); // if it is enPassent we recalculate the move
+                float newBase = move.IsEnPassant || move.IsCastles ? getPieceValues(board) * currentPlayer : (prevBase + Base); // if it is enPassent we recalculate the move
 
 
                 bool isDraw = board.IsRepeatedPosition() || board.IsFiftyMoveDraw();
 
                 v =
                     isDraw ? //if it is a draw 
-                        -50 * currentPlayer : //else
+                        -50 : //else
                         (
                         depth > qd ? //if
-                            miniMax(board, depth - 1, -currentPlayer, min, max, newBase, ply + 1) : //if the depth is bigger than 0 use minimax
-                            board.IsInCheckmate() ? (1000000000 + ply * 901) * currentPlayer : newBase
+                            -miniMax(board, depth - 1, -currentPlayer, -max, -min, -newBase, ply + 1): //if the depth is bigger than 0 use minimax (we swap max and min because the player has changed)
+                            board.IsInCheckmate() ? (1000000000 + ply * 901) : newBase
                         );
 
                 board.UndoMove(move);
@@ -188,22 +189,21 @@ public class MyBot : IChessBot
 
 
 
-            if (isMaximizingPlayer ? v >= bMoveMat : v <= bMoveMat)
+            if (v >= bMoveMat)
             {
 
                 bMove = move;
                 bMoveMat = v;
 
                 // alpha beta
-                if (isMaximizingPlayer) min = Max(min, v);
-                else max = Min(max, v);
+                min = Max(min, v);
                 if (max < min) break;
             }
 
         }
 
 
-        boardHashes[key] = (bMoveMat, depth, bMove); ///old comment: using tryadd instead of checking if it exist and using add as it seems to be 600-800ms faster.
+        boardHashes[key] = (bMoveMat, depth, bMove);
 
 
         if (ply < 1) bestMove = bMove; // if it's root we want to asign global best move to local best move
@@ -216,9 +216,9 @@ public class MyBot : IChessBot
     int dy = Math.Abs(square1.Rank - square2.Rank);
     return dx + dy;
     } */
-    float getPieceValues(Board board, int currentPlayer) =>
-    board.GetAllPieceLists().SelectMany(x => x).Sum(p =>
-        getPieceValue(p.PieceType, p.Square, p.IsWhite) * (p.IsWhite ? 1 : -1));
+    float getPieceValues(Board board) =>
+        board.GetAllPieceLists().SelectMany(x => x).Sum(p =>
+            getPieceValue(p.PieceType, p.Square, p.IsWhite) * (p.IsWhite ? 1 : -1));
 
 
 
