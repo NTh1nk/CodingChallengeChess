@@ -273,9 +273,8 @@ public class MyBot : IChessBot
 
     float evaluateBase(Move move, bool isWhite)
     {
-
-        if (move.IsEnPassant || move.IsCastles) // beause it is a "special" move we just return 0. this is for some reason better than returning below
-            return 0;
+        //if (move.IsEnPassant || move.IsCastles) // beause it is a "special" move we just return 0. this is for some reason better than returning below
+        //    return 0;
         return
             -getPieceValue(move.MovePieceType, move.StartSquare, isWhite)  // remove the old piece 
             + getPieceValue(move.IsPromotion ? move.PromotionPieceType : move.MovePieceType, move.TargetSquare, isWhite) // add the new piece (move piece type if it is't promotion. if it is use the promotion piece type)
