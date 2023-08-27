@@ -258,7 +258,8 @@ public class MyBot : IChessBot
         //}    
         return pieceValues[pieceTypeIndex] + pieceSqareValues[
             (s.File > 3 ? 7 - s.File : s.File) // this mirrors the table to use less BBS
-            + (IsWhite ? 7 - s.Rank : s.Rank) * 4 + pieceTypeIndex * 32 // flip the table if it is white
+            + (IsWhite ? 7 - s.Rank : s.Rank) * 4 // flip the table if it is white
+            + pieceTypeIndex * 32 // choose the correct table depending on what type of piece
             + (IsEndgameNoFunction ? 192 : 0)] // use endgame values if we are in the endgame
                 * 5 - 50;
     } //#DEBUG
