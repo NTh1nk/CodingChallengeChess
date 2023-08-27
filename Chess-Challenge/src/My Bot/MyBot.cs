@@ -93,9 +93,9 @@ public class MyBot : IChessBot
         bestMove = Move.NullMove;
         for (int depth = 1; depth <= 30; depth++)
         {
-            miniMax(board, depth, weAreWhite ? 1 : -1, -infinity + 10, infinity - 10, getPieceValues(board) * (weAreWhite ? 1 : -1), 0);
+            miniMax(board, depth, weAreWhite ? 1 : -1, -infinity + 10, infinity - 10, getPieceValues(board) * (weAreWhite ? 1 : -1), 0, timer);
             Console.WriteLine("searched for depth: " + depth); //#DEBUG
-            if (timer.MillisecondsElapsedThisTurn > timer.MillisecondsRemaining / 60)
+            if (timer.MillisecondsElapsedThisTurn > timer.MillisecondsRemaining / 30)
                 break;
             if (timer.MillisecondsRemaining < 3000)
                 qd = 0;
@@ -134,7 +134,7 @@ public class MyBot : IChessBot
 
     }
 
-    private float miniMax(Board board, int depth, int currentPlayer, float min, float max, float prevBase, int ply)
+    private float miniMax(Board board, int depth, int currentPlayer, float min, float max, float prevBase, int ply, Timer timer)
     {
         //bool isMaximizingPlayer = currentPlayer > 0; // could also be called isWhite
         Move[] moves = board.GetLegalMoves(depth < 1);
@@ -168,6 +168,7 @@ public class MyBot : IChessBot
         // Iterate through sortedMoves and evaluate potential moves
         foreach (var (move, Base) in sortedMoves)
         {
+            if (timer.MillisecondsElapsedThisTurn > timer.MillisecondsRemaining / 30) return infinity;
             float v = 0;
             if (move.IsNull) v = prevBase;
             else
@@ -184,7 +185,7 @@ public class MyBot : IChessBot
                         -50 : //else
                         (
                         depth > qd ? //if
-                            -miniMax(board, depth - 1, -currentPlayer, -max, -min, -newBase, ply + 1): //if the depth is bigger than 0 use minimax (we swap max and min because the player has changed)
+                            -miniMax(board, depth - 1, -currentPlayer, -max, -min, -newBase, ply + 1, timer): //if the depth is bigger than 0 use minimax (we swap max and min because the player has changed)
                             board.IsInCheckmate() ? infinity : newBase
                         );
 
