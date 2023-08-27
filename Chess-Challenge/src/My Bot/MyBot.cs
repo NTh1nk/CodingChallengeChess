@@ -148,7 +148,7 @@ public class MyBot : IChessBot
         var foundTable = boardHashes.TryGetValue(key, out var result);
 
         if (foundTable && result.depth >= depth)
-            return result.boardVal;
+            return result.boardVal * currentPlayer;
         if (depth < 1)
         {
             bMove = Move.NullMove;
@@ -203,7 +203,7 @@ public class MyBot : IChessBot
         }
 
 
-        boardHashes[key] = (bMoveMat, depth, bMove);
+        boardHashes[key] = (bMoveMat * currentPlayer, depth, bMove);
 
 
         if (ply < 1) bestMove = bMove; // if it's root we want to asign global best move to local best move
