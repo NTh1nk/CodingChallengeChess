@@ -49,6 +49,8 @@ public class MyBot : IChessBot
     float minFloatValue = float.MinValue;
 
 
+    float infinity = 1000000; // should work aslong as it's bigger than: 900 + 500 * 2 + 320 * 2 + 300 * 2 + 100 * 8 + 50 * 16 = 4740 (king not included because both colors always has a king
+
     // debug variables (variables only used for debuging)
     int searchedMoves = 0; //#DEBUG
     int foundCheckMates = 0; //#DEBUG
@@ -91,7 +93,7 @@ public class MyBot : IChessBot
         bestMove = Move.NullMove;
         for (int depth = 1; depth <= 30; depth++)
         {
-            miniMax(board, depth, weAreWhite ? 1 : -1, minFloatValue, float.MaxValue, getPieceValues(board) * (weAreWhite ? 1 : -1), 0);
+            miniMax(board, depth, weAreWhite ? 1 : -1, -infinity + 10, infinity - 10, getPieceValues(board) * (weAreWhite ? 1 : -1), 0);
             Console.WriteLine("searched for depth: " + depth); //#DEBUG
             if (timer.MillisecondsElapsedThisTurn > timer.MillisecondsRemaining / 60)
                 break;
@@ -139,11 +141,11 @@ public class MyBot : IChessBot
 
         if (moves.Length < 1) // if there are no legal moves we can do
             return board.IsInCheckmate() ? // if we are in checkmate 
-                (-1000000000 + ply * 901) // we give it a low score (we cant be doing the checkmate because we don't have any legal moves)
+                -infinity // we give it a low score (we cant be doing the checkmate because we don't have any legal moves)
                 : prevBase; // if not checkmate we just return the prevBase, because nothing can have changed
 
         Move bMove = moves[0];
-        float bMoveMat = minFloatValue;
+        float bMoveMat = -infinity;
         ulong key = board.ZobristKey;
         var foundTable = boardHashes.TryGetValue(key, out var result);
 
@@ -159,7 +161,9 @@ public class MyBot : IChessBot
         var storedBestMove = result.bestMove.RawValue; // this automaticly happens when we do move == otherMove, but it's slighty faster do to only calculating it once. can be removed if needed, token wise
         List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(m, currentPlayer > 0))).ToList();
         // if(depth < 1) sortedMoves.Add(new (Move.NullMove, prevBase));
-        sortedMoves = sortedMoves.OrderByDescending(item => foundTable && storedBestMove == item.move.RawValue && result.depth > qd ? 10000000 : item.Base - (item.move.IsCapture ? pieceValues[(int)item.move.MovePieceType - 1] / 3 : 0)).ToList(); // if it's a capture it subtracks the attackers value thereby creating MVV-LVA (Most Valuable Victim - Least Valuable Aggressor)
+        sortedMoves = sortedMoves.OrderByDescending(
+            item => foundTable && storedBestMove == item.move.RawValue && result.depth > qd ? infinity
+        : item.Base - (item.move.IsCapture ? pieceValues[(int)item.move.MovePieceType - 1] / 3 : 0)).ToList(); // if it's a capture it subtracks the attackers value thereby creating MVV-LVA (Most Valuable Victim - Least Valuable Aggressor)
 
         // Iterate through sortedMoves and evaluate potential moves
         foreach (var (move, Base) in sortedMoves)
@@ -181,7 +185,7 @@ public class MyBot : IChessBot
                         (
                         depth > qd ? //if
                             -miniMax(board, depth - 1, -currentPlayer, -max, -min, -newBase, ply + 1): //if the depth is bigger than 0 use minimax (we swap max and min because the player has changed)
-                            board.IsInCheckmate() ? (1000000000 + ply * 901) : newBase
+                            board.IsInCheckmate() ? infinity : newBase
                         );
 
                 board.UndoMove(move);
@@ -191,13 +195,14 @@ public class MyBot : IChessBot
 
             if (v >= bMoveMat)
             {
-
+                // improve best move and the best moves result
                 bMove = move;
                 bMoveMat = v;
 
                 // alpha beta
                 min = Max(min, v);
                 if (max < min) break;
+                
             }
 
         }
