@@ -204,3 +204,5 @@ print(", ".join(l))
 print("list uses ", len(l), " tokens")
 print(len("18446744073709551615"))
 # print([ x[i:i+chunk_size] for i in range(0, chunks, chunk_size) ])
+
+print("*", (max(list) - min(list)) / 99, "+", min(list))
