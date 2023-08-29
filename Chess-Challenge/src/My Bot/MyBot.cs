@@ -3,8 +3,6 @@ using System;
 using static System.Math;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Xml.XPath;
 
 public class MyBot : IChessBot
 {
@@ -60,32 +58,23 @@ public class MyBot : IChessBot
 
     Move bestMove;
 
+    int phase = 0;
+    int[] phaseValues = { 0, 0, 1, 1, 2, 4, 0};
     int qd = -3; // quince search depth
-    public bool IsEndgame(Board board, bool white) //#DEBUG
+    public void updatePhase(Board board) //#DEBUG
     { //#DEBUG
-
-
-        if (board.GetAllPieceLists().SelectMany(x => x).Sum(p =>
-            p.IsWhite != white ? pieceValues[(int)p.PieceType - 1] : 0) < 3000)
-        {
-
-            // change values to endgame values, to change strategi
-            pieceValues = new[] {
-                    160, // Pawn
-                    320, // Knight
-                    345, // Bishop
-                    530, // Rook
-                    940, // Queen
-                    2000 // King
-                    };
-            return true;
-        };
-        return false;
+        phase = board.GetAllPieceLists()
+            .SelectMany( x => x)
+            .Sum(
+                p => phaseValues[(int)p.PieceType]);
+        
     }
     public Move Think(Board board, Timer timer)
     {
 
         pieceSqareValues = toPieceArray(new[] { 4747474776866575, 4649555643514953, 4047465140464645, 3747424147474747, 0022383326366858, 3465586645525363, 4449525141455150, 3932444717413138, 3949243740524244, 4358605946495362, 4651515547525252, 4952524738474341, 5759576255576465, 4653555841444955, 3740444735404343, 3543424542444852, 3947565141364648, 4443495040404343, 4540454543484447, 3745514847424550, 2954524356474245, 4554484343424440, 3347403643434134, 4849452943585132, 4747474799979386, 7476726757545149, 5150474549494648, 5150505047474747, 3137443940454047, 4142505043485454, 4246525541474752, 3542454639334143, 4341444545464944, 4845474747505150, 4648515344475050, 4342454741454146, 5150535251515151, 4949494949485148, 4849504946474647, 4646474845484847, 4554545543535759, 4249506148545460, 4255536143405249, 4141394338394135, 2637424244525152, 5052545245545455, 4246535442475153, 4044495132384144 }); // use https://onlinestringtools.com/split-string to split into 16 long parts
+        updatePhase(board);
+        Console.WriteLine("Phase: " + phase);
 
         weAreWhite = board.IsWhiteToMove;
         Console.WriteLine("---calculate new move---" + board.IsWhiteToMove); //#DEBUG
@@ -100,11 +89,6 @@ public class MyBot : IChessBot
                 qd = 0;
         }
 
-        if (IsEndgame(board, !weAreWhite))
-        {
-            IsEndgameNoFunction = true;
-            Console.WriteLine("We are in the endgame"); //#DEBUG
-        }
 
         //if (boardHashes.Count > 9500)
         //{ //#DEBUG
@@ -256,12 +240,10 @@ public class MyBot : IChessBot
         //{
         //     //int distanceBonus = 10 * (7 - distanceToEnemyKing); // Adjust the bonus factor as needed
         //}    
-        return pieceValues[pieceTypeIndex] + pieceSqareValues[
-            (s.File > 3 ? 7 - s.File : s.File) // this mirrors the table to use less BBS
+        int flatPos = (s.File > 3 ? 7 - s.File : s.File) // this mirrors the table to use less BBS
             + (IsWhite ? 7 - s.Rank : s.Rank) * 4 // flip the table if it is white
-            + pieceTypeIndex * 32 // choose the correct table depending on what type of piece
-            + (IsEndgameNoFunction ? 192 : 0)] // use endgame values if we are in the endgame
-            * 3.5f - 167;
+            + pieceTypeIndex * 32; // choose the correct table depending on what type of piece
+        return pieceValues[pieceTypeIndex] + (pieceSqareValues[flatPos] * (24 - phase) + pieceSqareValues[flatPos + 192] * phase) / 24 * 3.5f - 167;
     } //#DEBUG
 
     int[] toPieceArray(long[] arr) => Array.ConvertAll(arr, element => Enumerable.Range(0, 8).Select(i => int.Parse(element.ToString("D16").Substring(i * 2, 2)))).SelectMany(x => x).ToArray();
