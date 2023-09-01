@@ -60,7 +60,7 @@ public class MyBot : IChessBot
 
     int phase = 0;
     int[] phaseValues = { 0, 0, 1, 1, 2, 4, 0};
-    int qd = -3; // quince search depth
+    int qd = -20; // quince search depth
     public void updatePhase(Board board) //#DEBUG
     { //#DEBUG
         phase = board.GetAllPieceLists()
@@ -123,7 +123,7 @@ public class MyBot : IChessBot
         Move[] moves = board.GetLegalMoves(depth < 1);
 
         if (moves.Length < 1) // if there are no legal moves we can do
-            return board.IsInCheckmate() ? // if we are in checkmate 
+            return depth > 0 && board.IsInCheckmate() ? // if we are in checkmate 
                 -infinity // we give it a low score (we cant be doing the checkmate because we don't have any legal moves)
                 : prevBase; // if not checkmate we just return the prevBase, because nothing can have changed
 
@@ -152,25 +152,24 @@ public class MyBot : IChessBot
         foreach (var (move, Base) in sortedMoves)
         {
             // if (timer.MillisecondsElapsedThisTurn > timer.MillisecondsRemaining / 30) return infinity;
+            
             float v = 0;
             if (move.IsNull) v = prevBase;
             else
             {
+                bool isDraw = board.IsRepeatedPosition() || board.IsFiftyMoveDraw();
+
                 board.MakeMove(move);
 
                 float newBase = move.IsEnPassant || move.IsCastles ? getPieceValues(board) * currentPlayer : (prevBase + Base); // if it is enPassent we recalculate the move
 
 
-                bool isDraw = board.IsRepeatedPosition() || board.IsFiftyMoveDraw();
-
-                v =
-                    isDraw ? //if it is a draw 
-                        -50 : //else
-                        (
-                        depth > qd ? //if
-                            -miniMax(board, depth - 1, -currentPlayer, -max, -min, -newBase, ply + 1, timer): //if the depth is bigger than 0 use minimax (we swap max and min because the player has changed)
-                            board.IsInCheckmate() ? infinity : newBase
-                        );
+                
+                v = 
+                    depth > qd ? //if
+                        -miniMax(board, depth - 1, -currentPlayer, -max, -min, -newBase, ply + 1, timer): //if the depth is bigger than 0 use minimax (we swap max and min because the player has changed)
+                        isDraw ? 0 : newBase
+                    ;
 
                 board.UndoMove(move);
             }
