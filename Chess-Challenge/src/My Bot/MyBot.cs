@@ -83,7 +83,7 @@ public class MyBot : IChessBot
         {
             miniMax(board, depth, weAreWhite ? 1 : -1, -infinity + 10, infinity - 10, getPieceValues(board) * (weAreWhite ? 1 : -1), 0, timer);
             Console.WriteLine("searched for depth: " + depth); //#DEBUG
-            if (timer.MillisecondsElapsedThisTurn > timer.MillisecondsRemaining / 30)
+            if (timer.MillisecondsElapsedThisTurn > timer.MillisecondsRemaining / 60)
                 break;
             if (timer.MillisecondsRemaining < 3000)
                 qd = 0;
@@ -151,7 +151,7 @@ public class MyBot : IChessBot
         // Iterate through sortedMoves and evaluate potential moves
         foreach (var (move, Base) in sortedMoves)
         {
-            if (timer.MillisecondsElapsedThisTurn > timer.MillisecondsRemaining / 30) return infinity;
+            // if (timer.MillisecondsElapsedThisTurn > timer.MillisecondsRemaining / 30) return infinity;
             float v = 0;
             if (move.IsNull) v = prevBase;
             else
