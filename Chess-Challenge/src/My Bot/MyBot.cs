@@ -39,15 +39,7 @@ public class MyBot : IChessBot
             320, // Bishop
             500, // Rook
             900, // Queen
-            2000, // King
-            // -- Endgame values --
-            160, // Pawn
-            320, // Knight
-            345, // Bishop
-            530, // Rook
-            940, // Queen
-            2000 // King
-            };
+            2000 }; // King
 
     public bool IsEndgameNoFunction = false;
 
@@ -251,9 +243,7 @@ public class MyBot : IChessBot
         int flatPos = (s.File > 3 ? 7 - s.File : s.File) // this mirrors the table to use less BBS
             + (IsWhite ? 7 - s.Rank : s.Rank) * 4 // flip the table if it is white
             + pieceTypeIndex * 32; // choose the correct table depending on what type of piece
-        return 
-            (pieceValues[pieceTypeIndex] * phase + pieceValues[pieceTypeIndex + 6] * (24 - phase) +
-            (pieceSqareValues[flatPos] * phase + pieceSqareValues[flatPos + 192] * (24 - phase)) * 3.5f - 167) / 24;
+        return pieceValues[pieceTypeIndex] + (pieceSqareValues[flatPos] * phase + pieceSqareValues[flatPos + 192] * (24 - phase)) / 24 * 3.5f - 167;
     } //#DEBUG
 
     int[] toPieceArray(long[] arr) => Array.ConvertAll(arr, element => Enumerable.Range(0, 8).Select(i => int.Parse(element.ToString("D16").Substring(i * 2, 2)))).SelectMany(x => x).ToArray();
