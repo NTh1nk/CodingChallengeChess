@@ -77,7 +77,7 @@ public class MyBot : IChessBot
         Console.WriteLine("Phase: " + phase); //#Debug
 
         weAreWhite = board.IsWhiteToMove;
-        Console.WriteLine("---calculate new move---" + board.IsWhiteToMove); //#DEBUG
+        Console.WriteLine("---calculate new move--- " + (weAreWhite ? "W" : "B")); //#DEBUG
         bestMove = Move.NullMove;
         for (int depth = 1; depth <= 30; depth++)
         {
