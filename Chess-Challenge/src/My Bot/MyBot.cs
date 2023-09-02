@@ -123,7 +123,7 @@ public class MyBot : IChessBot
         Move[] moves = board.GetLegalMoves(depth < 1);
 
         if (moves.Length < 1) // if there are no legal moves we can do
-            return depth > 0 && board.IsInCheckmate() ? // if we are in checkmate 
+            return depth > 0 && board.IsInCheck() ? // if we are in check
                 -infinity // we give it a low score (we cant be doing the checkmate because we don't have any legal moves)
                 : prevBase; // if not checkmate we just return the prevBase, because nothing can have changed
 
@@ -165,10 +165,10 @@ public class MyBot : IChessBot
 
 
                 
-                v = 
+                v = isDraw ? -50 :
                     depth > qd ? //if
-                        -miniMax(board, depth - 1, -currentPlayer, -max, -min, -newBase, ply + 1, timer): //if the depth is bigger than 0 use minimax (we swap max and min because the player has changed)
-                        isDraw ? 0 : newBase
+                        -miniMax(board, depth - 1, -currentPlayer, -max, -min, -newBase, ply + 1, timer): //if the depth is bigger than qd (q search depth) use minimax (we swap max and min because the player has changed)
+                        newBase
                     ;
 
                 board.UndoMove(move);
