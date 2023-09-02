@@ -122,7 +122,7 @@ public class MyBot : IChessBot
     private float miniMax(Board board, int depth, int currentPlayer, float min, float max, float prevBase, int ply, Timer timer)
     {
         //bool isMaximizingPlayer = currentPlayer > 0; // could also be called isWhite
-        Move[] moves = board.GetLegalMoves(depth < 1);
+        Move[] moves = board.GetLegalMoves(depth <= 0);
 
         if (moves.Length < 1) // if there are no legal moves we can do
             return depth > 0 && board.IsInCheck() ? // if we are in check
@@ -133,7 +133,6 @@ public class MyBot : IChessBot
         float bMoveMat = -infinity;
         ulong key = board.ZobristKey;
         var foundTable = boardHashes.TryGetValue(key, out var result);
-        int bound = 1;
         if (foundTable && result.depth >= depth)
             return result.boardVal * currentPlayer;
         if (depth < 1)
