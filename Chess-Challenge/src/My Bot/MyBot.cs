@@ -82,9 +82,11 @@ public class MyBot : IChessBot
         for (int depth = 1; depth <= 30; depth++)
         {
             miniMax(board, depth, weAreWhite ? 1 : -1, -infinity + 10, infinity - 10, getPieceValues(board) * (weAreWhite ? 1 : -1), 0, timer);
-            Console.WriteLine("searched for depth: " + depth); //#DEBUG
             if (timer.MillisecondsElapsedThisTurn > timer.MillisecondsRemaining / 60)
+            { // #DEBUG
+                Console.WriteLine("reached depth: " + depth); //#DEBUG
                 break;
+            }
             if (timer.MillisecondsRemaining < 3000)
                 qd = 0;
         }
@@ -131,7 +133,7 @@ public class MyBot : IChessBot
         float bMoveMat = -infinity;
         ulong key = board.ZobristKey;
         var foundTable = boardHashes.TryGetValue(key, out var result);
-
+        int bound = 1;
         if (foundTable && result.depth >= depth)
             return result.boardVal * currentPlayer;
         if (depth < 1)
@@ -176,7 +178,7 @@ public class MyBot : IChessBot
 
 
 
-            if (v >= bMoveMat)
+            if (v > bMoveMat)
             {
                 // improve best move and the best moves result
                 bMove = move;
@@ -184,8 +186,8 @@ public class MyBot : IChessBot
 
                 // alpha beta
                 min = Max(min, v);
-                if (max < min) break;
-                
+                if (max <= min)
+                    break;
             }
 
         }
