@@ -3,14 +3,16 @@ using System;
 using static System.Math;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.FlowAnalysis;
 
 public class MyBot : IChessBot
 {
     // right now funktions are seperated. before submision, everything will be compacted into the think function if possible.
     //---this section is variables designated to zobrist hashing and the transportition table---
-    int boardHashCounter = 0;
-    Dictionary<ulong, (float boardVal, int depth, Move bestMove)> boardHashes = new(); //dict <zobrist key, tuple<total_board_value, depth_iteration, bestMove>>
 
+    static ulong boardHashLen = 1 << 20;
+    (ulong key, float boardVal, int depth, Move bestMove, int bound)[] boardHashes = new (ulong, float, int, Move, int)[boardHashLen]; //dict <zobrist key, tuple<total_board_value, depth_iteration, bestMove>>
+    
     //right now this funktion is not needed as it seems board has a funktion to get the zobrist key but it might need to be reintruduced if the api funktion is to slow
     //ulong hashBoard(Board board)
     //{
@@ -27,7 +29,6 @@ public class MyBot : IChessBot
     //    }
     //    return 0;
     //}
-
     //---end---
 
     bool weAreWhite;
@@ -42,9 +43,6 @@ public class MyBot : IChessBot
             2000 }; // King
 
     public bool IsEndgameNoFunction = false;
-
-    //using a variable instead of float.minvalue for BBC saving
-    float minFloatValue = float.MinValue;
 
 
     float infinity = 1000000; // should work aslong as it's bigger than: 900 + 500 * 2 + 320 * 2 + 300 * 2 + 100 * 8 + 50 * 16 = 4740 (king not included because both colors always has a king
@@ -96,7 +94,6 @@ public class MyBot : IChessBot
         //{ //#DEBUG
         //    Console.WriteLine("flushing bordhashes buffer"); //#DEBUG
         //} //#DEBUG
-        boardHashes.Clear();
 
         Console.WriteLine("found checkmate: " + foundCheckMates + " times this turn"); //#DEBUG
         foundCheckMates = 0; //#DEBUG
@@ -110,8 +107,6 @@ public class MyBot : IChessBot
         usedZobristKeys = 0; //#DEBUG
 
         Console.WriteLine("dececion took: " + timer.MillisecondsElapsedThisTurn + " ms this turn"); //#DEBUG
-
-        boardHashCounter = +1;
         //foreach (ulong i in boardHashes.Keys) if (boardHashes[i].Item2 < boardHashCounter - maxSearchDepth) boardHashes.Remove(i); 
 
         return bestMove;
@@ -122,7 +117,7 @@ public class MyBot : IChessBot
     private float miniMax(Board board, int depth, int currentPlayer, float min, float max, float prevBase, int ply, Timer timer)
     {
         //bool isMaximizingPlayer = currentPlayer > 0; // could also be called isWhite
-        Move[] moves = board.GetLegalMoves(depth <= 0);
+        var moves = board.GetLegalMoves(depth <= 0);
 
         if (moves.Length < 1) // if there are no legal moves we can do
             return depth > 0 && board.IsInCheck() ? // if we are in check
@@ -132,9 +127,14 @@ public class MyBot : IChessBot
         Move bMove = moves[0];
         float bMoveMat = -infinity;
         ulong key = board.ZobristKey;
-        var foundTable = boardHashes.TryGetValue(key, out var result);
-        if (foundTable && result.depth >= depth)
-            return result.boardVal * currentPlayer;
+        var result = boardHashes[key % boardHashLen];
+        bool foundTable = result.key == key;
+        
+        if (ply > 0 && foundTable && result.depth >= depth &&
+            (result.bound == 1
+            || result.bound == 0 && result.boardVal >= max
+            || result.bound == 2 && result.boardVal <= min
+            )) return result.boardVal;
         if (depth < 1)
         {
             bMove = Move.NullMove;
@@ -148,7 +148,7 @@ public class MyBot : IChessBot
         sortedMoves = sortedMoves.OrderByDescending(
             item => foundTable && storedBestMove == item.move.RawValue && result.depth > qd ? infinity
         : item.Base - (item.move.IsCapture ? pieceValues[(int)item.move.MovePieceType - 1] / 3 : 0)).ToList(); // if it's a capture it subtracks the attackers value thereby creating MVV-LVA (Most Valuable Victim - Least Valuable Aggressor)
-
+        float origMin = min;
         // Iterate through sortedMoves and evaluate potential moves
         foreach (var (move, Base) in sortedMoves)
         {
@@ -192,7 +192,7 @@ public class MyBot : IChessBot
         }
 
 
-        boardHashes[key] = (bMoveMat * currentPlayer, depth, bMove);
+        boardHashes[key % boardHashLen] = (key, bMoveMat, depth, bMove, bMoveMat >= max ? 0 : bMoveMat > origMin ? 2 : 1);
 
 
         if (ply < 1) bestMove = bMove; // if it's root we want to asign global best move to local best move
