@@ -3,13 +3,15 @@ using System;
 using static System.Math;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.FlowAnalysis;
 
 public class EvilBot : IChessBot
 {
     // right now funktions are seperated. before submision, everything will be compacted into the think function if possible.
     //---this section is variables designated to zobrist hashing and the transportition table---
-    int boardHashCounter = 0;
-    Dictionary<ulong, (float boardVal, int depth, Move bestMove)> boardHashes = new(); //dict <zobrist key, tuple<total_board_value, depth_iteration, bestMove>>
+
+    static ulong boardHashLen = 1 << 20;
+    (ulong key, float boardVal, int depth, Move bestMove, int bound)[] boardHashes = new (ulong, float, int, Move, int)[boardHashLen]; //dict <zobrist key, tuple<total_board_value, depth_iteration, bestMove>>
 
     //right now this funktion is not needed as it seems board has a funktion to get the zobrist key but it might need to be reintruduced if the api funktion is to slow
     //ulong hashBoard(Board board)
@@ -27,7 +29,6 @@ public class EvilBot : IChessBot
     //    }
     //    return 0;
     //}
-
     //---end---
 
     bool weAreWhite;
@@ -42,9 +43,6 @@ public class EvilBot : IChessBot
             2000 }; // King
 
     public bool IsEndgameNoFunction = false;
-
-    //using a variable instead of float.minvalue for BBC saving
-    float minFloatValue = float.MinValue;
 
 
     float infinity = 1000000; // should work aslong as it's bigger than: 900 + 500 * 2 + 320 * 2 + 300 * 2 + 100 * 8 + 50 * 16 = 4740 (king not included because both colors always has a king
@@ -96,23 +94,10 @@ public class EvilBot : IChessBot
         //{ //#DEBUG
         //    Console.WriteLine("flushing bordhashes buffer"); //#DEBUG
         //} //#DEBUG
-        boardHashes.Clear();
-
-        Console.WriteLine("found checkmate: " + foundCheckMates + " times this turn"); //#DEBUG
-        foundCheckMates = 0; //#DEBUG
-
-        Console.WriteLine(searchedMoves + " Searched moves"); //#DEBUG
-
-        Console.WriteLine("adding: " + addedZobristKeys + " deep seached zobrist keys this turn"); //#DEBUG
-        addedZobristKeys = 0; //#DEBUG
-
-        Console.WriteLine("found: " + usedZobristKeys + " positions already calculated this turn"); //#DEBUG
-        usedZobristKeys = 0; //#DEBUG
 
         Console.WriteLine("dececion took: " + timer.MillisecondsElapsedThisTurn + " ms this turn"); //#DEBUG
-
-        boardHashCounter = +1;
         //foreach (ulong i in boardHashes.Keys) if (boardHashes[i].Item2 < boardHashCounter - maxSearchDepth) boardHashes.Remove(i); 
+        Console.WriteLine("------ " + (weAreWhite ? "W" : "B")); //#DEBUG
 
         return bestMove;
         //Console.WriteLine(isPieceProtectedAfterMove(board, moves[0]));
@@ -122,25 +107,35 @@ public class EvilBot : IChessBot
     private float miniMax(Board board, int depth, int currentPlayer, float min, float max, float prevBase, int ply, Timer timer)
     {
         //bool isMaximizingPlayer = currentPlayer > 0; // could also be called isWhite
-        Move[] moves = board.GetLegalMoves(depth <= 0);
-
-        if (moves.Length < 1) // if there are no legal moves we can do
-            return depth > 0 && board.IsInCheck() ? // if we are in check
-                -infinity // we give it a low score (we cant be doing the checkmate because we don't have any legal moves)
-                : prevBase; // if not checkmate we just return the prevBase, because nothing can have changed
+        var moves = board.GetLegalMoves(depth <= 0);
+        if (board.IsRepeatedPosition()) return 0;
+        if (moves.Length == 0) // if there are no legal moves we can do
+            return depth > 0
+                ? board.IsInCheck()
+                    ? -infinity // checkmate
+                    : 0 // stalemate
+                : prevBase; // no more capturing moves
 
         Move bMove = moves[0];
         float bMoveMat = -infinity;
         ulong key = board.ZobristKey;
-        var foundTable = boardHashes.TryGetValue(key, out var result);
-        if (foundTable && result.depth >= depth)
-            return result.boardVal * currentPlayer;
+        var result = boardHashes[key % boardHashLen];
+        bool foundTable = result.key == key;
+
+        //if (ply > 0 && foundTable && result.depth >= depth &&
+        //    (result.bound == 1
+        //    || result.bound == 0 && result.boardVal >= max
+        //    || result.bound == 2 && result.boardVal <= min
+        //    )) return result.boardVal;
         if (depth < 1)
         {
             bMove = Move.NullMove;
             bMoveMat = prevBase;
 
+            if (max <= min) return prevBase;
             min = Max(min, prevBase);
+
+
         }
         var storedBestMove = result.bestMove.RawValue; // this automaticly happens when we do move == otherMove, but it's slighty faster do to only calculating it once. can be removed if needed, token wise
         List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(m, currentPlayer > 0))).ToList();
@@ -148,32 +143,30 @@ public class EvilBot : IChessBot
         sortedMoves = sortedMoves.OrderByDescending(
             item => foundTable && storedBestMove == item.move.RawValue && result.depth > qd ? infinity
         : item.Base - (item.move.IsCapture ? pieceValues[(int)item.move.MovePieceType - 1] / 3 : 0)).ToList(); // if it's a capture it subtracks the attackers value thereby creating MVV-LVA (Most Valuable Victim - Least Valuable Aggressor)
-
+        float origMin = min;
         // Iterate through sortedMoves and evaluate potential moves
         foreach (var (move, Base) in sortedMoves)
         {
-            // if (timer.MillisecondsElapsedThisTurn > timer.MillisecondsRemaining / 30) return infinity;
+            //if (timer.MillisecondsElapsedThisTurn > timer.MillisecondsRemaining / 30) return infinity;
 
             float v = 0;
-            if (move.IsNull) v = prevBase;
-            else
-            {
-                bool isDraw = board.IsRepeatedPosition() || board.IsFiftyMoveDraw();
-
-                board.MakeMove(move);
-
-                float newBase = move.IsEnPassant || move.IsCastles ? getPieceValues(board) * currentPlayer : (prevBase + Base); // if it is enPassent we recalculate the move
 
 
 
-                v = isDraw ? -50 :
-                    depth > qd ? //if
-                        -miniMax(board, depth - 1, -currentPlayer, -max, -min, -newBase, ply + 1, timer) : //if the depth is bigger than qd (q search depth) use minimax (we swap max and min because the player has changed)
-                        newBase
-                    ;
 
-                board.UndoMove(move);
-            }
+            board.MakeMove(move);
+
+            float newBase = move.IsEnPassant || move.IsCastles ? getPieceValues(board) * currentPlayer : (prevBase + Base); // if it is enPassent we recalculate the move
+
+
+
+            v =
+                depth > qd ? //if
+                    -miniMax(board, depth - 1, -currentPlayer, -max, -min, -newBase, ply + 1, timer) : //if the depth is bigger than qd (q search depth) use minimax (we swap max and min because the player has changed)
+                    newBase;
+
+            board.UndoMove(move);
+
 
 
 
@@ -182,20 +175,18 @@ public class EvilBot : IChessBot
                 // improve best move and the best moves result
                 bMove = move;
                 bMoveMat = v;
-
+                if (ply < 1) bestMove = bMove; // if it's root we want to asign global best move to local best move
                 // alpha beta
                 min = Max(min, v);
-                if (max <= min)
-                    break;
+                if (max <= min) break;
             }
 
         }
 
 
-        boardHashes[key] = (bMoveMat * currentPlayer, depth, bMove);
+        boardHashes[key % boardHashLen] = (key, bMoveMat, depth, bMove, bMoveMat >= max ? 0 : bMoveMat > origMin ? 2 : 1);
 
 
-        if (ply < 1) bestMove = bMove; // if it's root we want to asign global best move to local best move
         return bMoveMat;
     }
 
@@ -240,7 +231,7 @@ public class EvilBot : IChessBot
         //{
         //     //int distanceBonus = 10 * (7 - distanceToEnemyKing); // Adjust the bonus factor as needed
         //}    
-        int flatPos = (s.File > 3 ? 7 - s.File : s.File) // this mirrors the table to use less BBS
+        int flatPos = (s.File > 3 ? 7 - s.Index : s.File) // this mirrors the table to use less BBS
             + (IsWhite ? 7 - s.Rank : s.Rank) * 4 // flip the table if it is white
             + pieceTypeIndex * 32; // choose the correct table depending on what type of piece
         return pieceValues[pieceTypeIndex] + (pieceSqareValues[flatPos] * phase + pieceSqareValues[flatPos + 192] * (24 - phase)) / 24 * 3.5f - 167;
