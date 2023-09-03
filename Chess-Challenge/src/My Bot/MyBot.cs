@@ -107,8 +107,21 @@ public class MyBot : IChessBot
     private float miniMax(Board board, int depth, int currentPlayer, float min, float max, float prevBase, int ply, Timer timer)
     {
         //bool isMaximizingPlayer = currentPlayer > 0; // could also be called isWhite
-        var moves = board.GetLegalMoves(depth <= 0);
         if (board.IsRepeatedPosition()) return 0;
+
+        Move bMove = Move.NullMove;
+        float bMoveMat = -infinity;
+
+        if (depth < 1)
+        {
+            
+            bMoveMat = prevBase;
+
+            if (max <= min) return prevBase;
+            min = Max(min, prevBase);
+        }
+
+        var moves = board.GetLegalMoves(depth <= 0);
         if (moves.Length == 0) // if there are no legal moves we can do
             return depth > 0
                 ? board.IsInCheck()
@@ -116,8 +129,6 @@ public class MyBot : IChessBot
                     : 0 // stalemate
                 : prevBase; // no more capturing moves
 
-        Move bMove = moves[0];
-        float bMoveMat = -infinity;
         ulong key = board.ZobristKey;
         var result = boardHashes[key % boardHashLen];
         bool foundTable = result.key == key;
@@ -127,16 +138,6 @@ public class MyBot : IChessBot
         //    || result.bound == 0 && result.boardVal >= max
         //    || result.bound == 2 && result.boardVal <= min
         //    )) return result.boardVal;
-        if (depth < 1)
-        {
-            bMove = Move.NullMove;
-            bMoveMat = prevBase;
-
-            if (max <= min) return prevBase;
-            min = Max(min, prevBase);
-
-
-        }
         var storedBestMove = result.bestMove.RawValue; // this automaticly happens when we do move == otherMove, but it's slighty faster do to only calculating it once. can be removed if needed, token wise
         List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(m, currentPlayer > 0))).ToList();
         // if(depth < 1) sortedMoves.Add(new (Move.NullMove, prevBase));
