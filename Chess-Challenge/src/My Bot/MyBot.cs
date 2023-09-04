@@ -3,8 +3,6 @@ using System;
 using static System.Math;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis.FlowAnalysis;
-using System.ComponentModel.DataAnnotations.Schema;
 
 public class MyBot : IChessBot
 {
