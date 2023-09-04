@@ -12,7 +12,7 @@ public class EvilBot : IChessBot
 
     static ulong boardHashLen = 1 << 20;
     (ulong key, float boardVal, int depth, Move bestMove, int bound)[] boardHashes = new (ulong, float, int, Move, int)[boardHashLen]; //dict <zobrist key, tuple<total_board_value, depth_iteration, bestMove>>
-
+    
     //right now this funktion is not needed as it seems board has a funktion to get the zobrist key but it might need to be reintruduced if the api funktion is to slow
     //ulong hashBoard(Board board)
     //{
@@ -57,15 +57,15 @@ public class EvilBot : IChessBot
     Move bestMove;
 
     int phase = 0;
-    int[] phaseValues = { 0, 0, 1, 1, 2, 4, 0 };
+    int[] phaseValues = { 0, 0, 1, 1, 2, 4, 0};
     int qd = -20; // quince search depth
     public void updatePhase(Board board) //#DEBUG
     { //#DEBUG
         phase = board.GetAllPieceLists()
-            .SelectMany(x => x)
+            .SelectMany( x => x)
             .Sum(
                 p => phaseValues[(int)p.PieceType]);
-
+        
     }
     public Move Think(Board board, Timer timer)
     {
@@ -107,8 +107,21 @@ public class EvilBot : IChessBot
     private float miniMax(Board board, int depth, int currentPlayer, float min, float max, float prevBase, int ply, Timer timer)
     {
         //bool isMaximizingPlayer = currentPlayer > 0; // could also be called isWhite
-        var moves = board.GetLegalMoves(depth <= 0);
         if (board.IsRepeatedPosition()) return 0;
+
+        Move bMove = Move.NullMove;
+        float bMoveMat = -infinity;
+
+        if (depth < 1)
+        {
+            
+            bMoveMat = prevBase;
+
+            if (max <= min) return prevBase;
+            min = Max(min, prevBase);
+        }
+
+        var moves = board.GetLegalMoves(depth <= 0);
         if (moves.Length == 0) // if there are no legal moves we can do
             return depth > 0
                 ? board.IsInCheck()
@@ -116,27 +129,15 @@ public class EvilBot : IChessBot
                     : 0 // stalemate
                 : prevBase; // no more capturing moves
 
-        Move bMove = moves[0];
-        float bMoveMat = -infinity;
         ulong key = board.ZobristKey;
         var result = boardHashes[key % boardHashLen];
         bool foundTable = result.key == key;
-
+        
         //if (ply > 0 && foundTable && result.depth >= depth &&
         //    (result.bound == 1
         //    || result.bound == 0 && result.boardVal >= max
         //    || result.bound == 2 && result.boardVal <= min
         //    )) return result.boardVal;
-        if (depth < 1)
-        {
-            bMove = Move.NullMove;
-            bMoveMat = prevBase;
-
-            if (max <= min) return prevBase;
-            min = Max(min, prevBase);
-
-
-        }
         var storedBestMove = result.bestMove.RawValue; // this automaticly happens when we do move == otherMove, but it's slighty faster do to only calculating it once. can be removed if needed, token wise
         List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(m, currentPlayer > 0))).ToList();
         // if(depth < 1) sortedMoves.Add(new (Move.NullMove, prevBase));
@@ -147,26 +148,20 @@ public class EvilBot : IChessBot
         // Iterate through sortedMoves and evaluate potential moves
         foreach (var (move, Base) in sortedMoves)
         {
-            //if (timer.MillisecondsElapsedThisTurn > timer.MillisecondsRemaining / 30) return infinity;
-
+             //if (timer.MillisecondsElapsedThisTurn > timer.MillisecondsRemaining / 30) return infinity;
+            
             float v = 0;
-
-
-
-
             board.MakeMove(move);
 
             float newBase = move.IsEnPassant || move.IsCastles ? getPieceValues(board) * currentPlayer : (prevBase + Base); // if it is enPassent we recalculate the move
-
-
-
+                
             v =
                 depth > qd ? //if
-                    -miniMax(board, depth - 1, -currentPlayer, -max, -min, -newBase, ply + 1, timer) : //if the depth is bigger than qd (q search depth) use minimax (we swap max and min because the player has changed)
+                    -miniMax(board, depth - 1, -currentPlayer, -max, -min, -newBase, ply + 1, timer): //if the depth is bigger than qd (q search depth) use minimax (we swap max and min because the player has changed)
                     newBase;
 
             board.UndoMove(move);
-
+            
 
 
 
@@ -189,20 +184,9 @@ public class EvilBot : IChessBot
 
         return bMoveMat;
     }
-
-    /* private int ManhattanDistance(Square square1, Square square2)
-    {
-    int dx = Math.Abs(square1.File - square2.File);
-    int dy = Math.Abs(square1.Rank - square2.Rank);
-    return dx + dy;
-    } */
     float getPieceValues(Board board) =>
         board.GetAllPieceLists().SelectMany(x => x).Sum(p =>
             getPieceValue(p.PieceType, p.Square, p.IsWhite) * (p.IsWhite ? 1 : -1));
-
-
-
-    //the DEBUGS are in place even tho it's called twice becaus in the end it shouldt be called more than once
 
     // getPieceValue
     // gets the value of one piece depending on its type and its position on the board
@@ -211,27 +195,10 @@ public class EvilBot : IChessBot
     // isWhite: if the piece is white. used to flip the board if necessary 
     private float getPieceValue(PieceType pieceType, Square s, bool IsWhite) //#DEBUG 
     { //#DEBUG
-      //float endGameBonus = 0; //commenting out the endgame bonus for now as it is unused
         int pieceTypeIndex = (int)pieceType - 1;
         if (pieceTypeIndex < 0) return 0;
 
-        //int x = s.File, y = s.Rank;
-        ////Console.WriteLine(((x > 3 ? 7 - x : x /* this mirrors the table*/) + y * 4 + pieceTypeIndex * 32) * 2);
-        ////if(IsEndgameNoFunction && pieceTypeIndex == 6)
-        ////{
-        ////     //int distanceBonus = 10 * (7 - distanceToEnemyKing); // Adjust the bonus factor as needed
-        ////}    
-        //return pieceValues[pieceTypeIndex] + pieceSqareValues[
-        //    (x > 3 ? 7 - x : x) // this mirrors the table to use less BBS
-        //    + (IsWhite ? 7 - y : y) * 4 + pieceTypeIndex * 32 // flip the table if it is white
-        //    + (IsEndgameNoFunction ? 192 : 0)] // use endgame values if we are in the endgame
-        //        * 5 - 50;
-        //Console.WriteLine(((x > 3 ? 7 - x : x /* this mirrors the table*/) + y * 4 + pieceTypeIndex * 32) * 2);
-        //if(IsEndgameNoFunction && pieceTypeIndex == 6)
-        //{
-        //     //int distanceBonus = 10 * (7 - distanceToEnemyKing); // Adjust the bonus factor as needed
-        //}    
-        int flatPos = (s.File > 3 ? 7 - s.Index : s.File) // this mirrors the table to use less BBS
+        int flatPos = (s.File > 3 ? 7 - s.File : s.File) // this mirrors the table to use less BBS
             + (IsWhite ? 7 - s.Rank : s.Rank) * 4 // flip the table if it is white
             + pieceTypeIndex * 32; // choose the correct table depending on what type of piece
         return pieceValues[pieceTypeIndex] + (pieceSqareValues[flatPos] * phase + pieceSqareValues[flatPos + 192] * (24 - phase)) / 24 * 3.5f - 167;

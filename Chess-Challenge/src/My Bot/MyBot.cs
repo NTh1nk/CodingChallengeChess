@@ -141,9 +141,19 @@ public class MyBot : IChessBot
         var storedBestMove = result.bestMove.RawValue; // this automaticly happens when we do move == otherMove, but it's slighty faster do to only calculating it once. can be removed if needed, token wise
         List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(m, currentPlayer > 0))).ToList();
         // if(depth < 1) sortedMoves.Add(new (Move.NullMove, prevBase));
+        board.ForceSkipTurn();
         sortedMoves = sortedMoves.OrderByDescending(
             item => foundTable && storedBestMove == item.move.RawValue && result.depth > qd ? infinity
-        : item.Base - (item.move.IsCapture ? pieceValues[(int)item.move.MovePieceType - 1] / 3 : 0)).ToList(); // if it's a capture it subtracks the attackers value thereby creating MVV-LVA (Most Valuable Victim - Least Valuable Aggressor)
+        : item.Base 
+            - 
+            (item.move.IsCapture
+                ? pieceValues[(int)item.move.MovePieceType - 1] / 3 
+                : 0) 
+            - (isPieceProtectedAfterMove(board, item.move) 
+                ? 30
+                : 0)).ToList(); // if it's a capture it subtracks the attackers value thereby creating MVV-LVA (Most Valuable Victim - Least Valuable Aggressor)
+        board.UndoSkipTurn();
+        
         float origMin = min;
         // Iterate through sortedMoves and evaluate potential moves
         foreach (var (move, Base) in sortedMoves)
