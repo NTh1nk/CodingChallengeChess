@@ -11,7 +11,7 @@ public class MyBot : IChessBot
     // right now funktions are seperated. before submision, everything will be compacted into the think function if possible.
     //---this section is variables designated to zobrist hashing and the transportition table---
 
-    static ulong boardHashLen = 1 << 20;
+    const ulong boardHashLen = (1 << 20);
     (ulong key, float boardVal, int depth, Move bestMove, int bound)[] boardHashes = new (ulong, float, int, Move, int)[boardHashLen]; //dict <zobrist key, tuple<total_board_value, depth_iteration, bestMove>>
     
     //right now this funktion is not needed as it seems board has a funktion to get the zobrist key but it might need to be reintruduced if the api funktion is to slow
@@ -59,7 +59,7 @@ public class MyBot : IChessBot
 
     int phase = 0;
     int[] phaseValues = { 0, 0, 1, 1, 2, 4, 0};
-    int qd = -20; // quince search depth
+    int qd = -5; // quince search depth
     public void updatePhase(Board board) //#DEBUG
     { //#DEBUG
         phase = board.GetAllPieceLists()
@@ -70,6 +70,7 @@ public class MyBot : IChessBot
     }
     public Move Think(Board board, Timer timer)
     {
+        //Console.WriteLine(getPieceValue(PieceType.Pawn, new Square(1, 1), false));
 
         pieceSqareValues = toPieceArray(new[] { 4747474776866575, 4649555643514953, 4047465140464645, 3747424147474747, 0022383326366858, 3465586645525363, 4449525141455150, 3932444717413138, 3949243740524244, 4358605946495362, 4651515547525252, 4952524738474341, 5759576255576465, 4653555841444955, 3740444735404343, 3543424542444852, 3947565141364648, 4443495040404343, 4540454543484447, 3745514847424550, 2954524356474245, 4554484343424440, 3347403643434134, 4849452943585132, 4747474799979386, 7476726757545149, 5150474549494648, 5150505047474747, 3137443940454047, 4142505043485454, 4246525541474752, 3542454639334143, 4341444545464944, 4845474747505150, 4648515344475050, 4342454741454146, 5150535251515151, 4949494949485148, 4849504946474647, 4646474845484847, 4554545543535759, 4249506148545460, 4255536143405249, 4141394338394135, 2637424244525152, 5052545245545455, 4246535442475153, 4044495132384144 }); // use https://onlinestringtools.com/split-string to split into 16 long parts
         updatePhase(board);
@@ -78,10 +79,10 @@ public class MyBot : IChessBot
         weAreWhite = board.IsWhiteToMove;
         Console.WriteLine("---calculate new move--- " + (weAreWhite ? "W" : "B")); //#DEBUG
         bestMove = Move.NullMove;
-        for (int depth = 1; depth <= 20; depth++)
+        for (int depth = 1; depth <= 30; depth++)
         {
             miniMax(board, depth, weAreWhite ? 1 : -1, -infinity + 10, infinity - 10, getPieceValues(board) * (weAreWhite ? 1 : -1), 0, timer);
-            if (timer.MillisecondsElapsedThisTurn > timer.MillisecondsRemaining / 60)
+            if (timer.MillisecondsElapsedThisTurn > timer.MillisecondsRemaining / 30)
             { // #DEBUG
                 Console.WriteLine("reached depth: " + depth); //#DEBUG
                 break;
@@ -89,6 +90,8 @@ public class MyBot : IChessBot
             if (timer.MillisecondsRemaining < 3000)
                 qd = 0;
         }
+
+
 
 
         //if (boardHashes.Count > 9500)
@@ -100,7 +103,7 @@ public class MyBot : IChessBot
         //foreach (ulong i in boardHashes.Keys) if (boardHashes[i].Item2 < boardHashCounter - maxSearchDepth) boardHashes.Remove(i); 
         Console.WriteLine("------ " + (weAreWhite ? "W" : "B")); //#DEBUG
 
-        return bestMove;
+        return bestMove == Move.NullMove ? board.GetLegalMoves()[0] : bestMove;
         //Console.WriteLine(isPieceProtectedAfterMove(board, moves[0]));
 
     }
@@ -156,7 +159,7 @@ public class MyBot : IChessBot
         // Iterate through sortedMoves and evaluate potential moves
         foreach (var (move, Base) in sortedMoves)
         {
-             //if (timer.MillisecondsElapsedThisTurn > timer.MillisecondsRemaining / 30) return infinity;
+             if (timer.MillisecondsElapsedThisTurn > timer.MillisecondsRemaining / 30) return infinity;
             
             float v = 0;
             board.MakeMove(move);
@@ -208,13 +211,22 @@ public class MyBot : IChessBot
         if (pieceTypeIndex < 0) return 0;
 
         int flatPos = s.Index;
-        if (!IsWhite) flatPos ^= 0b111000; // flip the y axis
-        if (s.File > 3) flatPos ^= 0b000111;
-        flatPos = flatPos & 0b111000 / 2 + flatPos & 0b000111;
-        flatPos += pieceTypeIndex * 32;
+        if (IsWhite) flatPos ^= 0b111000; // flip the board if we are white
+        if (s.File > 3) flatPos ^= 0b000111; // mirror the board to use less bbs
+        flatPos = (flatPos & 0b111000) >> 1 | (flatPos & 0b000011) + pieceTypeIndex * 32; // shift the ranks down beacouse we only have 4 files instead of 8
+
+        //int flatPos = s.Index;
+        //int rank = (((flatPos & 0b111000) ^ (IsWhite ? 0b111000 : 0) >> 1); // flip the y axis
+
+        //if (s.File > 3) flatPos ^= 0b000111;
+        //flatPos = rank | (flatPos & 0b000011);
+
+        //Console.WriteLine(flatPos);
+
+        
         //int flatPos =
         //    (s.File > 3 ? 7 - s.File : s.File) // this mirrors the table to use less BBS
-            //+ (IsWhite ? 7 - s.Rank : s.Rank) * 4 // flip the table if it is white
+        //    + (IsWhite ? 7 - s.Rank : s.Rank) * 4 // flip the table if it is white
         //    + pieceTypeIndex * 32; // choose the correct table depending on what type of piece
         return pieceValues[pieceTypeIndex] + (pieceSqareValues[flatPos] * phase + pieceSqareValues[flatPos + 192] * (24 - phase)) / 24 * 3.5f - 167;
     } //#DEBUG
