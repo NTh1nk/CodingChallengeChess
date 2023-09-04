@@ -151,15 +151,9 @@ public class MyBot : IChessBot
              //if (timer.MillisecondsElapsedThisTurn > timer.MillisecondsRemaining / 30) return infinity;
             
             float v = 0;
-
-            
-            
-
             board.MakeMove(move);
 
             float newBase = move.IsEnPassant || move.IsCastles ? getPieceValues(board) * currentPlayer : (prevBase + Base); // if it is enPassent we recalculate the move
-
-
                 
             v =
                 depth > qd ? //if
@@ -190,20 +184,9 @@ public class MyBot : IChessBot
 
         return bMoveMat;
     }
-
-    /* private int ManhattanDistance(Square square1, Square square2)
-    {
-    int dx = Math.Abs(square1.File - square2.File);
-    int dy = Math.Abs(square1.Rank - square2.Rank);
-    return dx + dy;
-    } */
     float getPieceValues(Board board) =>
         board.GetAllPieceLists().SelectMany(x => x).Sum(p =>
             getPieceValue(p.PieceType, p.Square, p.IsWhite) * (p.IsWhite ? 1 : -1));
-
-
-
-    //the DEBUGS are in place even tho it's called twice becaus in the end it shouldt be called more than once
 
     // getPieceValue
     // gets the value of one piece depending on its type and its position on the board
@@ -212,26 +195,9 @@ public class MyBot : IChessBot
     // isWhite: if the piece is white. used to flip the board if necessary 
     private float getPieceValue(PieceType pieceType, Square s, bool IsWhite) //#DEBUG 
     { //#DEBUG
-      //float endGameBonus = 0; //commenting out the endgame bonus for now as it is unused
         int pieceTypeIndex = (int)pieceType - 1;
         if (pieceTypeIndex < 0) return 0;
 
-        //int x = s.File, y = s.Rank;
-        ////Console.WriteLine(((x > 3 ? 7 - x : x /* this mirrors the table*/) + y * 4 + pieceTypeIndex * 32) * 2);
-        ////if(IsEndgameNoFunction && pieceTypeIndex == 6)
-        ////{
-        ////     //int distanceBonus = 10 * (7 - distanceToEnemyKing); // Adjust the bonus factor as needed
-        ////}    
-        //return pieceValues[pieceTypeIndex] + pieceSqareValues[
-        //    (x > 3 ? 7 - x : x) // this mirrors the table to use less BBS
-        //    + (IsWhite ? 7 - y : y) * 4 + pieceTypeIndex * 32 // flip the table if it is white
-        //    + (IsEndgameNoFunction ? 192 : 0)] // use endgame values if we are in the endgame
-        //        * 5 - 50;
-        //Console.WriteLine(((x > 3 ? 7 - x : x /* this mirrors the table*/) + y * 4 + pieceTypeIndex * 32) * 2);
-        //if(IsEndgameNoFunction && pieceTypeIndex == 6)
-        //{
-        //     //int distanceBonus = 10 * (7 - distanceToEnemyKing); // Adjust the bonus factor as needed
-        //}    
         int flatPos = (s.File > 3 ? 7 - s.File : s.File) // this mirrors the table to use less BBS
             + (IsWhite ? 7 - s.Rank : s.Rank) * 4 // flip the table if it is white
             + pieceTypeIndex * 32; // choose the correct table depending on what type of piece
