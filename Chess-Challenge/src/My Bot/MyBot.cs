@@ -4,6 +4,7 @@ using static System.Math;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.FlowAnalysis;
+using System.ComponentModel.DataAnnotations.Schema;
 
 public class MyBot : IChessBot
 {
@@ -77,7 +78,7 @@ public class MyBot : IChessBot
         weAreWhite = board.IsWhiteToMove;
         Console.WriteLine("---calculate new move--- " + (weAreWhite ? "W" : "B")); //#DEBUG
         bestMove = Move.NullMove;
-        for (int depth = 1; depth <= 30; depth++)
+        for (int depth = 1; depth <= 20; depth++)
         {
             miniMax(board, depth, weAreWhite ? 1 : -1, -infinity + 10, infinity - 10, getPieceValues(board) * (weAreWhite ? 1 : -1), 0, timer);
             if (timer.MillisecondsElapsedThisTurn > timer.MillisecondsRemaining / 60)
@@ -133,26 +134,23 @@ public class MyBot : IChessBot
         var result = boardHashes[key % boardHashLen];
         bool foundTable = result.key == key;
         
-        //if (ply > 0 && foundTable && result.depth >= depth &&
-        //    (result.bound == 1
-        //    || result.bound == 0 && result.boardVal >= max
-        //    || result.bound == 2 && result.boardVal <= min
-        //    )) return result.boardVal;
+        if (ply > 0 && foundTable && result.depth >= depth &&
+            (result.bound == 1
+            || result.bound == 0 && result.boardVal >= max
+            || result.bound == 2 && result.boardVal <= min
+            )) return result.boardVal;
         var storedBestMove = result.bestMove.RawValue; // this automaticly happens when we do move == otherMove, but it's slighty faster do to only calculating it once. can be removed if needed, token wise
         List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(m, currentPlayer > 0))).ToList();
         // if(depth < 1) sortedMoves.Add(new (Move.NullMove, prevBase));
-        board.ForceSkipTurn();
+        
         sortedMoves = sortedMoves.OrderByDescending(
-            item => foundTable && storedBestMove == item.move.RawValue && result.depth > qd ? infinity
-        : item.Base 
-            - 
-            (item.move.IsCapture
-                ? pieceValues[(int)item.move.MovePieceType - 1] / 3 
-                : 0) 
-            - (isPieceProtectedAfterMove(board, item.move) 
-                ? 30
-                : 0)).ToList(); // if it's a capture it subtracks the attackers value thereby creating MVV-LVA (Most Valuable Victim - Least Valuable Aggressor)
-        board.UndoSkipTurn();
+            item => foundTable && storedBestMove == item.move.RawValue && result.depth > qd
+            ? infinity
+            : item.Base
+            - (item.move.IsCapture
+                ? pieceValues[(int)item.move.MovePieceType - 1] / 3
+                : 0)).ToList();
+            // if it's a capture it subtracks the attackers value thereby creating MVV-LVA (Most Valuable Victim - Least Valuable Aggressor)
         
         float origMin = min;
         // Iterate through sortedMoves and evaluate potential moves
@@ -181,6 +179,7 @@ public class MyBot : IChessBot
                 bMove = move;
                 bMoveMat = v;
                 if (ply < 1) bestMove = bMove; // if it's root we want to asign global best move to local best move
+                // ^ has to be here if we are using simom
                 // alpha beta
                 min = Max(min, v);
                 if (max <= min) break;
@@ -208,9 +207,15 @@ public class MyBot : IChessBot
         int pieceTypeIndex = (int)pieceType - 1;
         if (pieceTypeIndex < 0) return 0;
 
-        int flatPos = (s.File > 3 ? 7 - s.File : s.File) // this mirrors the table to use less BBS
-            + (IsWhite ? 7 - s.Rank : s.Rank) * 4 // flip the table if it is white
-            + pieceTypeIndex * 32; // choose the correct table depending on what type of piece
+        int flatPos = s.Index;
+        if (!IsWhite) flatPos ^= 0b111000; // flip the y axis
+        if (s.File > 3) flatPos ^= 0b000111;
+        flatPos = flatPos & 0b111000 / 2 + flatPos & 0b000111;
+        flatPos += pieceTypeIndex * 32;
+        //int flatPos =
+        //    (s.File > 3 ? 7 - s.File : s.File) // this mirrors the table to use less BBS
+            //+ (IsWhite ? 7 - s.Rank : s.Rank) * 4 // flip the table if it is white
+        //    + pieceTypeIndex * 32; // choose the correct table depending on what type of piece
         return pieceValues[pieceTypeIndex] + (pieceSqareValues[flatPos] * phase + pieceSqareValues[flatPos + 192] * (24 - phase)) / 24 * 3.5f - 167;
     } //#DEBUG
 
