@@ -3,6 +3,7 @@ using System;
 using static System.Math;
 using System.Collections.Generic;
 using System.Linq;
+using System.Dynamic;
 
 public class MyBot : IChessBot
 {
@@ -52,6 +53,10 @@ public class MyBot : IChessBot
     int addedZobristKeys = 0; //#DEBUG
     int usedZobristKeys = 0; //#DEBUG
                              // -----------------------------
+    int numberOfAtttackers = 0;
+    
+    int[] valueOfAttacks = {0};
+    int[] attackWeight = {0};
 
     Move bestMove;
 
@@ -160,6 +165,7 @@ public class MyBot : IChessBot
              if (timer.MillisecondsElapsedThisTurn > timer.MillisecondsRemaining / 30) return infinity;
             
             float v = 0;
+            //getKingsafety(board);
             board.MakeMove(move);
 
             float newBase = move.IsEnPassant || move.IsCastles ? getPieceValues(board) * currentPlayer : (prevBase + Base); // if it is enPassent we recalculate the move
@@ -194,15 +200,26 @@ public class MyBot : IChessBot
 
         return bMoveMat;
     }
+
+
     float getPieceValues(Board board) =>
         board.GetAllPieceLists().SelectMany(x => x).Sum(p =>
             getPieceValue(p.PieceType, p.Square, p.IsWhite) * (p.IsWhite ? 1 : -1));
+        
+    
 
     // getPieceValue
     // gets the value of one piece depending on its type and its position on the board
     // pieceType: the type of the piece that should be avaluated
     // s: the sqare the piece is standing on (only used to calculate piece sqare tables)
     // isWhite: if the piece is white. used to flip the board if necessary 
+    float getKingsafety(Board board) {
+
+        board.GetKingSquare(true);
+        
+
+        return 0; 
+    }
     private float getPieceValue(PieceType pieceType, Square s, bool IsWhite) //#DEBUG 
     { //#DEBUG
         int pieceTypeIndex = (int)pieceType - 1;
@@ -258,3 +275,4 @@ public class MyBot : IChessBot
     //    return prevSeed;
     //}
 }
+
