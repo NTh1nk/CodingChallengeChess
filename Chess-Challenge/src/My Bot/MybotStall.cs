@@ -1,10 +1,10 @@
-﻿using ChessChallenge.API;
+using ChessChallenge.API;
 using System;
 using static System.Math;
 using System.Collections.Generic;
 using System.Linq;
 
-public class EvilBot : IChessBot
+public class MyBotstall : IChessBot
 {
     // right now funktions are seperated. before submision, everything will be compacted into the think function if possible.
     //---this section is variables designated to zobrist hashing and the transportition table---
@@ -80,10 +80,7 @@ public class EvilBot : IChessBot
         for (int depth = 1; depth <= 30; depth++)
         {
             miniMax(board, depth, weAreWhite ? 1 : -1, -infinity + 10, infinity - 10, getPieceValues(board) * (weAreWhite ? 1 : -1), 0, timer);
-            if (timer.MillisecondsElapsedThisTurn > timer.MillisecondsRemaining / 30)
-            //{ // #DEBUG
-              //  Console.WriteLine("reached depth: " + depth); //#DEBUG
-                break;
+     
             //}
             if (timer.MillisecondsRemaining < 3000)
                 qd = 0;
@@ -135,11 +132,11 @@ public class EvilBot : IChessBot
         var result = boardHashes[key % boardHashLen];
         bool foundTable = result.key == key;
         
-        //if (ply > 0 && foundTable && result.depth >= depth &&
-        //    (result.bound == 1
-        //    || result.bound == 0 && result.boardVal >= max
-        //    || result.bound == 2 && result.boardVal <= min
-        //    )) return result.boardVal;
+        if (ply > 0 && foundTable && result.depth >= depth &&
+            (result.bound == 1
+            || result.bound == 0 && result.boardVal >= max
+            || result.bound == 2 && result.boardVal <= min
+            )) return result.boardVal;
         var storedBestMove = result.bestMove.RawValue; // this automaticly happens when we do move == otherMove, but it's slighty faster do to only calculating it once. can be removed if needed, token wise
         List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(m, currentPlayer > 0))).ToList();
         // if(depth < 1) sortedMoves.Add(new (Move.NullMove, prevBase));
@@ -162,11 +159,11 @@ public class EvilBot : IChessBot
             float v = 0;
             board.MakeMove(move);
 
-            float newBase = move.IsEnPassant || move.IsCastles ? getPieceValues(board) * currentPlayer : (prevBase + Base) * currentPlayer; // if it is enPassent we recalculate the move
+            float newBase = move.IsEnPassant || move.IsCastles ? getPieceValues(board) * currentPlayer : (prevBase + Base); // if it is enPassent we recalculate the move
                 
             v =
                 depth > qd ? //if
-                    miniMax(board, depth - 1, -currentPlayer, max, min, newBase, ply + 1, timer): //if the depth is bigger than qd (q search depth) use minimax (we swap max and min because the player has changed)
+                    -miniMax(board, depth - 1, -currentPlayer, -max, -min, -newBase, ply + 1, timer): //if the depth is bigger than qd (q search depth) use minimax (we swap max and min because the player has changed)
                     newBase;
 
             board.UndoMove(move);
