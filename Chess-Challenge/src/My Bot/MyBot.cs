@@ -135,11 +135,11 @@ public class MyBot : IChessBot
         var result = boardHashes[key % boardHashLen];
         bool foundTable = result.key == key;
         
-        if (ply > 0 && foundTable && result.depth >= depth &&
-            (result.bound == 1
-            || result.bound == 0 && result.boardVal >= max
-            || result.bound == 2 && result.boardVal <= min
-            )) return result.boardVal;
+        //if (ply > 0 && foundTable && result.depth >= depth &&
+        //    (result.bound == 1
+        //    || result.bound == 0 && result.boardVal >= max
+        //    || result.bound == 2 && result.boardVal <= min
+        //    )) return result.boardVal;
         var storedBestMove = result.bestMove.RawValue; // this automaticly happens when we do move == otherMove, but it's slighty faster do to only calculating it once. can be removed if needed, token wise
         List<(Move move, float Base)> sortedMoves = moves.Select(m => (m, evaluateBase(m, currentPlayer > 0))).ToList();
         // if(depth < 1) sortedMoves.Add(new (Move.NullMove, prevBase));
@@ -162,11 +162,11 @@ public class MyBot : IChessBot
             float v = 0;
             board.MakeMove(move);
 
-            float newBase = move.IsEnPassant || move.IsCastles ? getPieceValues(board) * currentPlayer : (prevBase + Base); // if it is enPassent we recalculate the move
+            float newBase = move.IsEnPassant || move.IsCastles ? getPieceValues(board) * currentPlayer : (prevBase + Base) * currentPlayer; // if it is enPassent we recalculate the move
                 
             v =
                 depth > qd ? //if
-                    -miniMax(board, depth - 1, -currentPlayer, -max, -min, -newBase, ply + 1, timer): //if the depth is bigger than qd (q search depth) use minimax (we swap max and min because the player has changed)
+                    miniMax(board, depth - 1, -currentPlayer, max, min, newBase, ply + 1, timer): //if the depth is bigger than qd (q search depth) use minimax (we swap max and min because the player has changed)
                     newBase;
 
             board.UndoMove(move);
