@@ -58,8 +58,8 @@ public class MyBotCut : IChessBot
     int phase = 0;
     int[] phaseValues = { 0, 0, 1, 1, 2, 4, 0};
     int qd = -5; // quince search depth
-    public void updatePhase(Board board) //#DEBUG
-    { //#DEBUG
+    public void updatePhase(Board board) 
+    { 
         phase = board.GetAllPieceLists()
             .SelectMany( x => x)
             .Sum(
@@ -203,8 +203,8 @@ public class MyBotCut : IChessBot
     // pieceType: the type of the piece that should be avaluated
     // s: the sqare the piece is standing on (only used to calculate piece sqare tables)
     // isWhite: if the piece is white. used to flip the board if necessary 
-    private float getPieceValue(PieceType pieceType, Square s, bool IsWhite) //#DEBUG 
-    { //#DEBUG
+    private float getPieceValue(PieceType pieceType, Square s, bool IsWhite) 
+    { 
         int pieceTypeIndex = (int)pieceType - 1;
         if (pieceTypeIndex < 0) return 0;
 
