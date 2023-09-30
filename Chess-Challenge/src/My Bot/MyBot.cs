@@ -47,10 +47,10 @@ public class MyBot : IChessBot
     float infinity = 1000000; // should work aslong as it's bigger than: 900 + 500 * 2 + 320 * 2 + 300 * 2 + 100 * 8 + 50 * 16 = 4740 (king not included because both colors always has a king
 
     // debug variables (variables only used for debuging)
-    int searchedMoves = 0; //#DEBUG
-    int foundCheckMates = 0; //#DEBUG
-    int addedZobristKeys = 0; //#DEBUG
-    int usedZobristKeys = 0; //#DEBUG
+    //int searchedMoves = 0; //#DEBUG
+    //int foundCheckMates = 0; //#DEBUG
+    //int addedZobristKeys = 0; //#DEBUG
+    //int usedZobristKeys = 0; //#DEBUG
                              // -----------------------------
 
     Move bestMove;
@@ -58,8 +58,8 @@ public class MyBot : IChessBot
     int phase = 0;
     int[] phaseValues = { 0, 0, 1, 1, 2, 4, 0};
     int qd = -5; // quince search depth
-    public void updatePhase(Board board) //#DEBUG
-    { //#DEBUG
+    public void updatePhase(Board board) 
+    { 
         phase = board.GetAllPieceLists()
             .SelectMany( x => x)
             .Sum(
@@ -72,19 +72,19 @@ public class MyBot : IChessBot
 
         pieceSqareValues = toPieceArray(new[] { 4747474776866575, 4649555643514953, 4047465140464645, 3747424147474747, 0022383326366858, 3465586645525363, 4449525141455150, 3932444717413138, 3949243740524244, 4358605946495362, 4651515547525252, 4952524738474341, 5759576255576465, 4653555841444955, 3740444735404343, 3543424542444852, 3947565141364648, 4443495040404343, 4540454543484447, 3745514847424550, 2954524356474245, 4554484343424440, 3347403643434134, 4849452943585132, 4747474799979386, 7476726757545149, 5150474549494648, 5150505047474747, 3137443940454047, 4142505043485454, 4246525541474752, 3542454639334143, 4341444545464944, 4845474747505150, 4648515344475050, 4342454741454146, 5150535251515151, 4949494949485148, 4849504946474647, 4646474845484847, 4554545543535759, 4249506148545460, 4255536143405249, 4141394338394135, 2637424244525152, 5052545245545455, 4246535442475153, 4044495132384144 }); // use https://onlinestringtools.com/split-string to split into 16 long parts
         updatePhase(board);
-        Console.WriteLine("Phase: " + phase); //#Debug
+        //Console.WriteLine("Phase: " + phase); //#Debug
 
         weAreWhite = board.IsWhiteToMove;
-        Console.WriteLine("---calculate new move--- " + (weAreWhite ? "W" : "B")); //#DEBUG
+       // Console.WriteLine("---calculate new move--- " + (weAreWhite ? "W" : "B")); //#DEBUG
         bestMove = Move.NullMove;
         for (int depth = 1; depth <= 30; depth++)
         {
             miniMax(board, depth, weAreWhite ? 1 : -1, -infinity + 10, infinity - 10, getPieceValues(board) * (weAreWhite ? 1 : -1), 0, timer);
             if (timer.MillisecondsElapsedThisTurn > timer.MillisecondsRemaining / 30)
-            { // #DEBUG
-                Console.WriteLine("reached depth: " + depth); //#DEBUG
+            //{ // #DEBUG
+              //  Console.WriteLine("reached depth: " + depth); //#DEBUG
                 break;
-            }
+            //}
             if (timer.MillisecondsRemaining < 3000)
                 qd = 0;
         }
@@ -97,9 +97,9 @@ public class MyBot : IChessBot
         //    Console.WriteLine("flushing bordhashes buffer"); //#DEBUG
         //} //#DEBUG
 
-        Console.WriteLine("dececion took: " + timer.MillisecondsElapsedThisTurn + " ms this turn"); //#DEBUG
+       //Console.WriteLine("dececion took: " + timer.MillisecondsElapsedThisTurn + " ms this turn"); //#DEBUG
         //foreach (ulong i in boardHashes.Keys) if (boardHashes[i].Item2 < boardHashCounter - maxSearchDepth) boardHashes.Remove(i); 
-        Console.WriteLine("------ " + (weAreWhite ? "W" : "B")); //#DEBUG
+        //Console.WriteLine("------ " + (weAreWhite ? "W" : "B")); //#DEBUG
 
         return bestMove == Move.NullMove ? board.GetLegalMoves()[0] : bestMove;
         //Console.WriteLine(isPieceProtectedAfterMove(board, moves[0]));
@@ -203,8 +203,8 @@ public class MyBot : IChessBot
     // pieceType: the type of the piece that should be avaluated
     // s: the sqare the piece is standing on (only used to calculate piece sqare tables)
     // isWhite: if the piece is white. used to flip the board if necessary 
-    private float getPieceValue(PieceType pieceType, Square s, bool IsWhite) //#DEBUG 
-    { //#DEBUG
+    private float getPieceValue(PieceType pieceType, Square s, bool IsWhite) 
+    { 
         int pieceTypeIndex = (int)pieceType - 1;
         if (pieceTypeIndex < 0) return 0;
 
@@ -235,7 +235,7 @@ public class MyBot : IChessBot
 
 
     //left in the code for now even tho it's unused might be used in the future
-    public bool isPieceProtectedAfterMove(Board board, Move move) => !board.SquareIsAttackedByOpponent(move.TargetSquare); //#DEBUG
+    //public bool isPieceProtectedAfterMove(Board board, Move move) => !board.SquareIsAttackedByOpponent(move.TargetSquare); //#DEBUG
 
     float evaluateBase(Move move, bool isWhite)
     {
