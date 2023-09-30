@@ -119,7 +119,7 @@ public class MyBot : IChessBot
             
             bMoveMat = prevBase;
 
-            if (max <= min) return prevBase;
+            //if (max <= min) return prevBase;
             min = Max(min, prevBase);
         }
 
@@ -127,7 +127,7 @@ public class MyBot : IChessBot
         if (moves.Length == 0) // if there are no legal moves we can do
             return depth > 0
                 ? board.IsInCheck()
-                    ? -infinity // checkmate
+                    ? -infinity * currentPlayer // checkmate
                     : 0 // stalemate
                 : prevBase; // no more capturing moves
 
@@ -157,7 +157,7 @@ public class MyBot : IChessBot
         // Iterate through sortedMoves and evaluate potential moves
         foreach (var (move, Base) in sortedMoves)
         {
-             if (timer.MillisecondsElapsedThisTurn > timer.MillisecondsRemaining / 30) return infinity;
+             if (timer.MillisecondsElapsedThisTurn > timer.MillisecondsRemaining / 30) return infinity * currentPlayer;
             
             float v = 0;
             board.MakeMove(move);
