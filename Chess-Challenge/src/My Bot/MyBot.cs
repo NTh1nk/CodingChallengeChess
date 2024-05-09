@@ -41,7 +41,6 @@ public class MyBot : IChessBot
             900, // Queen
             2000 }; // King
 
-    public bool IsEndgameNoFunction = false;
 
 
     float infinity = 1000000; // should work aslong as it's bigger than: 900 + 500 * 2 + 320 * 2 + 300 * 2 + 100 * 8 + 50 * 16 = 4740 (king not included because both colors always has a king
